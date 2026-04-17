@@ -1,13 +1,19 @@
 package co.kr.allpick.domain.order.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import co.kr.allpick.domain.order.entity.Order.OrderStatus;
+import co.kr.allpick.domain.order.entity.OrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import co.kr.allpick.domain.order.entity.Order;
+import co.kr.allpick.domain.order.entity.OrderItem;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -34,4 +40,18 @@ public class OrderResponseDto {
 
     @Schema(description = "주문 상품 목록")
     private List<OrderItemResponseDto> orderItems;
+    
+    public static OrderResponseDto from(Order order, List<OrderItem> orderItems) {
+        return OrderResponseDto.builder()
+                .orderId(order.getOrderId())
+                .orderNumber(order.getOrderNumber())
+                .totalAmount(order.getTotalAmount())
+                .shippingFee(order.getShippingFee())
+                .status(order.getStatus())
+                .orderedAt(order.getOrderedAt())
+                .orderItems(orderItems.stream()
+                        .map(OrderItemResponseDto::from)
+                        .collect(Collectors.toList()))
+                .build();
+    }
 }

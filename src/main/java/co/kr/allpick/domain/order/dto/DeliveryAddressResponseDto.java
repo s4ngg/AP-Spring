@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.order.dto;
 
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,4 +30,16 @@ public class DeliveryAddressResponseDto {
 
     @Schema(description = "기본 배송지 여부", example = "false")
     private boolean isDefault;
+    
+    public static DeliveryAddressResponseDto from(DeliveryAddress address) {
+        return DeliveryAddressResponseDto.builder()
+                .addressId(address.getAddressId())
+                .recipientName(address.getRecipientName())
+                .phone(address.getPhone())
+                .zipCode(address.getZipCode())
+                .address(address.getAddress())
+                .addressDetail(address.getAddressDetail())
+                .isDefault(address.isDefault())
+                .build();
+    }
 }
