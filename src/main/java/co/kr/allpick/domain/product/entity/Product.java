@@ -1,9 +1,9 @@
-package co.kr.allpick.domain.cart.entity;
+package co.kr.allpick.domain.product.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import co.kr.allpick.domain.cart.dto.ProductReqDto;
+import co.kr.allpick.domain.product.dto.ProductReqDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -69,10 +69,21 @@ public class Product {
 				.descriptionDetail(reqDto.getDescriptionDetail())
 				.build();
 	}
-	
+	// 상품 수정하기 (존재 검증은 서비스에서...)
+	public void updateProduct(Long productId, ProductReqDto reqDto) {
+		 
+				this.categoryId = reqDto.getCategoryId();
+				this.productName = reqDto.getProductName();
+				this.description = reqDto.getDescription();
+				this.price = reqDto.getPrice();
+				this.stockQuantity = reqDto.getStockQuantity();
+				this.thumbnailUrl = reqDto.getThumbnailUrl();
+				this.descriptionDetail = reqDto.getDescriptionDetail();
+				this.updatedAt = LocalDateTime.now();
+	}    
 	
 }
-
+ 
 
 
 

@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.cart.controller;
+package co.kr.allpick.domain.product.docs;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 // !!!!!!!!! 틀만 만들어 두었음.
 @Tag(name = "Order", description = "주문 API")
-public interface CartControllerDocs {
+public interface ProductControllerDocs {
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
     ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(

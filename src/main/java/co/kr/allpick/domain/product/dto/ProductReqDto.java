@@ -1,9 +1,9 @@
-package co.kr.allpick.domain.cart.dto;
+package co.kr.allpick.domain.product.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import co.kr.allpick.domain.cart.entity.Product;
+import co.kr.allpick.domain.product.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

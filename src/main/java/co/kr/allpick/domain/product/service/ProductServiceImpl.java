@@ -1,16 +1,17 @@
-package co.kr.allpick.domain.cart.service;
+package co.kr.allpick.domain.product.service;
 
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import co.kr.allpick.domain.cart.dto.ProductReqDto;
-import co.kr.allpick.domain.cart.dto.ProductResDto;
-import co.kr.allpick.domain.cart.entity.Product;
-import co.kr.allpick.domain.cart.repository.ProductRepository;
+import co.kr.allpick.domain.product.dto.ProductReqDto;
+import co.kr.allpick.domain.product.dto.ProductResDto;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.global.exception.BusinessException;
+import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-
 @RequiredArgsConstructor
 @Service
 public class ProductServiceImpl implements ProductService{
@@ -19,7 +20,7 @@ public class ProductServiceImpl implements ProductService{
 	
 	
 	@Override		// 상품 등록	: 요청온거 등록 후, 응답 반환
-	public ProductResDto createProduct(ProductReqDto reqDto) {
+	public ProductResDto  createProduct(ProductReqDto reqDto) {
 		// 요청 들어온거 엔티티 객체로 만들기
 		Product product = Product.ToEntity(reqDto);
 		// 만든 엔티티 객체를 실제로 저장
@@ -57,5 +58,14 @@ public class ProductServiceImpl implements ProductService{
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override		// 상품 수정 (단건)
+	public ProductResDto updateProduct(Long productId, ProductReqDto reqDto) {
+		Product product = productRepository.findById(productId)
+				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+		return null;
+	}
+
+
 	
 }
