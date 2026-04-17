@@ -1,12 +1,15 @@
 package co.kr.allpick.domain.order.dto;
 
-import java.util.List;
-
+import co.kr.allpick.domain.order.entity.Order;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -22,18 +25,15 @@ public class OrderCreateRequestDto {
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> orderItems;
 
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Schema(description = "주문 상품 요청 DTO")
-    public static class OrderItemRequestDto {
-
-        @NotNull
-        @Schema(description = "상품 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-        private Long productId;
-
-        @NotNull
-        @Schema(description = "수량", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
-        private Integer quantity;
+    public Order toEntity(Long memberId, String orderNumber) {
+        return Order.builder()
+                .memberId(memberId)
+                .addressId(this.addressId)
+                .orderNumber(orderNumber)
+                .totalAmount(BigDecimal.ZERO)
+                .shippingFee(3000)
+                .status(Order.OrderStatus.PENDING)
+                .orderedAt(LocalDateTime.now())
+                .build();
     }
 }

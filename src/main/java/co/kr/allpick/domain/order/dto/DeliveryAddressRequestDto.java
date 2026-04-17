@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.order.dto;
 
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -33,4 +34,16 @@ public class DeliveryAddressRequestDto {
 
     @Schema(description = "기본 배송지 여부", example = "false")
     private boolean isDefault;
+
+    public DeliveryAddress toEntity(Long memberId) {
+        return DeliveryAddress.builder()
+                .memberId(memberId)
+                .recipientName(this.recipientName)
+                .phone(this.phone)
+                .zipCode(this.zipCode)
+                .address(this.address)
+                .addressDetail(this.addressDetail)
+                .isDefault(this.isDefault)
+                .build();
+    }
 }
