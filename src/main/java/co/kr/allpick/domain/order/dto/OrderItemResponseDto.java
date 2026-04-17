@@ -2,6 +2,7 @@ package co.kr.allpick.domain.order.dto;
 
 import java.math.BigDecimal;
 
+import co.kr.allpick.domain.order.entity.OrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,4 +31,15 @@ public class OrderItemResponseDto {
 
     @Schema(description = "소계", example = "100000")
     private BigDecimal totalPrice;
+    
+    public static OrderItemResponseDto from(OrderItem item) {
+        return OrderItemResponseDto.builder()
+                .orderItemId(item.getOrderItemId())
+                .productId(item.getProductId())
+                .productName(item.getProductName())
+                .productPrice(item.getProductPrice())
+                .quantity(item.getQuantity())
+                .totalPrice(item.getTotalPrice())
+                .build();
+    }
 }

@@ -1,13 +1,14 @@
 package co.kr.allpick.domain.order.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import co.kr.allpick.domain.order.entity.Payment;
 import co.kr.allpick.domain.order.entity.Payment.PaymentMethod;
 import co.kr.allpick.domain.order.entity.Payment.PaymentStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -31,4 +32,15 @@ public class PaymentResponseDto {
 
     @Schema(description = "결제 완료 일시")
     private LocalDateTime paidAt;
+    
+    public static PaymentResponseDto from(Payment payment) {
+        return PaymentResponseDto.builder()
+                .paymentId(payment.getPaymentId())
+                .paymentKey(payment.getPaymentKey())
+                .method(payment.getMethod())
+                .amount(payment.getAmount())
+                .status(payment.getStatus())
+                .paidAt(payment.getPaidAt())
+                .build();
+    }
 }
