@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.kr.allpick.domain.member.service.AuthService;
 import co.kr.allpick.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Member", description = "회원 인증 API")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
