@@ -1,8 +1,8 @@
-package co.kr.allpick.domain.order.controller.docs;
+package co.kr.allpick.domain.coupon.controller.docs;
 
-import co.kr.allpick.domain.order.dto.CouponRegisterRequestDto;
-import co.kr.allpick.domain.order.dto.CouponResponseDto;
-import co.kr.allpick.domain.order.dto.MemberCouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.CouponRegisterRequestDto;
+import co.kr.allpick.domain.coupon.dto.CouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.MemberCouponResponseDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,7 +24,7 @@ public interface CouponControllerDocs {
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "쿠폰 등록 성공",
             content = @Content(examples = @ExampleObject(value = """
-                {
+                { 	 
                     "success": true,
                     "message": "쿠폰이 등록되었습니다.",
                     "data": {

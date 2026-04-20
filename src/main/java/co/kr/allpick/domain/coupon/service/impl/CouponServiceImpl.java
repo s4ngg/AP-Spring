@@ -1,13 +1,13 @@
-package co.kr.allpick.domain.order.service.impl;
+package co.kr.allpick.domain.coupon.service.impl;
 
-import co.kr.allpick.domain.order.dto.CouponRegisterRequestDto;
-import co.kr.allpick.domain.order.dto.CouponResponseDto;
-import co.kr.allpick.domain.order.dto.MemberCouponResponseDto;
-import co.kr.allpick.domain.order.entity.Coupon;
-import co.kr.allpick.domain.order.entity.MemberCoupon;
-import co.kr.allpick.domain.order.repository.CouponRepository;
-import co.kr.allpick.domain.order.repository.MemberCouponRepository;
-import co.kr.allpick.domain.order.service.CouponService;
+import co.kr.allpick.domain.coupon.dto.CouponRegisterRequestDto;
+import co.kr.allpick.domain.coupon.dto.CouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.MemberCouponResponseDto;
+import co.kr.allpick.domain.coupon.entity.Coupon;
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.coupon.repository.CouponRepository;
+import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
+import co.kr.allpick.domain.coupon.service.CouponService;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;

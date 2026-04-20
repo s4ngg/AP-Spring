@@ -1,10 +1,10 @@
-package co.kr.allpick.domain.order.controller;
+package co.kr.allpick.domain.coupon.controller;
 
-import co.kr.allpick.domain.order.controller.docs.CouponControllerDocs;
-import co.kr.allpick.domain.order.dto.CouponRegisterRequestDto;
-import co.kr.allpick.domain.order.dto.CouponResponseDto;
-import co.kr.allpick.domain.order.dto.MemberCouponResponseDto;
-import co.kr.allpick.domain.order.service.CouponService;
+import co.kr.allpick.domain.coupon.controller.docs.CouponControllerDocs;
+import co.kr.allpick.domain.coupon.dto.CouponRegisterRequestDto;
+import co.kr.allpick.domain.coupon.dto.CouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.MemberCouponResponseDto;
+import co.kr.allpick.domain.coupon.service.CouponService;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

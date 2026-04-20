@@ -1,8 +1,8 @@
-package co.kr.allpick.domain.order.service;
+package co.kr.allpick.domain.coupon.service;
 
-import co.kr.allpick.domain.order.dto.CouponRegisterRequestDto;
-import co.kr.allpick.domain.order.dto.CouponResponseDto;
-import co.kr.allpick.domain.order.dto.MemberCouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.CouponRegisterRequestDto;
+import co.kr.allpick.domain.coupon.dto.CouponResponseDto;
+import co.kr.allpick.domain.coupon.dto.MemberCouponResponseDto;
 
 import java.util.List;
 

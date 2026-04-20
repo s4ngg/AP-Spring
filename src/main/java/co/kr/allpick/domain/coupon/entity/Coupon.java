@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.order.entity;
+package co.kr.allpick.domain.coupon.entity;
 
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.*;

@@ -1,7 +1,5 @@
-package co.kr.allpick.domain.order.dto;
+package co.kr.allpick.domain.coupon.dto;
 
-import co.kr.allpick.domain.order.entity.Coupon;
-import co.kr.allpick.domain.order.entity.Coupon.DiscountType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,6 +9,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import co.kr.allpick.domain.coupon.entity.Coupon;
+import co.kr.allpick.domain.coupon.entity.Coupon.DiscountType;
 
 @Getter
 @NoArgsConstructor

@@ -1,13 +1,14 @@
-package co.kr.allpick.domain.order.dto;
+package co.kr.allpick.domain.coupon.dto;
 
-import co.kr.allpick.domain.order.entity.Coupon;
-import co.kr.allpick.domain.order.entity.Coupon.DiscountType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import co.kr.allpick.domain.coupon.entity.Coupon;
+import co.kr.allpick.domain.coupon.entity.Coupon.DiscountType;
 
 @Getter
 @Builder

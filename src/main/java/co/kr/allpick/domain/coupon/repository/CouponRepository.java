@@ -1,7 +1,8 @@
-package co.kr.allpick.domain.order.repository;
+package co.kr.allpick.domain.coupon.repository;
 
-import co.kr.allpick.domain.order.entity.Coupon;
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import co.kr.allpick.domain.coupon.entity.Coupon;
 
 import java.util.Optional;
 
