@@ -41,11 +41,19 @@ public class OrderResponseDto {
     @Schema(description = "주문 상품 목록")
     private List<OrderItemResponseDto> orderItems;
     
+    @Schema(description = "쿠폰 할인금액", example = "0")
+    private BigDecimal discountAmount;
+
+    @Schema(description = "회원 쿠폰 ID", example = "1")
+    private Long memberCouponId;
+    
     public static OrderResponseDto from(Order order, List<OrderItem> orderItems) {
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
                 .totalAmount(order.getTotalAmount())
+                .discountAmount(order.getDiscountAmount())
+                .memberCouponId(order.getMemberCouponId())
                 .shippingFee(order.getShippingFee())
                 .status(order.getStatus())
                 .orderedAt(order.getOrderedAt())

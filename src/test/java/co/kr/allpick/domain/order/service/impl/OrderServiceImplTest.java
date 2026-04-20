@@ -58,7 +58,7 @@ class OrderServiceImplTest {
         Long addressId = 1L;
 
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(1L, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(addressId, List.of(itemRequest));
+        OrderCreateRequestDto request = new OrderCreateRequestDto(addressId, null, List.of(itemRequest));
 
         DeliveryAddress mockAddress = DeliveryAddress.builder()
                 .memberId(memberId)
@@ -108,7 +108,7 @@ class OrderServiceImplTest {
     void 주문_생성_실패_배송지없음() {
         // given
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(1L, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(999L, List.of(itemRequest));
+        OrderCreateRequestDto request = new OrderCreateRequestDto(999L, null, List.of(itemRequest));
 
         when(deliveryAddressRepository.findById(999L)).thenReturn(Optional.empty());
 
