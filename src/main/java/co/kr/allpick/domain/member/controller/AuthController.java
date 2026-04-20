@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import co.kr.allpick.domain.member.docs.AuthControllerDocs;
 import co.kr.allpick.domain.member.service.AuthService;
-import co.kr.allpick.global.response.ApiResponse;
-import jakarta.validation.Valid;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
+import co.kr.allpick.global.response.ApiResponse;  // ← import 추가
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -19,22 +19,23 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController implements AuthControllerDocs {
 
-	private final AuthService authService;
-	
-	// 회원가입
-	@PostMapping("/signup")
-	@Override
-	public ResponseEntity<co.kr.allpick.global.response.ApiResponse<Void>> signup(
-			@RequestBody @Valid SignupRequestDto dto) {
-		authService.signup(dto);
-		return ApiResponse.success("회원가입 성공");
-	}
-	// 로그인
-	@PostMapping("/login")
-	@Override
-	public ResponseEntity<co.kr.allpick.global.response.ApiResponse<AuthResponseDto>> login(
-			@RequestBody @Valid LoginRequestDto dto) {
-		AuthResponseDto response = authService.login(dto);
-		return ApiResponse.success("로그인 성공", response);
-	}
+    private final AuthService authService;
+
+    // 회원가입
+    @PostMapping("/signup")
+    @Override
+    public ResponseEntity<ApiResponse<Void>> signup(
+            @RequestBody @Valid SignupRequestDto dto) {
+        authService.signup(dto);
+        return ApiResponse.success("회원가입 성공");
+    }
+
+    // 로그인
+    @PostMapping("/login")
+    @Override
+    public ResponseEntity<ApiResponse<AuthResponseDto>> login(
+            @RequestBody @Valid LoginRequestDto dto) {
+        AuthResponseDto response = authService.login(dto);
+        return ApiResponse.success("로그인 성공", response);
+    }
 }

@@ -3,7 +3,7 @@ package co.kr.allpick.domain.member.entity;
 import java.time.LocalDateTime;
 
 import javax.management.relation.Role;
-
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -118,5 +118,8 @@ public class Member {
         member.name = name;
         member.phone = phone;
         return member;
+    }
+    public JwtUserInfoDto toJwtUserInfoDto() {
+        return new JwtUserInfoDto(this.id, this.email, this.role.name());
     }
 }

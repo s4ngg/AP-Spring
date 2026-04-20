@@ -50,12 +50,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        JwtUserInfoDto jwtUserInfoDto = new JwtUserInfoDto(
-            member.getId(),
-            member.getEmail(),
-            member.getRole().name()  // enum → String 변환
-        );
-        String token = jwtProvider.createToken(jwtUserInfoDto);
+        String token = jwtProvider.createToken(member.toJwtUserInfoDto());
         return AuthResponseDto.of(token, member);
     }
 }
