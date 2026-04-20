@@ -20,11 +20,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
+import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.AuthServiceImpl;
-import co.kr.allpick.global.config.JwtProvider;        // ← 추가
-import co.kr.allpick.global.config.JwtUserInfoDto;     // ← 추가
+import co.kr.allpick.global.config.JwtProvider;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 
@@ -43,11 +44,11 @@ class MemberServiceImplTest {
     @InjectMocks
     AuthServiceImpl authService;
 
-    // ==================== 회원가입 ====================
+    // ==================== 일반 회원가입 ====================
 
     @Test
-    @DisplayName("회원가입 성공")
-    void 회원가입_성공() {
+    @DisplayName("일반 회원가입 성공")
+    void 일반_회원가입_성공() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
             "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
@@ -63,8 +64,8 @@ class MemberServiceImplTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패 - 중복 이메일")
-    void 회원가입_실패_중복이메일() {
+    @DisplayName("일반 회원가입 실패 - 중복 이메일")
+    void 일반_회원가입_실패_중복이메일() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
             "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
@@ -73,6 +74,42 @@ class MemberServiceImplTest {
 
         // when & then
         assertThatThrownBy(() -> authService.signup(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
+    }
+
+    // ==================== 판매자 회원가입 ====================
+
+    @Test
+    @DisplayName("판매자 회원가입 성공")
+    void 판매자_회원가입_성공() {
+        // given
+        SignupSellerRequestDto dto = new SignupSellerRequestDto(
+            "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
+            "홍길동 상회", "123-45-67890", "홍길동", "국민은행", "123-456-789012");
+
+        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
+
+        // when
+        authService.signupSeller(dto);
+
+        // then
+        verify(memberRepository, times(1)).save(any(Member.class));
+    }
+
+    @Test
+    @DisplayName("판매자 회원가입 실패 - 중복 이메일")
+    void 판매자_회원가입_실패_중복이메일() {
+        // given
+        SignupSellerRequestDto dto = new SignupSellerRequestDto(
+            "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
+            "홍길동 상회", "123-45-67890", "홍길동", "국민은행", "123-456-789012");
+
+        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> authService.signupSeller(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
     }
@@ -90,7 +127,7 @@ class MemberServiceImplTest {
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
-        when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");  // ← 수정
+        when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
 
         // when
         AuthResponseDto result = authService.login(dto);
