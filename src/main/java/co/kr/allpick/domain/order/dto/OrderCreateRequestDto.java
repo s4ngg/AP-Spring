@@ -21,6 +21,9 @@ public class OrderCreateRequestDto {
     @Schema(description = "배송지 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long addressId;
 
+    @Schema(description = "회원 쿠폰 ID", example = "1")
+    private Long memberCouponId;
+
     @NotNull
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> orderItems;
@@ -29,8 +32,10 @@ public class OrderCreateRequestDto {
         return Order.builder()
                 .memberId(memberId)
                 .addressId(this.addressId)
+                .memberCouponId(this.memberCouponId)
                 .orderNumber(orderNumber)
                 .totalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
                 .shippingFee(3000)
                 .status(Order.OrderStatus.PENDING)
                 .orderedAt(LocalDateTime.now())
