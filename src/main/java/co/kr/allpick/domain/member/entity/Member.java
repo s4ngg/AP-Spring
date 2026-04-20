@@ -64,7 +64,7 @@ public class Member {
     private LocalDateTime deletedAt;
     
     public enum Role {
-    	SELEER, BUYER
+    	SELLER, BUYER
     }
     
     // 로그인 유형 ENUM
