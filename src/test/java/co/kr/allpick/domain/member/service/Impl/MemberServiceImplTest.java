@@ -23,9 +23,10 @@ import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.AuthServiceImpl;
+import co.kr.allpick.global.config.JwtProvider;        // ← 추가
+import co.kr.allpick.global.config.JwtUserInfoDto;     // ← 추가
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.global.util.JwtProvider;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -89,7 +90,7 @@ class MemberServiceImplTest {
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
-        when(jwtProvider.generateToken(mockMember.getEmail())).thenReturn("mockToken");
+        when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");  // ← 수정
 
         // when
         AuthResponseDto result = authService.login(dto);
