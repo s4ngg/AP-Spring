@@ -1,6 +1,5 @@
 package co.kr.allpick.domain.member.service;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
@@ -10,7 +9,7 @@ import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.global.util.JwtUtil;
+import co.kr.allpick.global.util.JwtProvider;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -21,13 +20,13 @@ public class AuthServiceImpl implements AuthService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
     // 회원가입
     @Override
     public void signup(SignupRequestDto dto) {
         if (memberRepository.existsByEmail(dto.getEmail())) {
-            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);  // ← 수정
+        	throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         Member member = Member.createLocal(
             dto.getEmail(),
@@ -50,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);  // ← 수정
         }
 
-        String token = jwtUtil.generateToken(member.getEmail());
-        return new AuthResponseDto(token, member.getEmail(), member.getName());
+        String token = jwtProvider.generateToken(member.getEmail());
+        return AuthResponseDto.of(token, member);
     }
 }

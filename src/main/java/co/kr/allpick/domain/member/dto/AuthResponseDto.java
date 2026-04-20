@@ -1,13 +1,14 @@
 package co.kr.allpick.domain.member.dto;
 
+import co.kr.allpick.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "로그인 응답 DTO")
 public class AuthResponseDto {
 
@@ -23,4 +24,13 @@ public class AuthResponseDto {
     @NotBlank(message = "이름은 필수입니다")
     @Schema(description = "사용자 이름", example = "홍길동")
     private String name;
+    
+    // 정적 팩토리 메서드
+    public static AuthResponseDto of(String token, Member member) {
+    	AuthResponseDto dto = new AuthResponseDto();
+    	dto.token = token;
+    	dto.email = member.getEmail();
+    	dto.name = member.getName();
+    	return dto;
+    }
 }
