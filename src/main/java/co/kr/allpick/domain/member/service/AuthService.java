@@ -23,11 +23,12 @@ public class AuthService {
         if (memberRepository.existsByEmail(dto.getEmail())) {
             throw new RuntimeException("이미 사용 중인 이메일입니다.");
         }
-        Member member = new Member();
-        member.setEmail(dto.getEmail());
-        member.setPassword(passwordEncoder.encode(dto.getPassword()));
-        member.setName(dto.getName());
-        member.setPhone(dto.getPhone());
+        Member member = Member.create(
+            dto.getEmail(),
+            passwordEncoder.encode(dto.getPassword()),
+            dto.getName(),
+            dto.getPhone()
+        );
         memberRepository.save(member);
     }
 
