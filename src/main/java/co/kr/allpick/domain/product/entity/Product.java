@@ -71,7 +71,6 @@ public class Product {
 	}
 	// 상품 수정하기 (존재 검증은 서비스에서...)
 	public void updateProduct(Long productId, ProductReqDto reqDto) {
-		 
 				this.categoryId = reqDto.getCategoryId();
 				this.productName = reqDto.getProductName();
 				this.description = reqDto.getDescription();
