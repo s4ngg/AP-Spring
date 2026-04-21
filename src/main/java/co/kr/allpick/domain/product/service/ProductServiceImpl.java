@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService{
 	public ProductResDto updateProduct(Long productId, ProductReqDto reqDto) {
 		Product product = productRepository.findById(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-		return null;
+		return null; 
 	}
 
 

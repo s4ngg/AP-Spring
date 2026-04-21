@@ -28,11 +28,17 @@ public class Order extends BaseEntity {
     @Column(name = "address_id", nullable = false)
     private Long addressId;
 
+    @Column(name = "member_coupon_id")
+    private Long memberCouponId;
+
     @Column(name = "order_number", nullable = false, unique = true)
     private String orderNumber;
 
     @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
+
+    @Column(name = "discount_amount", nullable = false)
+    private BigDecimal discountAmount;
 
     @Column(name = "shipping_fee", nullable = false)
     private int shippingFee;
@@ -48,13 +54,15 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Builder
-    public Order(Long memberId, Long addressId, String orderNumber,
-                 BigDecimal totalAmount, int shippingFee,
-                 OrderStatus status, LocalDateTime orderedAt) {
+    public Order(Long memberId, Long addressId, Long memberCouponId,
+                 String orderNumber, BigDecimal totalAmount, BigDecimal discountAmount,
+                 int shippingFee, OrderStatus status, LocalDateTime orderedAt) {
         this.memberId = memberId;
         this.addressId = addressId;
+        this.memberCouponId = memberCouponId;
         this.orderNumber = orderNumber;
         this.totalAmount = totalAmount;
+        this.discountAmount = discountAmount;
         this.shippingFee = shippingFee;
         this.status = status;
         this.orderedAt = orderedAt;
