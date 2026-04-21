@@ -84,6 +84,7 @@ public class Member {
         member.status = 1;
         return member;
     }
+    
 
     // 소셜 로그인 생성 메서드
     public static Member createSocial(String email, String name, LoginType loginType, String socialId) {
