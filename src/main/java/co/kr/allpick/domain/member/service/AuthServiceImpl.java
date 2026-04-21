@@ -4,18 +4,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.global.config.JwtProvider;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-
+import co.kr.allpick.domain.member.repository.SellerRepository;
+import co.kr.allpick.domain.member.entity.Seller;
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -24,6 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LogManager.getLogger(AuthServiceImpl.class);
 
     private final MemberRepository memberRepository;
+    private final SellerRepository sellerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
@@ -34,33 +37,19 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("[AuthService] 이메일 중복 - email: {}", dto.getEmail());
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
-        Member member = Member.createLocal(
-            dto.getEmail(),
-            passwordEncoder.encode(dto.getPassword()),
-            dto.getName(),
-            dto.getPhone(),
-            dto.getAddress()
-        );
-        memberRepository.save(member);
-        logger.info("[AuthService] 일반 회원가입 완료 - memberId: {}", member.getId());
+        memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
+        logger.info("[AuthService] 일반 회원가입 완료");
     }
 
     // 판매자 회원가입
     @Override
     public void signupSeller(SignupSellerRequestDto dto) {
-        if (memberRepository.existsByEmail(dto.getEmail())) {
+        if (sellerRepository.existsByEmail(dto.getEmail())) {
             logger.warn("[AuthService] 이메일 중복 - email: {}", dto.getEmail());
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
-        Member member = Member.createSeller(
-            dto.getEmail(),
-            passwordEncoder.encode(dto.getPassword()),
-            dto.getName(),
-            dto.getPhone(),
-            dto.getAddress()
-        );
-        memberRepository.save(member);
-        logger.info("[AuthService] 판매자 회원가입 완료 - memberId: {}", member.getId());
+        sellerRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
+        logger.info("[AuthService] 판매자 회원가입 완료");
     }
 
     // 로그인
@@ -82,29 +71,23 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtProvider.createToken(member.toJwtUserInfoDto());
         return AuthResponseDto.of(token, member);
     }
-    //판매자 로그인 
+ // 판매자 로그인
     @Override
     @Transactional(readOnly = true)
     public AuthResponseDto loginSeller(LoginRequestDto dto) {
-        Member member = memberRepository.findByEmail(dto.getEmail())
+        Seller seller = sellerRepository.findByEmail(dto.getEmail())  // ← memberRepository → sellerRepository
                 .orElseThrow(() -> {
                     logger.warn("[AuthService] 존재하지 않는 이메일로 판매자 로그인 시도");
                     return new BusinessException(ErrorCode.INVALID_PASSWORD);
                 });
 
-        if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            logger.warn("[AuthService] 판매자 비밀번호 불일치 - memberId: {}", member.getId());
+        if (!passwordEncoder.matches(dto.getPassword(), seller.getPassword())) {
+            logger.warn("[AuthService] 판매자 비밀번호 불일치 - sellerId: {}", seller.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        // 판매자 권한 확인
-        if (member.getRole() != Member.Role.SELLER) {
-            logger.warn("[AuthService] 판매자가 아닌 회원의 판매자 로그인 시도 - memberId: {}", member.getId());
-            throw new BusinessException(ErrorCode.NOT_SELLER);
-        }
-
-        logger.info("[AuthService] 판매자 로그인 성공 - memberId: {}", member.getId());
-        String token = jwtProvider.createToken(member.toJwtUserInfoDto());
-        return AuthResponseDto.of(token, member);
+        logger.info("[AuthService] 판매자 로그인 성공 - sellerId: {}", seller.getId());
+        String token = jwtProvider.createToken(seller.toJwtUserInfoDto());
+        return AuthResponseDto.of(token, seller);
     }
 }

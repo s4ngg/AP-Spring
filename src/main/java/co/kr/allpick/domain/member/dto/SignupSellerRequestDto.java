@@ -1,10 +1,12 @@
 package co.kr.allpick.domain.member.dto;
 
+import co.kr.allpick.domain.member.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Getter
 @NoArgsConstructor
@@ -34,13 +36,15 @@ public class SignupSellerRequestDto {
     private String address;
 
     // ========== 판매자 추가 정보 ==========
+    @Schema(description = "사업자 등록번호", example = "123-45-67890", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotBlank(message = "사업자 등록번호는 필수입니다.")
+    
+    private String businessNumber;
     @Schema(description = "상호명", example = "홍길동 상회", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "상호명은 필수입니다.")
     private String businessName;
 
-    @Schema(description = "사업자 등록번호", example = "123-45-67890", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "사업자 등록번호는 필수입니다.")
-    private String businessNumber;
+    
 
     @Schema(description = "대표자명", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "대표자명은 필수입니다.")
@@ -51,4 +55,17 @@ public class SignupSellerRequestDto {
 
     @Schema(description = "계좌번호", example = "123-456-789012")
     private String bankAccount;
+    
+    public Seller toEntity(String encodedPassword) {
+    	return Seller.builder()
+    			.email(this.email)
+    			.password(encodedPassword)
+    			.name(this.name)
+    			.phone(this.phone)
+    			.address(this.address)
+    			.businessNumber(this.businessNumber)
+    			.businessName(this.businessName)
+    			.build();
+    			
+    }
 }

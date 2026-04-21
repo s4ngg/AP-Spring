@@ -1,8 +1,19 @@
 package co.kr.allpick.domain.member.entity;
 
 import java.time.LocalDateTime;
+
 import co.kr.allpick.global.config.JwtUserInfoDto;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +21,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "members")
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Member {
 
     @Id
@@ -19,10 +32,11 @@ public class Member {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(length = 255)
+    @Column(length = 255)    
     private String password;
 
     @Column(name = "user_name", nullable = false, length = 50)
+   
     private String name;
 
     @Column(name = "user_phone", nullable = false, length = 20)
@@ -33,27 +47,38 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private Role role = Role.BUYER;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer status = 0;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "login_type", nullable = false)
+    @Builder.Default
     private LoginType loginType = LoginType.LOCAL;
 
     @Column(name = "social_id", unique = true, length = 255)
     private String socialId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
+    
+    @Column(name = "business_number", length = 20)
+    private String businessNumber;
+    
+    @Column(name = "business_name", length = 100)
+    private String businessName;
+    
     public enum Role {
         SELLER, BUYER
     }
@@ -77,7 +102,7 @@ public class Member {
     }
 
     // 판매자 회원가입 (SELLER)
-    public static Member createSeller(String email, String password, String name, String phone, String address) {
+    public static Member createSeller(String email, String password, String name, String phone, String address, String businessNumber, String businessName) {
         Member member = new Member();
         member.email = email;
         member.password = password;
@@ -85,6 +110,8 @@ public class Member {
         member.phone = phone;
         member.address = address;
         member.loginType = LoginType.LOCAL;
+        member.businessNumber = businessNumber;
+        member.businessName = businessName;
         member.role = Role.SELLER;  // ← SELLER로 설정
         member.status = 1;
         return member;

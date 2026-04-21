@@ -23,11 +23,15 @@ import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.member.repository.SellerRepository;
 import co.kr.allpick.domain.member.service.AuthServiceImpl;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
+import co.kr.allpick.domain.member.repository.SellerRepository;
+import co.kr.allpick.domain.member.entity.Seller;
+
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -35,6 +39,9 @@ class MemberServiceImplTest {
     @Mock
     MemberRepository memberRepository;
 
+    @Mock
+    SellerRepository sellerRepository;
+    
     @Mock
     PasswordEncoder passwordEncoder;
 
@@ -86,16 +93,16 @@ class MemberServiceImplTest {
         // given
         SignupSellerRequestDto dto = new SignupSellerRequestDto(
             "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
-            "홍길동 상회", "123-45-67890", "홍길동", "국민은행", "123-456-789012");
+            "123-45-67890", "홍길동 상회", "홍길동", "국민은행", "123-456-789012" );
 
-        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(sellerRepository.existsByEmail(dto.getEmail())).thenReturn(false);  // ← sellerRepository로 수정
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
 
         // when
         authService.signupSeller(dto);
 
         // then
-        verify(memberRepository, times(1)).save(any(Member.class));
+        verify(sellerRepository, times(1)).save(any(Seller.class));  // ← Seller로 수정
     }
 
     @Test
@@ -104,16 +111,15 @@ class MemberServiceImplTest {
         // given
         SignupSellerRequestDto dto = new SignupSellerRequestDto(
             "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
-            "홍길동 상회", "123-45-67890", "홍길동", "국민은행", "123-456-789012");
+            "123-45-67890", "홍길동 상회", "홍길동", "국민은행", "123-456-789012");
 
-        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
+        when(sellerRepository.existsByEmail(dto.getEmail())).thenReturn(true);  // ← sellerRepository로 수정
 
         // when & then
         assertThatThrownBy(() -> authService.signupSeller(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
     }
-
     // ==================== 로그인 ====================
 
     @Test

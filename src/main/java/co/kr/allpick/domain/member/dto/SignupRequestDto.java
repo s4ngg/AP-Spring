@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.member.dto;
 
+import co.kr.allpick.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -35,4 +36,15 @@ public class SignupRequestDto {
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
+    
+    public Member toEntity(String encodedPassword) {
+    	return Member.builder()
+    			.email(this.email)
+    			.password(encodedPassword)
+    			.name(this.name)
+    			.phone(this.phone)
+    			.address(this.address)
+    			.loginType(Member.LoginType.LOCAL)
+    			.build();
+    }
 }

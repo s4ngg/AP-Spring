@@ -1,14 +1,20 @@
 package co.kr.allpick.domain.member.dto;
 
 import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.member.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email; 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor(access= AccessLevel.PRIVATE)
+@Builder
 @Schema(description = "로그인 응답 DTO")
 public class AuthResponseDto {
 
@@ -25,12 +31,25 @@ public class AuthResponseDto {
     @Schema(description = "사용자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
     
+    @Schema(description = "역할", example = "BUYER")
+    private String role;  // ← 추가
+    
     // 정적 팩토리 메서드
     public static AuthResponseDto of(String token, Member member) {
-    	AuthResponseDto dto = new AuthResponseDto();
-    	dto.token = token;
-    	dto.email = member.getEmail();
-    	dto.name = member.getName();
-    	return dto;
+    	return AuthResponseDto.builder()
+                .token(token)
+                .email(member.getEmail())
+                .name(member.getName())
+                .role("BUYER")
+                .build();
+    }
+ // 판매자용
+    public static AuthResponseDto of(String token, Seller seller) {
+        return AuthResponseDto.builder()
+                .token(token)
+                .email(seller.getEmail())
+                .name(seller.getName())
+                .role("SELLER")
+                .build();
     }
 }
