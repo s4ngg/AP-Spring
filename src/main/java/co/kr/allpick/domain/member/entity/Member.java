@@ -45,14 +45,9 @@ public class Member {
     @Column(name = "user_address", nullable = false, length = 50)
     private String address;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Role role = Role.BUYER;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer status = 0;
+    private Integer status = 1;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "login_type", nullable = false)
@@ -72,16 +67,6 @@ public class Member {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-    
-    @Column(name = "business_number", length = 20)
-    private String businessNumber;
-    
-    @Column(name = "business_name", length = 100)
-    private String businessName;
-    
-    public enum Role {
-        SELLER, BUYER
-    }
 
     public enum LoginType {
         LOCAL, KAKAO, NAVER, GOOGLE
@@ -96,23 +81,6 @@ public class Member {
         member.phone = phone;
         member.address = address;
         member.loginType = LoginType.LOCAL;
-        member.role = Role.BUYER;
-        member.status = 1;
-        return member;
-    }
-
-    // 판매자 회원가입 (SELLER)
-    public static Member createSeller(String email, String password, String name, String phone, String address, String businessNumber, String businessName) {
-        Member member = new Member();
-        member.email = email;
-        member.password = password;
-        member.name = name;
-        member.phone = phone;
-        member.address = address;
-        member.loginType = LoginType.LOCAL;
-        member.businessNumber = businessNumber;
-        member.businessName = businessName;
-        member.role = Role.SELLER;  // ← SELLER로 설정
         member.status = 1;
         return member;
     }
@@ -124,7 +92,6 @@ public class Member {
         member.name = name;
         member.loginType = loginType;
         member.socialId = socialId;
-        member.role = Role.BUYER;
         member.status = 1;
         return member;
     }
@@ -137,12 +104,6 @@ public class Member {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 판매자로 권한 변경
-    public void upgradeToSeller() {
-        this.role = Role.SELLER;
-        this.updatedAt = LocalDateTime.now();
-    }
-
     // 탈퇴 (Soft Delete)
     public void delete() {
         this.deletedAt = LocalDateTime.now();
@@ -152,6 +113,6 @@ public class Member {
 
     // JWT 변환
     public JwtUserInfoDto toJwtUserInfoDto() {
-        return new JwtUserInfoDto(this.id, this.email, this.role.name());
+        return new JwtUserInfoDto(this.id, this.email, "BUYER");
     }
 }

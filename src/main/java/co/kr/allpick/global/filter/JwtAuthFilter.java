@@ -29,8 +29,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 인증 없이 허용할 경로
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
-                || path.startsWith("/api/auth/login")    // ← 수정
-                || path.startsWith("/api/auth/signup")) { // ← 수정
+                || path.startsWith("/api/auth/login")
+                || path.startsWith("/api/auth/signup")
+                || path.startsWith("/api/members/login")
+                || path.startsWith("/api/members/signup")
+                || path.startsWith("/api/orders")      
+                || path.startsWith("/api/coupons")) {
             filterChain.doFilter(request, response);
             return;
         }
