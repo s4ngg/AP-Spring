@@ -1,7 +1,7 @@
 package co.kr.allpick.domain.member.dto;
 
 import co.kr.allpick.domain.member.entity.Member;
-import co.kr.allpick.domain.member.entity.Seller;
+import co.kr.allpick.domain.member.seller.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

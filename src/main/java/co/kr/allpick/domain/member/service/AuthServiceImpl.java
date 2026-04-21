@@ -17,7 +17,7 @@ import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import co.kr.allpick.domain.member.repository.SellerRepository;
-import co.kr.allpick.domain.member.entity.Seller;
+import co.kr.allpick.domain.member.seller.Seller;
 @Service
 @RequiredArgsConstructor
 @Transactional

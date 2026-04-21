@@ -24,13 +24,13 @@ import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.repository.SellerRepository;
+import co.kr.allpick.domain.member.seller.Seller;
 import co.kr.allpick.domain.member.service.AuthServiceImpl;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import co.kr.allpick.domain.member.repository.SellerRepository;
-import co.kr.allpick.domain.member.entity.Seller;
 
 
 @ExtendWith(MockitoExtension.class)

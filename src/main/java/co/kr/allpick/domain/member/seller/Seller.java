@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.member.entity;
+package co.kr.allpick.domain.member.seller;
 
 import java.time.LocalDateTime;
 
@@ -61,7 +61,7 @@ public class Seller extends BaseEntity {
 		this.address = address;
 		this.businessName = businessName;
 	}
-	
+
 	// 탈퇴 (Soft Delete)
 	public void delete() {
 		this.status = 0;
