@@ -3,6 +3,7 @@ package co.kr.allpick.domain.member.dto;
 import co.kr.allpick.domain.member.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,12 @@ public class SignupSellerRequestDto {
     @NotBlank(message = "이메일은 필수입니다.")
     private String email;
 
-    @Schema(description = "비밀번호 (8자 이상)", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "비밀번호 (8자 이상, 영문/숫자/특수문자 포함)", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "비밀번호는 필수입니다.")
+    @Pattern(
+            regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$",
+            message = "비밀번호는 8자 이상, 영문, 숫자, 특수문자를 포함해야 합니다."
+        )
     private String password;
 
     @Schema(description = "이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
