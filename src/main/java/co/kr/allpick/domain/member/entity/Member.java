@@ -2,6 +2,7 @@ package co.kr.allpick.domain.member.entity;
 
 import java.time.LocalDateTime;
 
+import co.kr.allpick.global.common.BaseEntity;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +24,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Member {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,16 +58,6 @@ public class Member {
     @Column(name = "social_id", unique = true, length = 255)
     private String socialId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at", nullable = false)
-    @Builder.Default
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @Column(name = "deleted_at")
-    private LocalDateTime deletedAt;
 
     public enum LoginType {
         LOCAL, KAKAO, NAVER, GOOGLE
@@ -102,14 +93,12 @@ public class Member {
         this.name = name;
         this.phone = phone;
         this.address = address;
-        this.updatedAt = LocalDateTime.now();
     }
 
     // 탈퇴 (Soft Delete)
     public void delete() {
-        this.deletedAt = LocalDateTime.now();
         this.status = 0;
-        this.updatedAt = LocalDateTime.now();
+
     }
 
     // JWT 변환
