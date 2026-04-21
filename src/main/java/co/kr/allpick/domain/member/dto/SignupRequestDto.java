@@ -4,6 +4,7 @@ import co.kr.allpick.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -38,6 +39,17 @@ public class SignupRequestDto {
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
+    
+    @Schema(description = "서비스 이용약관 동의", example = "true")
+    @NotNull(message = "서비스 이용약관 동의는 필수입니다.")
+    private Boolean termsAgreed;
+
+    @Schema(description = "개인정보 처리방침 동의", example = "true")
+    @NotNull(message = "개인정보 처리방침 동의는 필수입니다.")
+    private Boolean privacyAgreed;
+
+    @Schema(description = "마케팅 수신 동의", example = "false")
+    private Boolean marketingAgreed = false;
     
     public Member toEntity(String encodedPassword) {
     	return Member.builder()
