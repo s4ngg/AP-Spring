@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "ProductList")
-public class ProductList extends BaseEntity {
+@Table(name = "product")
+public class Product extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,10 +32,9 @@ public class ProductList extends BaseEntity {
 
     private String approvalStatus;
 
-    public ProductList(Long categoryId, Long sellerId, String productName,
+    public Product(Long categoryId, Long sellerId, String productName,
                    String description, Integer price, String thumbnailUrl,
                    String status, String approvalStatus) {
-
         this.categoryId = categoryId;
         this.sellerId = sellerId;
         this.productName = productName;
@@ -46,10 +45,8 @@ public class ProductList extends BaseEntity {
         this.approvalStatus = approvalStatus;
     }
 
-    //
     public void updateInfo(String productName, String description,
                            Integer price, String thumbnailUrl) {
-
         this.productName = productName;
         this.description = description;
         this.price = price;
@@ -59,7 +56,6 @@ public class ProductList extends BaseEntity {
     public void updateStatus(String status) {
         this.status = status;
     }
-    
 
     public void updateApprovalStatus(String approvalStatus) {
         this.approvalStatus = approvalStatus;

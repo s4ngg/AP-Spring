@@ -6,8 +6,8 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@Schema(description = "상품 목록 응답 DTO")
-public class ProductListResponseDto {
+@Schema(description = "카테고리별 상품 응답 DTO")
+public class CategoryProductResponseDto {
 
     @Schema(description = "상품 고유 ID", example = "1")
     private Long productId;
