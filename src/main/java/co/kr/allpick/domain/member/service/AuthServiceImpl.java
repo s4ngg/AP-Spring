@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
-        logger.info("[AuthService] 일반 회원가입 완료");
+        logger.info("[AuthService] 회원가입 완료");
     }
 
     // 로그인
