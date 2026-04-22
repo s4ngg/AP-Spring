@@ -1,10 +1,16 @@
 package co.kr.allpick.global.filter;
 
 import java.io.IOException;
+import java.util.Collections;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import co.kr.allpick.global.config.JwtProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,18 +30,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
         String path = request.getRequestURI();
 
-        // 인증 없이 허용할 경로
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/signup")
                 || path.startsWith("/api/members/login")
                 || path.startsWith("/api/members/signup")
-                || path.startsWith("/api/orders")      
+                || path.startsWith("/api/orders")
                 || path.startsWith("/api/coupons")) {
- 
             filterChain.doFilter(request, response);
             return;
         }
@@ -54,6 +59,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         request.setAttribute("memberId", memberId);
+
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        memberId,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         logger.info("인증 성공 - memberId: {}", memberId);
         filterChain.doFilter(request, response);
     }
