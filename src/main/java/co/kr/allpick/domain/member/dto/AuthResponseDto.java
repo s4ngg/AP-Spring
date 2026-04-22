@@ -1,7 +1,7 @@
 package co.kr.allpick.domain.member.dto;
 
 import co.kr.allpick.domain.member.entity.Member;
-import co.kr.allpick.domain.member.seller.Seller;
+import co.kr.allpick.domain.seller.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -31,8 +31,6 @@ public class AuthResponseDto {
     @Schema(description = "사용자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
     
-    @Schema(description = "역할", example = "BUYER")
-    private String role;  // ← 추가
     
     // 정적 팩토리 메서드
     public static AuthResponseDto of(String token, Member member) {
@@ -40,16 +38,6 @@ public class AuthResponseDto {
                 .token(token)
                 .email(member.getEmail())
                 .name(member.getName())
-                .role("BUYER")
-                .build();
-    }
- // 판매자용
-    public static AuthResponseDto of(String token, Seller seller) {
-        return AuthResponseDto.builder()
-                .token(token)
-                .email(seller.getEmail())
-                .name(seller.getName())
-                .role("SELLER")
                 .build();
     }
 }

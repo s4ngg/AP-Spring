@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.member.seller;
+package co.kr.allpick.domain.seller.entity;
 
 import java.time.LocalDateTime;
 

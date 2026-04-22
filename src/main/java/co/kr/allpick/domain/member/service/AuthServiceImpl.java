@@ -9,15 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
-import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import co.kr.allpick.domain.member.repository.SellerRepository;
-import co.kr.allpick.domain.member.seller.Seller;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,7 +24,6 @@ public class AuthServiceImpl implements AuthService {
     private static final Logger logger = LogManager.getLogger(AuthServiceImpl.class);
 
     private final MemberRepository memberRepository;
-    private final SellerRepository sellerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
@@ -34,22 +31,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void signup(SignupRequestDto dto) {
         if (memberRepository.existsByEmail(dto.getEmail())) {
-            logger.warn("[AuthService] 이메일 중복 - email: {}", dto.getEmail());
+            logger.warn("[AuthService] 이메일 중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
         logger.info("[AuthService] 일반 회원가입 완료");
-    }
-
-    // 판매자 회원가입
-    @Override
-    public void signupSeller(SignupSellerRequestDto dto) {
-        if (sellerRepository.existsByEmail(dto.getEmail())) {
-            logger.warn("[AuthService] 이메일 중복 - email: {}", dto.getEmail());
-            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        sellerRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
-        logger.info("[AuthService] 판매자 회원가입 완료");
     }
 
     // 로그인
@@ -71,23 +57,5 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtProvider.createToken(member.toJwtUserInfoDto());
         return AuthResponseDto.of(token, member);
     }
- // 판매자 로그인
-    @Override
-    @Transactional(readOnly = true)
-    public AuthResponseDto loginSeller(LoginRequestDto dto) {
-        Seller seller = sellerRepository.findByEmail(dto.getEmail())  // ← memberRepository → sellerRepository
-                .orElseThrow(() -> {
-                    logger.warn("[AuthService] 존재하지 않는 이메일로 판매자 로그인 시도");
-                    return new BusinessException(ErrorCode.INVALID_PASSWORD);
-                });
 
-        if (!passwordEncoder.matches(dto.getPassword(), seller.getPassword())) {
-            logger.warn("[AuthService] 판매자 비밀번호 불일치 - sellerId: {}", seller.getId());
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
-        }
-
-        logger.info("[AuthService] 판매자 로그인 성공 - sellerId: {}", seller.getId());
-        String token = jwtProvider.createToken(seller.toJwtUserInfoDto());
-        return AuthResponseDto.of(token, seller);
-    }
 }

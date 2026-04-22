@@ -20,17 +20,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
-import co.kr.allpick.domain.member.dto.SignupSellerRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.domain.member.repository.SellerRepository;
-import co.kr.allpick.domain.member.seller.Seller;
 import co.kr.allpick.domain.member.service.AuthServiceImpl;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.domain.member.repository.SellerRepository;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -58,7 +55,7 @@ class MemberServiceImplTest {
     void 일반_회원가입_성공() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
@@ -75,48 +72,12 @@ class MemberServiceImplTest {
     void 일반_회원가입_실패_중복이메일() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> authService.signup(dto))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
-    }
-
-    // ==================== 판매자 회원가입 ====================
-
-    @Test
-    @DisplayName("판매자 회원가입 성공")
-    void 판매자_회원가입_성공() {
-        // given
-        SignupSellerRequestDto dto = new SignupSellerRequestDto(
-            "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
-            "123-45-67890", "홍길동 상회", "홍길동", "국민은행", "123-456-789012" );
-
-        when(sellerRepository.existsByEmail(dto.getEmail())).thenReturn(false);  // ← sellerRepository로 수정
-        when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
-
-        // when
-        authService.signupSeller(dto);
-
-        // then
-        verify(sellerRepository, times(1)).save(any(Seller.class));  // ← Seller로 수정
-    }
-
-    @Test
-    @DisplayName("판매자 회원가입 실패 - 중복 이메일")
-    void 판매자_회원가입_실패_중복이메일() {
-        // given
-        SignupSellerRequestDto dto = new SignupSellerRequestDto(
-            "seller@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구",
-            "123-45-67890", "홍길동 상회", "홍길동", "국민은행", "123-456-789012");
-
-        when(sellerRepository.existsByEmail(dto.getEmail())).thenReturn(true);  // ← sellerRepository로 수정
-
-        // when & then
-        assertThatThrownBy(() -> authService.signupSeller(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
     }
@@ -128,8 +89,13 @@ class MemberServiceImplTest {
         // given
         LoginRequestDto dto = new LoginRequestDto("test@test.com", "password123");
 
-        Member mockMember = Member.createLocal(
-            "test@test.com", "encodedPassword", "홍길동", "010-1234-5678", "서울시 강남구");
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
@@ -165,8 +131,14 @@ class MemberServiceImplTest {
         // given
         LoginRequestDto dto = new LoginRequestDto("test@test.com", "wrongPassword");
 
-        Member mockMember = Member.createLocal(
-            "test@test.com", "encodedPassword", "홍길동", "010-1234-5678", "서울시 강남구");
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
+
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(false);
