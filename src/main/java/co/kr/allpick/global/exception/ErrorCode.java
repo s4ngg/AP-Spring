@@ -27,6 +27,8 @@ public enum ErrorCode {
     INQUIRY_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "INQUIRY_ALREADY_DELETED", "이미 삭제된 문의입니다."),
     INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_ANSWER_NOT_FOUND", "문의 답변을 찾을 수 없습니다."),
     INQUIRY_UNAUTHORIZED(HttpStatus.FORBIDDEN, "INQUIRY_UNAUTHORIZED", "해당 문의에 대한 권한이 없습니다."),
+    // 문의 접수 대기 시 취소 가능 에러코드 추가
+    INQUIRY_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "INQUIRY_CANNOT_CANCEL", "접수 대기 상태에서만 취소 가능합니다."),
 
     // Claim
     CLAIM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLAIM_NOT_FOUND", "클레임을 찾을 수 없습니다."),

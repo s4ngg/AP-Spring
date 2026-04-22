@@ -57,11 +57,16 @@ public class Inquiry extends BaseEntity {
         this.status = status;
     }
 
+    public void cancel() {
+        this.status = InquiryStatus.CANCELLED;
+    }
+
     public enum InquiryType {
         PRODUCT, DELIVERY, PAYMENT, ETC
     }
+
     public enum InquiryStatus {
-        PENDING, PROCESSING, COMPLETED
+        PENDING, PROCESSING, COMPLETED, CANCELLED
     }
 
 }
