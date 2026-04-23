@@ -20,12 +20,7 @@ public class CategoryServiceImpl implements CategoryService {
         List<Product> products = productRepository.findByCategoryId(categoryId);
 
         return products.stream()
-                .map(product -> new CategoryProductResponseDto(
-                        product.getProductId(),
-                        product.getProductName(),
-                        product.getPrice(),
-                        product.getThumbnailUrl()
-                ))
+                .map(CategoryProductResponseDto::from)
                 .toList();
     }
 }

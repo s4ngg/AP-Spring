@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.product.dto;
 
+import co.kr.allpick.domain.product.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,4 +21,13 @@ public class CategoryProductResponseDto {
 
     @Schema(description = "상품 썸네일 이미지 URL", example = "https://via.placeholder.com/300")
     private String thumbnailUrl;
+
+    public static CategoryProductResponseDto from(Product product) {
+        return new CategoryProductResponseDto(
+                product.getProductId(),
+                product.getProductName(),
+                product.getPrice(),
+                product.getThumbnailUrl()
+        );
+    }
 }

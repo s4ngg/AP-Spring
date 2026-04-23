@@ -2,6 +2,7 @@ package co.kr.allpick.domain.product.entity;
 
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -32,6 +33,7 @@ public class Product extends BaseEntity {
 
     private String approvalStatus;
 
+    @Builder
     public Product(Long categoryId, Long sellerId, String productName,
                    String description, Integer price, String thumbnailUrl,
                    String status, String approvalStatus) {
