@@ -21,7 +21,7 @@ public interface InquiryService {
     List<InquiryResponseDto> getAllInquiries();
 
     // 답변 등록
-    InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request);
+    InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId, Long sellerId);
 
     // 문의 취소
     void cancelInquiry(Long inquiryId, Long memberId);

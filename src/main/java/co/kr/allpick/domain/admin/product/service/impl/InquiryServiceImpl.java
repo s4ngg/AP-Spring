@@ -73,11 +73,11 @@ public class InquiryServiceImpl implements InquiryService {
     // 5. 답변 등록
     @Override
     @Transactional
-    public InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request) {
+    public InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId, Long sellerId) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
         inquiry.updateStatus(Inquiry.InquiryStatus.PROCESSING);
-        InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId));
+        InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId, adminId, sellerId));
         return InquiryAnswerResponseDto.from(answer);
     }
 

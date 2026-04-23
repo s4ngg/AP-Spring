@@ -35,10 +35,11 @@ public interface InquiryControllerDocs {
     @Operation(summary = "전체 문의 목록 조회", description = "관리자가 전체 문의 목록을 조회합니다.")
     ResponseEntity<ApiResponse<List<InquiryResponseDto>>> getAllInquiries();
 
-    @Operation(summary = "답변 등록", description = "관리자 또는 판매자가 답변을 등록합니다.")
+    @Operation(summary = "답변 등록", description = "관리자 또는 판매자가 JWT 토큰 기반으로 답변을 등록합니다.")
     ResponseEntity<ApiResponse<InquiryAnswerResponseDto>> addAnswer(
             @Parameter(description = "문의 ID") @PathVariable("inquiryId") Long inquiryId,
-            @RequestBody @Valid InquiryAnswerRequestDto request);
+            @RequestBody @Valid InquiryAnswerRequestDto request,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
     @Operation(summary = "문의 취소", description = "접수 대기 상태인 문의를 취소합니다.")
     ResponseEntity<ApiResponse<Void>> cancelInquiry(

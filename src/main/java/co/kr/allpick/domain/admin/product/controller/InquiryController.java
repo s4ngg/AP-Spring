@@ -53,8 +53,11 @@ public class InquiryController implements InquiryControllerDocs {
     @PostMapping("/{inquiryId}/answers")
     public ResponseEntity<ApiResponse<InquiryAnswerResponseDto>> addAnswer(
             @PathVariable("inquiryId") Long inquiryId,
-            @RequestBody @Valid InquiryAnswerRequestDto request) {
-        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request));
+            @RequestBody @Valid InquiryAnswerRequestDto request,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        Long adminId  = "ADMIN".equals(userInfo.getRole())  ? userInfo.getMemberId() : null;
+        Long sellerId = "SELLER".equals(userInfo.getRole()) ? userInfo.getMemberId() : null;
+        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, adminId, sellerId));
     }
 
     @Override

@@ -179,7 +179,7 @@ class InquiryServiceImplTest {
                 .content("문의 내용")
                 .build();
 
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto(2L, null, "정 사이즈 입니다.");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("정 사이즈 입니다.");
 
         InquiryAnswer mockAnswer = InquiryAnswer.builder()
                 .inquiryId(inquiryId)
@@ -191,7 +191,7 @@ class InquiryServiceImplTest {
         when(inquiryAnswerRepository.save(any(InquiryAnswer.class))).thenReturn(mockAnswer);
 
         // when
-        InquiryAnswerResponseDto result = inquiryService.addAnswer(inquiryId, request);
+        InquiryAnswerResponseDto result = inquiryService.addAnswer(inquiryId, request, 2L, null);
 
         // then
         assertThat(result).isNotNull();
@@ -204,12 +204,12 @@ class InquiryServiceImplTest {
     @DisplayName("답변 등록 실패 - 문의 없음")
     void 답변_등록_실패_문의없음() {
         // given
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto(2L, null, "답변 내용");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("답변 내용");
 
         when(inquiryRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> inquiryService.addAnswer(999L, request))
+        assertThatThrownBy(() -> inquiryService.addAnswer(999L, request, 2L, null))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INQUIRY_NOT_FOUND.getMessage());
     }

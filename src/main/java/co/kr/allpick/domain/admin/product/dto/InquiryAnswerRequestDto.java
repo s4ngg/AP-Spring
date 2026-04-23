@@ -14,21 +14,15 @@ import lombok.NoArgsConstructor;
 @Schema(description = "답변 요청 DTO")
 public class InquiryAnswerRequestDto {
 
-    @Schema(description = "관리자 ID", example = "1")
-    private Long adminId;
-
-    @Schema(description = "판매자 ID", example = "1")
-    private Long sellerId;
-
     @NotBlank
-    @Schema(description = "답변 내용", example = "정 사이즈 입니다.")
+    @Schema(description = "답변 내용", example = "정 사이즈 입니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     private String content;
 
-    public InquiryAnswer toEntity(Long inquiryId) {
+    public InquiryAnswer toEntity(Long inquiryId, Long adminId, Long sellerId) {
         return InquiryAnswer.builder()
                 .inquiryId(inquiryId)
-                .adminId(this.adminId)
-                .sellerId(this.sellerId)
+                .adminId(adminId)
+                .sellerId(sellerId)
                 .content(this.content)
                 .build();
     }
