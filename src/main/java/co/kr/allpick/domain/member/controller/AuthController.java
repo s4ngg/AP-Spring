@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController implements AuthControllerDocs {
 
     private final AuthService authService;
+    // SmsService 삭제
 
     // 일반 회원가입
     @PostMapping("/signup")
@@ -38,4 +39,5 @@ public class AuthController implements AuthControllerDocs {
         AuthResponseDto response = authService.login(dto);
         return ApiResponse.success("로그인 성공", response);
     }
+    // find-id/send, find-id/verify 둘 다 삭제
 }

@@ -21,7 +21,7 @@ public class SignupRequestDto {
     @Email(message = "이메일 형식이 올바르지 않습니다.")
     private String email;
 
-    @Schema(description = "비밀번호 (8자 이상)", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "비밀번호 (8자 이상)", example = "Password1234!", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$",
             message = "비밀번호는 8자 이상, 영문, 숫자, 특수문자를 포함해야 합니다.")
@@ -31,7 +31,7 @@ public class SignupRequestDto {
     @NotBlank(message = "이름은 필수입니다.")
     private String name;
 
-    @Schema(description = "전화번호", example = "010-1234-5678", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "전화번호", example = "01037560740", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "전화번호는 필수입니다.")
     private String phone;
 
