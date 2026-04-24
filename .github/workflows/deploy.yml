@@ -20,7 +20,11 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Gradle 빌드 (테스트 제외)
+      # 3. Gradle 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # 4. Gradle 빌드 (테스트 제외)
       - name: Build with Gradle
         run: ./gradlew clean build -x test
         env:
@@ -30,7 +34,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           JWT_EXPIRATION_TIME: ${{ secrets.JWT_EXPIRATION_TIME }}
 
-      # 4. AWS 인증
+      # 5. AWS 인증
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -38,12 +42,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 5. S3에 jar 업로드
+      # 6. S3에 jar 업로드
       - name: Upload jar to S3
         run: |
           aws s3 cp build/libs/*.jar s3://${{ secrets.BACKEND_S3_BUCKET_NAME }}/deploy/app.jar
 
-      # 6. EC2에서 배포 (SSM)
+      # 7. EC2에서 배포 (SSM)
       - name: Deploy to EC2 via SSM
         run: |
           aws ssm send-command \
