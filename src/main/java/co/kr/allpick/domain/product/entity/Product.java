@@ -29,14 +29,16 @@ public class Product extends BaseEntity {
 
     private String thumbnailUrl;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 
-    private String approvalStatus;
+    @Enumerated(EnumType.STRING)
+    private ApprovalStatus approvalStatus;
 
     @Builder
     public Product(Long categoryId, Long sellerId, String productName,
                    String description, Integer price, String thumbnailUrl,
-                   String status, String approvalStatus) {
+                   ProductStatus status, ApprovalStatus approvalStatus) {
         this.categoryId = categoryId;
         this.sellerId = sellerId;
         this.productName = productName;
@@ -55,11 +57,11 @@ public class Product extends BaseEntity {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public void updateStatus(String status) {
+    public void updateStatus(ProductStatus status) {
         this.status = status;
     }
 
-    public void updateApprovalStatus(String approvalStatus) {
+    public void updateApprovalStatus(ApprovalStatus approvalStatus) {
         this.approvalStatus = approvalStatus;
     }
 }
