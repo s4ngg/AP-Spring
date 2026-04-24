@@ -7,7 +7,8 @@ import co.kr.allpick.domain.coupon.entity.Coupon;
 import co.kr.allpick.domain.coupon.entity.MemberCoupon;
 import co.kr.allpick.domain.coupon.repository.CouponRepository;
 import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
-import co.kr.allpick.domain.coupon.service.impl.CouponServiceImpl;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -25,19 +26,17 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CouponServiceImplTest {
 
-    @Mock
-    CouponRepository couponRepository;
+    @Mock CouponRepository couponRepository;
+    @Mock MemberCouponRepository memberCouponRepository;
+    @Mock MemberRepository memberRepository;
 
-    @Mock
-    MemberCouponRepository memberCouponRepository;
-
-    @InjectMocks
-    CouponServiceImpl couponService;
+    @InjectMocks CouponServiceImpl couponService;
 
     @Test
     @DisplayName("쿠폰 등록 성공")
@@ -107,7 +106,9 @@ class CouponServiceImplTest {
                 .coupon(mockCoupon)
                 .build();
 
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mock(Member.class)));
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
+        when(memberCouponRepository.existsByMemberIdAndCoupon_CouponId(memberId, couponId)).thenReturn(false);
         when(memberCouponRepository.save(any(MemberCoupon.class))).thenReturn(mockMemberCoupon);
 
         // when
@@ -123,6 +124,7 @@ class CouponServiceImplTest {
     @DisplayName("쿠폰 발급 실패 - 쿠폰 없음")
     void 쿠폰_발급_실패_쿠폰없음() {
         // given
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mock(Member.class)));
         when(couponRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
@@ -131,35 +133,6 @@ class CouponServiceImplTest {
                 .hasMessage(ErrorCode.COUPON_NOT_FOUND.getMessage());
     }
 
-    @Test
-    @DisplayName("회원 미사용 쿠폰 목록 조회 성공")
-    void 회원_미사용_쿠폰_목록_조회_성공() {
-        // given
-        Long memberId = 1L;
-        Coupon mockCoupon = Coupon.builder()
-                .couponCode("WELCOME2026")
-                .discountType(Coupon.DiscountType.PERCENT)
-                .discountValue(BigDecimal.valueOf(10))
-                .minOrderAmount(BigDecimal.valueOf(10000))
-                .maxDiscount(BigDecimal.valueOf(5000))
-                .expiredAt(LocalDateTime.now().plusMonths(1))
-                .build();
-
-        MemberCoupon mockMemberCoupon = MemberCoupon.builder()
-                .memberId(memberId)
-                .coupon(mockCoupon)
-                .build();
-
-        when(memberCouponRepository.findByMemberIdAndIsUsed(memberId, false))
-                .thenReturn(List.of(mockMemberCoupon));
-
-        // when
-        List<MemberCouponResponseDto> result = couponService.getUnusedCoupons(memberId);
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).isUsed()).isFalse();
-    }
     @Test
     @DisplayName("쿠폰 발급 실패 - 이미 보유한 쿠폰")
     void 쿠폰_발급_실패_이미보유() {
@@ -176,6 +149,7 @@ class CouponServiceImplTest {
                 .expiredAt(LocalDateTime.now().plusMonths(1))
                 .build();
 
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mock(Member.class)));
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(mockCoupon));
         when(memberCouponRepository.existsByMemberIdAndCoupon_CouponId(memberId, couponId)).thenReturn(true);
 
@@ -183,5 +157,37 @@ class CouponServiceImplTest {
         assertThatThrownBy(() -> couponService.issueCoupon(memberId, couponId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.COUPON_ALREADY_ISSUED.getMessage());
+    }
+
+    @Test
+    @DisplayName("회원 미사용 쿠폰 목록 조회 성공")
+    void 회원_미사용_쿠폰_목록_조회_성공() {
+        // given
+        Long memberId = 1L;
+
+        Coupon mockCoupon = Coupon.builder()
+                .couponCode("WELCOME2026")
+                .discountType(Coupon.DiscountType.PERCENT)
+                .discountValue(BigDecimal.valueOf(10))
+                .minOrderAmount(BigDecimal.valueOf(10000))
+                .maxDiscount(BigDecimal.valueOf(5000))
+                .expiredAt(LocalDateTime.now().plusMonths(1))
+                .build();
+
+        MemberCoupon mockMemberCoupon = MemberCoupon.builder()
+                .memberId(memberId)
+                .coupon(mockCoupon)
+                .build();
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mock(Member.class)));
+        when(memberCouponRepository.findByMemberIdAndIsUsed(memberId, false))
+                .thenReturn(List.of(mockMemberCoupon));
+
+        // when
+        List<MemberCouponResponseDto> result = couponService.getUnusedCoupons(memberId);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).isUsed()).isFalse();
     }
 }

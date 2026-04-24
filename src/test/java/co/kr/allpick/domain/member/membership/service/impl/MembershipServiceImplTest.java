@@ -23,6 +23,8 @@ import co.kr.allpick.domain.member.membership.entity.MembershipHistory;
 import co.kr.allpick.domain.member.membership.repository.MembershipHistoryRepository;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.repository.OrderRepository;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 @ExtendWith(MockitoExtension.class)
 class MembershipServiceImplTest {
@@ -40,7 +42,8 @@ class MembershipServiceImplTest {
         Member member = mock(Member.class);
         when(member.getId()).thenReturn(1L);
         when(member.getGrade()).thenReturn(MemberGrade.NORMAL);
-        when(memberRepository.findAll()).thenReturn(List.of(member));
+        when(memberRepository.findAll(any(PageRequest.class)))
+        .thenReturn(new PageImpl<>(List.of(member)));
 
         List<Object[]> mockResult = new ArrayList<>();
         mockResult.add(new Object[]{1L, new BigDecimal("350000")});
@@ -63,7 +66,8 @@ class MembershipServiceImplTest {
         Member member = mock(Member.class);
         when(member.getId()).thenReturn(1L);
         when(member.getGrade()).thenReturn(MemberGrade.NORMAL);
-        when(memberRepository.findAll()).thenReturn(List.of(member));
+        when(memberRepository.findAll(any(PageRequest.class)))
+        .thenReturn(new PageImpl<>(List.of(member)));
 
         List<Object[]> mockResult = new ArrayList<>();
         when(orderRepository.sumDeliveredAmountByMemberBetween(any(), any()))
@@ -84,7 +88,8 @@ class MembershipServiceImplTest {
         Member member = mock(Member.class);
         when(member.getId()).thenReturn(2L);
         when(member.getGrade()).thenReturn(MemberGrade.GOLD);
-        when(memberRepository.findAll()).thenReturn(List.of(member));
+        when(memberRepository.findAll(any(PageRequest.class)))
+        .thenReturn(new PageImpl<>(List.of(member)));
 
         List<Object[]> mockResult = new ArrayList<>();
         mockResult.add(new Object[]{2L, new BigDecimal("3500000")});
