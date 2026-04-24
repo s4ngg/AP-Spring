@@ -45,7 +45,8 @@ jobs:
       # 6. S3에 jar 업로드
       - name: Upload jar to S3
         run: |
-          aws s3 cp build/libs/*.jar s3://${{ secrets.BACKEND_S3_BUCKET_NAME }}/deploy/app.jar
+          JAR_FILE=$(ls build/libs/*.jar | grep -v plain)
+          aws s3 cp $JAR_FILE s3://${{ secrets.BACKEND_S3_BUCKET_NAME }}/deploy/app.jar
 
       # 7. EC2에서 배포 (SSM)
       - name: Deploy to EC2 via SSM
