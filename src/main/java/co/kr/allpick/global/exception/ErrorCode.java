@@ -22,6 +22,20 @@ public enum ErrorCode {
     COUPON_ALREADY_USED(HttpStatus.BAD_REQUEST, "COUPON_ALREADY_USED", "이미 사용된 쿠폰입니다."),
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "COUPON_EXPIRED", "만료된 쿠폰입니다."),
 
+    // Inquiry
+    INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_NOT_FOUND", "문의를 찾을 수 없습니다."),
+    INQUIRY_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "INQUIRY_ALREADY_DELETED", "이미 삭제된 문의입니다."),
+    INQUIRY_ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_ANSWER_NOT_FOUND", "문의 답변을 찾을 수 없습니다."),
+    INQUIRY_UNAUTHORIZED(HttpStatus.FORBIDDEN, "INQUIRY_UNAUTHORIZED", "해당 문의에 대한 권한이 없습니다."),
+    // 문의 접수 대기 시 취소 가능 에러코드 추가
+    INQUIRY_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "INQUIRY_CANNOT_CANCEL", "접수 대기 상태에서만 취소 가능합니다."),
+
+    // Claim
+    CLAIM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLAIM_NOT_FOUND", "클레임을 찾을 수 없습니다."),
+    CLAIM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_DELETED", "이미 삭제된 클레임입니다."),
+    CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
+    CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
+
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
