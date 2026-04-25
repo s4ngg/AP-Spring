@@ -1,11 +1,16 @@
 package co.kr.allpick.global.filter;
 
 import java.io.IOException;
+import java.util.Collections;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import co.kr.allpick.global.config.JwtProvider;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,7 +58,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         Long memberId = jwtProvider.getMemberIdFromToken(token);
-        request.setAttribute("memberId", memberId);
+
+        // JwtUserInfoDto userInfo를 통해 Custom
+        JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, null, null);
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userInfo,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         logger.info("인증 성공 - memberId: {}", memberId);
         filterChain.doFilter(request, response);
     }

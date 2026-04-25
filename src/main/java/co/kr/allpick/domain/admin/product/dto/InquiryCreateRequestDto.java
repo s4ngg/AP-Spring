@@ -5,6 +5,7 @@ import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,6 +31,7 @@ public class InquiryCreateRequestDto {
     private Inquiry.InquiryType inquiryType;
 
     @NotBlank
+    @Size(max = 100)
     @Schema(description = "문의 제목", example = "상품 사이즈 문의드립니다.")
     private String title;
 
