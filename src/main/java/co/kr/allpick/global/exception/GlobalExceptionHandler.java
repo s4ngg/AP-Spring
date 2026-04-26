@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -23,6 +24,13 @@ public class GlobalExceptionHandler {
                 e.getErrorCode().getStatus(),
                 e.getMessage());
         return ApiResponse.fail(e.getMessage(), e.getErrorCode().getStatus());
+    }
+
+    // inquiryType에 잘못된 값 : 400 Bad Request 처리를 위한 Http~ 핸들러 추가
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        logger.warn("요청 값 파싱 실패: {}", e.getMessage());
+        return ApiResponse.fail("요청 값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
