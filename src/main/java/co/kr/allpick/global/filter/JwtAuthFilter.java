@@ -59,7 +59,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         Long memberId = jwtProvider.getMemberIdFromToken(token);
 
-        // JwtUserInfoDto userInfo를 통해 Custom
+        // 토큰에서 추출한 memberId로 JwtUserInfoDto를 생성해 SecurityContext에 인증 principal로 등록
         JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, null, null);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(

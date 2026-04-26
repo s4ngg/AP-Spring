@@ -8,6 +8,8 @@ import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.entity.InquiryAnswer;
 import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryRepository;
+import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,12 @@ class InquiryServiceImplTest {
     @Mock
     InquiryAnswerRepository inquiryAnswerRepository;
 
+    @Mock
+    MemberRepository memberRepository;
+
+    @Mock
+    OrderItemRepository orderItemRepository;
+
     @InjectMocks
     InquiryServiceImpl inquiryService;
 
@@ -54,6 +62,8 @@ class InquiryServiceImplTest {
                 .content("정 사이즈인지 궁금합니다.")
                 .build();
 
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.existsById(10L)).thenReturn(true);
         when(inquiryRepository.save(any(Inquiry.class))).thenReturn(mockInquiry);
 
         // when
@@ -65,6 +75,39 @@ class InquiryServiceImplTest {
         assertThat(result.getTitle()).isEqualTo("사이즈 문의드립니다.");
         assertThat(result.getStatus()).isEqualTo(Inquiry.InquiryStatus.PENDING);
         assertThat(result.getAnswers()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("문의 등록 실패 - 존재하지 않는 회원")
+    void 문의_등록_실패_회원없음() {
+        // given
+        InquiryCreateRequestDto request = new InquiryCreateRequestDto(
+                999L, null, 5L, Inquiry.InquiryType.PRODUCT,
+                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+
+        when(memberRepository.existsById(999L)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> inquiryService.createInquiry(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("문의 등록 실패 - 존재하지 않는 주문 상품")
+    void 문의_등록_실패_주문상품없음() {
+        // given
+        InquiryCreateRequestDto request = new InquiryCreateRequestDto(
+                1L, 999L, 5L, Inquiry.InquiryType.PRODUCT,
+                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.existsById(999L)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> inquiryService.createInquiry(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
     }
 
     @Test
