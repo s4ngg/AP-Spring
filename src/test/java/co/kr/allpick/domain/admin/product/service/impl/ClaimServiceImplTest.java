@@ -47,7 +47,7 @@ class ClaimServiceImplTest {
                 .memberId(1L)
                 .orderItemId(10L)
                 .claimType(Claim.ClaimType.RETURN)
-                .reasonCode("SIMPLE_CHANGE")
+                .reasonCode(Claim.ReasonCode.CHANGE_MIND)
                 .detail("단순 변심입니다.")
                 .pickupMethod(Claim.ClaimPickupMethod.COURIER)
                 .rejectReason(null)
@@ -62,7 +62,7 @@ class ClaimServiceImplTest {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 1L, 10L, null, Claim.ClaimType.RETURN,
-                "SIMPLE_CHANGE", "단순 변심입니다.",
+                Claim.ReasonCode.CHANGE_MIND, "단순 변심입니다.",
                 Claim.ClaimPickupMethod.COURIER, null,
                 BigDecimal.valueOf(29000), BigDecimal.valueOf(3000));
 
@@ -88,7 +88,7 @@ class ClaimServiceImplTest {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 999L, 10L, null, Claim.ClaimType.RETURN,
-                "SIMPLE_CHANGE", null,
+                Claim.ReasonCode.CHANGE_MIND, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(999L)).thenReturn(false);
@@ -105,7 +105,7 @@ class ClaimServiceImplTest {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 1L, 999L, null, Claim.ClaimType.RETURN,
-                "SIMPLE_CHANGE", null,
+                Claim.ReasonCode.CHANGE_MIND, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(1L)).thenReturn(true);
@@ -115,6 +115,40 @@ class ClaimServiceImplTest {
         assertThatThrownBy(() -> claimService.createClaim(request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 등록 실패 - 반품 요청에 교환 전용 사유 사용")
+    void 클레임_등록_실패_반품에_교환사유() {
+        // given
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                1L, 10L, null, Claim.ClaimType.RETURN,
+                Claim.ReasonCode.SIZE_CHANGE, null,
+                Claim.ClaimPickupMethod.COURIER, null, null, null);
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> claimService.createClaim(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_REASON_MISMATCH.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 등록 실패 - 교환 요청에 반품 전용 사유 사용")
+    void 클레임_등록_실패_교환에_반품사유() {
+        // given
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                1L, 10L, null, Claim.ClaimType.EXCHANGE,
+                Claim.ReasonCode.CHANGE_MIND, null,
+                Claim.ClaimPickupMethod.COURIER, null, null, null);
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> claimService.createClaim(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_REASON_MISMATCH.getMessage());
     }
 
     @Test
@@ -131,7 +165,7 @@ class ClaimServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getReasonCode()).isEqualTo("SIMPLE_CHANGE");
+        assertThat(result.getReasonCode()).isEqualTo(Claim.ReasonCode.CHANGE_MIND);
         assertThat(result.getPickupMethod()).isEqualTo(Claim.ClaimPickupMethod.COURIER);
     }
 
@@ -157,7 +191,7 @@ class ClaimServiceImplTest {
                 .memberId(memberId)
                 .orderItemId(20L)
                 .claimType(Claim.ClaimType.EXCHANGE)
-                .reasonCode("SIZE_ISSUE")
+                .reasonCode(Claim.ReasonCode.SIZE_CHANGE)
                 .pickupMethod(Claim.ClaimPickupMethod.VISIT)
                 .rejectReason(null)
                 .build();
@@ -256,6 +290,23 @@ class ClaimServiceImplTest {
     }
 
     @Test
+    @DisplayName("클레임 상태 변경 실패 - 이미 취소된 클레임")
+    void 클레임_상태_변경_실패_이미취소() {
+        // given
+        Long claimId = 1L;
+        Claim mockClaim = buildMockClaim();
+        mockClaim.cancel();
+        ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
+    }
+
+    @Test
     @DisplayName("클레임 거부 성공")
     void 클레임_거부_성공() {
         // given
@@ -302,5 +353,22 @@ class ClaimServiceImplTest {
         assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_ALREADY_COMPLETED.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 거부 실패 - 이미 취소된 클레임")
+    void 클레임_거부_실패_이미취소() {
+        // given
+        Long claimId = 1L;
+        Claim mockClaim = buildMockClaim();
+        mockClaim.cancel();
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
     }
 }

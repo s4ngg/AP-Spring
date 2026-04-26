@@ -32,9 +32,13 @@ public enum ErrorCode {
 
     // Claim
     CLAIM_NOT_FOUND(HttpStatus.NOT_FOUND, "CLAIM_NOT_FOUND", "클레임을 찾을 수 없습니다."),
+    CLAIM_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_EXISTS", "이미 진행 중인 클레임이 존재합니다."),
     CLAIM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_DELETED", "이미 삭제된 클레임입니다."),
-    CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
+    CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "접수 중 이상의 클레임은 취소할 수 없습니다."),
     CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
+    CLAIM_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_CANCELLED", "취소된 클레임은 처리할 수 없습니다."),
+    CLAIM_UNAUTHORIZED(HttpStatus.FORBIDDEN, "CLAIM_UNAUTHORIZED", "해당 클레임에 대한 권한이 없습니다."),
+    CLAIM_REASON_MISMATCH(HttpStatus.BAD_REQUEST, "CLAIM_REASON_MISMATCH", "신청 유형에 맞지 않는 사유입니다."),
 
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),

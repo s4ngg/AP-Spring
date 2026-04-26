@@ -65,4 +65,13 @@ public class ClaimController implements ClaimControllerDocs {
             @RequestBody @Valid ClaimRejectRequestDto request) {
         return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaim(claimId, request));
     }
+
+    @Override
+    @PatchMapping("/{claimId}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelClaim(
+            @PathVariable("claimId") Long claimId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        claimService.cancelClaim(claimId, userInfo.getMemberId());
+        return ApiResponse.success("클레임이 취소되었습니다.", null);
+    }
 }

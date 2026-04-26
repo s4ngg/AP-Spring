@@ -25,25 +25,29 @@ public class ClaimResponseDto {
     @Schema(description = "옵션 ID", example = "5")
     private Long optionId;
 
-    @Schema(description = "클레임 유형", example = "RETURN")
+    @Schema(description = "클레임 유형 (EXCHANGE=교환, RETURN=반품)", example = "RETURN")
     private Claim.ClaimType claimType;
 
-    @Schema(description = "클레임 상태", example = "SUBMITTED")
+    @Schema(description = "클레임 상태 (SUBMITTED=접수, IN_PROGRESS=접수 중, COMPLETED=완료, REJECTED=거부, CANCELLED=취소)", example = "SUBMITTED")
     private Claim.ClaimStatus status;
 
-    @Schema(description = "사유 코드", example = "SIMPLE_CHANGE")
-    private String reasonCode;
+    @Schema(description = "사유 코드 " +
+            "[반품] CHANGE_MIND=단순 변심, SIZE_COLOR=사이즈/색상 불만족, DESCRIPTION_DIFF=상품 설명과 다름 " +
+            "[교환] SIZE_CHANGE=사이즈 변경, COLOR_CHANGE=색상 변경 " +
+            "[공통] DEFECT=상품 불량/파손, WRONG_ITEM=오배송, MISSING_ITEM=구성품 누락, OTHER=기타",
+            example = "CHANGE_MIND")
+    private Claim.ReasonCode reasonCode;
 
     @Schema(description = "상세 사유", example = "단순 변심입니다.")
     private String detail;
 
-    @Schema(description = "수거 방식", example = "COURIER")
+    @Schema(description = "수거 방식 (COURIER=택배, VISIT=방문)", example = "COURIER")
     private Claim.ClaimPickupMethod pickupMethod;
 
     @Schema(description = "거부 사유", example = "교환 기간 초과")
     private String rejectReason;
 
-    @Schema(description = "교환 옵션", example = "L사이즈 블랙")
+    @Schema(description = "교환 옵션 (교환 시 원하는 옵션)", example = "L사이즈 블랙")
     private String exchangeOption;
 
     @Schema(description = "환불 금액", example = "29000")

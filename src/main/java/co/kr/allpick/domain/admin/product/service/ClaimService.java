@@ -26,4 +26,7 @@ public interface ClaimService {
 
     // 클레임 거부 (관리자/판매자)
     ClaimResponseDto rejectClaim(Long claimId, ClaimRejectRequestDto request);
+
+    // 클레임 취소 (회원)
+    void cancelClaim(Long claimId, Long memberId);
 }

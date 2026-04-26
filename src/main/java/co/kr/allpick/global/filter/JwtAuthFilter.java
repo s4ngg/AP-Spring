@@ -60,6 +60,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
 
         // 토큰에서 추출한 memberId로 JwtUserInfoDto를 생성해 SecurityContext에 인증 principal로 등록
+        // 관리자 기능 구현시 해당 DTO, 코드 추가 작성하는 것만으로 유지보수 가능 (관리자(CS)인증 부분)
+        // (현재 null 처리 부분: 관리자 email, role 작성 예정)
         JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, null, null);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(

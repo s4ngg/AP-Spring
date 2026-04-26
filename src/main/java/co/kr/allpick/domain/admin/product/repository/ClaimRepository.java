@@ -11,4 +11,7 @@ public interface ClaimRepository extends JpaRepository<Claim, Long> {
 
     // 전체 클레임 목록 조회 (삭제 안된 것만)
     List<Claim> findAllByDeletedAtIsNull();
+
+    // 활성 클레임 존재 여부 확인 (취소/거부 제외)
+    boolean existsByOrderItemIdAndStatusNotIn(Long orderItemId, List<Claim.ClaimStatus> statuses);
 }

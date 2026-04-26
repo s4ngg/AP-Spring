@@ -18,12 +18,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ClaimServiceImpl implements ClaimService {
 
     private static final Logger logger = LogManager.getLogger(ClaimServiceImpl.class);
+
+    // 반품 전용 사유 (교환 요청 시 사용 불가)
+    private static final Set<Claim.ReasonCode> RETURN_ONLY_REASONS = Set.of(
+            Claim.ReasonCode.CHANGE_MIND,
+            Claim.ReasonCode.SIZE_COLOR,
+            Claim.ReasonCode.DESCRIPTION_DIFF
+    );
+
+    // 교환 전용 사유 (반품 요청 시 사용 불가)
+    private static final Set<Claim.ReasonCode> EXCHANGE_ONLY_REASONS = Set.of(
+            Claim.ReasonCode.SIZE_CHANGE,
+            Claim.ReasonCode.COLOR_CHANGE
+    );
 
     private final ClaimRepository claimRepository;
     private final MemberRepository memberRepository;
@@ -38,8 +52,23 @@ public class ClaimServiceImpl implements ClaimService {
         if (!memberRepository.existsById(request.getMemberId())) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
+
+        // 신청 유형과 사유 코드 조합 검증
+        if (request.getClaimType() == Claim.ClaimType.RETURN &&
+                EXCHANGE_ONLY_REASONS.contains(request.getReasonCode())) {
+            throw new BusinessException(ErrorCode.CLAIM_REASON_MISMATCH);
+        }
+        if (request.getClaimType() == Claim.ClaimType.EXCHANGE &&
+                RETURN_ONLY_REASONS.contains(request.getReasonCode())) {
+            throw new BusinessException(ErrorCode.CLAIM_REASON_MISMATCH);
+        }
         if (!orderItemRepository.existsById(request.getOrderItemId())) {
             throw new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+        }
+        if (claimRepository.existsByOrderItemIdAndStatusNotIn(
+                request.getOrderItemId(),
+                List.of(Claim.ClaimStatus.CANCELLED, Claim.ClaimStatus.REJECTED))) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_EXISTS);
         }
 
         Claim claim = claimRepository.save(request.toEntity());
@@ -85,6 +114,9 @@ public class ClaimServiceImpl implements ClaimService {
         if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
         }
+        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
+        }
         if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
             throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
@@ -93,7 +125,22 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // 6. 클레임 거부
+    // 6. 클레임 취소
+    @Override
+    @Transactional
+    public void cancelClaim(Long claimId, Long memberId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
+        if (!claim.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
+        }
+        if (claim.getStatus() != Claim.ClaimStatus.SUBMITTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+        claim.cancel();
+    }
+
+    // 7. 클레임 거부
     @Override
     @Transactional
     public ClaimResponseDto rejectClaim(Long claimId, ClaimRejectRequestDto request) {
@@ -102,6 +149,9 @@ public class ClaimServiceImpl implements ClaimService {
 
         if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
         }
         if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
             throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
