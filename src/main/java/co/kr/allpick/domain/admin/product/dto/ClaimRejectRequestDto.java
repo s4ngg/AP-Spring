@@ -15,4 +15,5 @@ public class ClaimRejectRequestDto {
     @NotBlank
     @Schema(description = "거부 사유", example = "교환 기간이 초과되었습니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     private String rejectReason;
+
 }
