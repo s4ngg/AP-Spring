@@ -45,7 +45,7 @@ public interface ProductControllerDocs {
             content = @Content(
                 examples = @ExampleObject(value = """
                     {
-                        "success": false,
+                        "success": false,	
                         "message": "해당 상품이 존재하지 않습니다.",
                         "data": null
                     }

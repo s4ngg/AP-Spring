@@ -1,14 +1,32 @@
 package co.kr.allpick.domain.product.entity;
 
 import java.math.BigDecimal;
-
 import java.util.ArrayList;
 import java.util.List;
 
-import co.kr.allpick.domain.seller.entity.Seller;
+import org.hibernate.annotations.BatchSize;
+
 import co.kr.allpick.global.common.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Table(name = "products")
 @Entity
@@ -31,12 +49,14 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "parent_category_id", nullable = false)
     private ParentCategory parentCategory;
 
+    @BatchSize(size = 100)
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductOption> optionList = new ArrayList<>();
 
 
     @Builder.Default
+    @BatchSize(size = 100)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC") // 이미지 순서 정렬 추가
     private List<ProductImage> productImageList = new ArrayList<>();
