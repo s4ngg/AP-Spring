@@ -20,3 +20,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 	Optional<Product> findValidProduct(@Param("id") Long productId);
 }
 
+  
