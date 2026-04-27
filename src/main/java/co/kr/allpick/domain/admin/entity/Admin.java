@@ -27,26 +27,27 @@ public class Admin extends BaseEntity {
     @Column(name ="admin_id")
     private Long adminId;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(name = "admin_name", nullable = false)
     private String adminName;
 
-    @Column(nullable = false)
+    @Column(name = "admin_phone", nullable = false)
     private String adminPhone;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable= false)
+    @Column(name = "role", nullable = false)
     private AdminRole role;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable= false)
+    @Column(name = "status", nullable = false)
     private AdminStatus status;
 
+    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
 
