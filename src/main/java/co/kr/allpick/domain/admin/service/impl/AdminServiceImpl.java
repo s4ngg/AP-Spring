@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.admin.service;
+package co.kr.allpick.domain.admin.service.impl;
 
 
 import co.kr.allpick.domain.admin.dto.AdminCreateRequestDto;
@@ -6,16 +6,18 @@ import co.kr.allpick.domain.admin.dto.AdminLoginRequestDto;
 import co.kr.allpick.domain.admin.dto.AdminLoginResponseDto;
 import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.repository.AdminRepository;
+import co.kr.allpick.domain.admin.service.AdminService;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-@Slf4j
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -23,6 +25,8 @@ public class AdminServiceImpl implements AdminService {
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private static final Logger logger =
+            LogManager.getLogger(AdminServiceImpl.class);
 
     @Override
     public AdminLoginResponseDto adminLogin(AdminLoginRequestDto adminLoginRequestDto) {
@@ -46,11 +50,7 @@ public class AdminServiceImpl implements AdminService {
         String token = jwtProvider.createToken(jwtUserInfoDto);
 
 
-        return AdminLoginResponseDto.builder()
-                .adminName(admin.getAdminName())
-                .role(admin.getRole().name())
-                .token(token)
-                .build();
+        return AdminLoginResponseDto.from(admin, token);
 
     }
 
