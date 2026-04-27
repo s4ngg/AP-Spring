@@ -60,15 +60,8 @@ public class AdminServiceImpl implements AdminService {
         //1. 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(adminCreateRequestDto.getPassword());
 
-        //2. Admin 객체 생성
-        Admin admin = Admin.builder()
-                .adminName(adminCreateRequestDto.getAdminName())
-                .email(adminCreateRequestDto.getEmail())
-                .password(encodedPassword) //암호화된 비밀번호 저장
-                .adminPhone(adminCreateRequestDto.getAdminPhone())
-                .role(Admin.AdminRole.valueOf(adminCreateRequestDto.getRole()))
-                .status(Admin.AdminStatus.ACTIVE)
-                .build();
+        //2. Admin 객체 생성(toEntity()패턴)
+        Admin admin = adminCreateRequestDto.toEntity(encodedPassword);
 
         adminRepository.save(admin);
 
