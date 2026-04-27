@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.product.entity;
 
 import java.math.BigDecimal;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,3 +86,4 @@ public class Product extends BaseEntity {
 
     }
 }
+
