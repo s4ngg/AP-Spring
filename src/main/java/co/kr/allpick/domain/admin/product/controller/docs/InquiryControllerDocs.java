@@ -27,6 +27,7 @@ public interface InquiryControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 회원 또는 주문 상품")
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryResponseDto>> createInquiry(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid InquiryCreateRequestDto request);
 
     @Operation(summary = "문의 상세 조회", description = "문의 ID로 상세 조회합니다.")

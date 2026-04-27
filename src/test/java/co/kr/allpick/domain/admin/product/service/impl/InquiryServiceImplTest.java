@@ -50,7 +50,7 @@ class InquiryServiceImplTest {
     void 문의_등록_성공() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
-                1L, 10L, 5L, Inquiry.InquiryType.PRODUCT,
+                10L, 5L, Inquiry.InquiryType.PRODUCT,
                 "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
 
         Inquiry mockInquiry = Inquiry.builder()
@@ -67,7 +67,7 @@ class InquiryServiceImplTest {
         when(inquiryRepository.save(any(Inquiry.class))).thenReturn(mockInquiry);
 
         // when
-        InquiryResponseDto result = inquiryService.createInquiry(request);
+        InquiryResponseDto result = inquiryService.createInquiry(1L, request);
 
         // then
         assertThat(result).isNotNull();

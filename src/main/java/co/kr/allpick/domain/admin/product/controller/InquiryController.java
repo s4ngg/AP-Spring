@@ -25,8 +25,9 @@ public class InquiryController implements InquiryControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<InquiryResponseDto>> createInquiry(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid InquiryCreateRequestDto request) {
-        return ApiResponse.success("문의가 등록되었습니다.", inquiryService.createInquiry(request));
+        return ApiResponse.success("문의가 등록되었습니다.", inquiryService.createInquiry(userInfo.getMemberId(), request));
     }
 
     @Override
