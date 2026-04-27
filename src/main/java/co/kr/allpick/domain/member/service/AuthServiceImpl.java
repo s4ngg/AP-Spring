@@ -1,6 +1,5 @@
-package co.kr.allpick.domain.member.service.impl;
+package co.kr.allpick.domain.member.service;
 
-import co.kr.allpick.domain.member.service.AuthService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;

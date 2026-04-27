@@ -1,24 +1,34 @@
 package co.kr.allpick.domain.member.service.Impl;
 
-import co.kr.allpick.domain.member.dto.MemberResponseDto;
-import co.kr.allpick.domain.member.entity.Member;
-import co.kr.allpick.domain.member.entity.MemberGrade;
-import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.domain.member.service.impl.MemberServiceImpl;
-import co.kr.allpick.global.exception.BusinessException;
-import co.kr.allpick.global.exception.ErrorCode;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
+import co.kr.allpick.domain.member.dto.AuthResponseDto;
+import co.kr.allpick.domain.member.dto.LoginRequestDto;
+import co.kr.allpick.domain.member.dto.SignupRequestDto;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.member.service.AuthServiceImpl;
+import co.kr.allpick.global.config.JwtProvider;
+import co.kr.allpick.global.config.JwtUserInfoDto;
+import co.kr.allpick.global.exception.BusinessException;
+import co.kr.allpick.global.exception.ErrorCode;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
@@ -26,43 +36,116 @@ class MemberServiceImplTest {
     @Mock
     MemberRepository memberRepository;
 
+    @Mock
+    SellerRepository sellerRepository;
+    
+    @Mock
+    PasswordEncoder passwordEncoder;
+
+    @Mock
+    JwtProvider jwtProvider;
+
     @InjectMocks
-    MemberServiceImpl memberService;
+    AuthServiceImpl authService;
+
+    // ==================== 일반 회원가입 ====================
 
     @Test
-    @DisplayName("회원 정보 조회 성공")
-    void 회원_정보_조회_성공() {
+    @DisplayName("일반 회원가입 성공")
+    void 일반_회원가입_성공() {
         // given
-        Long memberId = 1L;
-        Member mockMember = Member.builder()
-                .email("test@test.com")
-                .name("김상우")
-                .phone("01012345678")
-                .address("인천광역시 미추홀구")
-                .grade(MemberGrade.NORMAL)
-                .build();
+        SignupRequestDto dto = new SignupRequestDto(
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
 
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
+        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
 
         // when
-        MemberResponseDto result = memberService.getMember(memberId);
+        authService.signup(dto);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("test@test.com");
-        assertThat(result.getName()).isEqualTo("김상우");
-        assertThat(result.getGrade()).isEqualTo(MemberGrade.NORMAL);
+        verify(memberRepository, times(1)).save(any(Member.class));
     }
 
     @Test
-    @DisplayName("회원 정보 조회 실패 - 존재하지 않는 회원")
-    void 회원_정보_조회_실패_존재하지않는회원() {
+    @DisplayName("일반 회원가입 실패 - 중복 이메일")
+    void 일반_회원가입_실패_중복이메일() {
         // given
-        when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+        SignupRequestDto dto = new SignupRequestDto(
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
+
+        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> memberService.getMember(999L))
+        assertThatThrownBy(() -> authService.signup(dto))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
+    }
+    // ==================== 로그인 ====================
+
+    @Test
+    @DisplayName("로그인 성공")
+    void 로그인_성공() {
+        // given
+        LoginRequestDto dto = new LoginRequestDto("test@test.com", "password123");
+
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
+
+        when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
+        when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
+        when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
+
+        // when
+        AuthResponseDto result = authService.login(dto);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getToken()).isEqualTo("mockToken");
+        assertThat(result.getEmail()).isEqualTo("test@test.com");
+        assertThat(result.getName()).isEqualTo("홍길동");
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 이메일 없음")
+    void 로그인_실패_이메일없음() {
+        // given
+        LoginRequestDto dto = new LoginRequestDto("none@test.com", "password123");
+
+        when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> authService.login(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.INVALID_PASSWORD.getMessage());
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 비밀번호 틀림")
+    void 로그인_실패_비밀번호틀림() {
+        // given
+        LoginRequestDto dto = new LoginRequestDto("test@test.com", "wrongPassword");
+
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
+
+
+        when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
+        when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> authService.login(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.INVALID_PASSWORD.getMessage());
     }
 }
