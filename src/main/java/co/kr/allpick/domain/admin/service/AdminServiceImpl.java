@@ -67,6 +67,7 @@ public class AdminServiceImpl implements AdminService {
                 .password(encodedPassword) //암호화된 비밀번호 저장
                 .adminPhone(adminCreateRequestDto.getAdminPhone())
                 .role(Admin.AdminRole.valueOf(adminCreateRequestDto.getRole()))
+                .status(Admin.AdminStatus.ACTIVE)
                 .build();
 
         adminRepository.save(admin);
