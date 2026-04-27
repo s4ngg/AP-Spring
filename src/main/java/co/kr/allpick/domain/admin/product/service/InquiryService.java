@@ -9,7 +9,7 @@ import java.util.List;
 public interface InquiryService {
 
     // 문의 등록
-    InquiryResponseDto createInquiry(InquiryCreateRequestDto request);
+    InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request);
 
     // 문의 상세 조회
     InquiryResponseDto getInquiryById(Long inquiryId);
