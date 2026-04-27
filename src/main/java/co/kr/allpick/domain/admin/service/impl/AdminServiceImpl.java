@@ -44,11 +44,12 @@ public class AdminServiceImpl implements AdminService {
         JwtUserInfoDto jwtUserInfoDto = new JwtUserInfoDto(
                 admin.getAdminId(),
                 admin.getEmail(),
-                admin.getRole().name()
+                null
         );
 
         String token = jwtProvider.createToken(jwtUserInfoDto);
 
+        logger.info("[AdminServiceImpl] 관리자 로그인 성공 - adminId: {}", admin.getAdminId());
 
         return AdminLoginResponseDto.from(admin, token);
 
@@ -65,7 +66,7 @@ public class AdminServiceImpl implements AdminService {
 
         adminRepository.save(admin);
 
-
+        logger.info("[AdminServiceImpl] 관리자 등록 완료 - email: {}", adminCreateRequestDto.getEmail());
     }
 
     @Override
@@ -74,5 +75,7 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
         admin.updateStatus(status);
+
+        logger.info("[AdminServiceImpl] 관리자 상태 변경 - adminId: {}, status: {}", adminId, status);
     }
 }
