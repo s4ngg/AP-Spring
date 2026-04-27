@@ -23,8 +23,8 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ProductImage extends BaseEntity{
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "product_id" , nullable = false)
-	private Long productId;									// 상품이미지 기본키
+	@Column(name = "product_image_id" , nullable = false)
+	private Long productImageId;									// 상품이미지 기본키
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "product_id", nullable = false)

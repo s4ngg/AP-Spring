@@ -22,7 +22,7 @@ public class ProductController implements ProductControllerDocs{
 
 	@Override
 	@GetMapping("/{productId}")
-	public ResponseEntity<ApiResponse<ProductDetailResDto>> getProductDetail(@PathVariable Long productId) {
+	public ResponseEntity<ApiResponse<ProductDetailResDto>> getProductDetail(@PathVariable("productId") Long productId) {
 		return ApiResponse.success("상품을 조회합니다.", productService.getProductDetail(productId));
 
 	}
