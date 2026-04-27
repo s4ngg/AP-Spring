@@ -55,7 +55,7 @@ class AuthServiceImplTest {
     void 일반_회원가입_성공() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
@@ -72,7 +72,7 @@ class AuthServiceImplTest {
     void 일반_회원가입_실패_중복이메일() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구", true, true, false);
+            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
