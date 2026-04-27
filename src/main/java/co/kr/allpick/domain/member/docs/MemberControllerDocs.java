@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.member.docs;
 
 import co.kr.allpick.domain.member.dto.MemberResponseDto;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,5 +41,5 @@ public interface MemberControllerDocs {
             """)))
     })
         // 수정
-    ResponseEntity<ApiResponse<MemberResponseDto>> getMember(@PathVariable Long memberId);
+    ResponseEntity<ApiResponse<MemberResponseDto>> getMember(JwtUserInfoDto userInfo);
 }
