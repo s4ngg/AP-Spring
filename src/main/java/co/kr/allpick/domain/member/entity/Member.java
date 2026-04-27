@@ -122,6 +122,6 @@ public class Member extends BaseEntity {
 
     // JWT 변환
     public JwtUserInfoDto toJwtUserInfoDto() {
-        return new JwtUserInfoDto(this.id, this.email, "BUYER");
+        return new JwtUserInfoDto(this.id, this.email);
     }
 }

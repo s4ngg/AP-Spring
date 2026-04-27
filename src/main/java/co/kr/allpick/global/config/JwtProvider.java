@@ -32,7 +32,6 @@ public class JwtProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(jwtUserInfoDto.getMemberId()))
                 .claim("email", jwtUserInfoDto.getEmail())
-                .claim("role", jwtUserInfoDto.getRole())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expireTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -47,6 +46,15 @@ public class JwtProvider {
                 .getBody()
                 .getSubject();
         return Long.valueOf(subject);
+    }
+
+    public String getEmailFromToken(String token) {
+        return (String) Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("email");
     }
 
     public boolean validateToken(String token) {
