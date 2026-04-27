@@ -8,6 +8,8 @@ import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.entity.InquiryAnswer;
 import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryRepository;
+import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,12 @@ class InquiryServiceImplTest {
     @Mock
     InquiryAnswerRepository inquiryAnswerRepository;
 
+    @Mock
+    MemberRepository memberRepository;
+
+    @Mock
+    OrderItemRepository orderItemRepository;
+
     @InjectMocks
     InquiryServiceImpl inquiryService;
 
@@ -54,6 +62,8 @@ class InquiryServiceImplTest {
                 .content("정 사이즈인지 궁금합니다.")
                 .build();
 
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.existsById(10L)).thenReturn(true);
         when(inquiryRepository.save(any(Inquiry.class))).thenReturn(mockInquiry);
 
         // when
