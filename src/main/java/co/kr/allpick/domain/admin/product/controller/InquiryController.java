@@ -50,14 +50,23 @@ public class InquiryController implements InquiryControllerDocs {
     }
 
     @Override
-    @PostMapping("/{inquiryId}/answers")
-    public ResponseEntity<ApiResponse<InquiryAnswerResponseDto>> addAnswer(
+    @PostMapping("/{inquiryId}/answers/admin")
+    public ResponseEntity<ApiResponse<InquiryAnswerResponseDto>> addAdminAnswer(
             @PathVariable("inquiryId") Long inquiryId,
             @RequestBody @Valid InquiryAnswerRequestDto request,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
-        Long adminId  = "ADMIN".equals(userInfo.getRole())  ? userInfo.getMemberId() : null;
-        Long sellerId = "SELLER".equals(userInfo.getRole()) ? userInfo.getMemberId() : null;
-        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, adminId, sellerId));
+        // TODO: 관리자 JWT 구현 후 adminId 교체 예정
+        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, userInfo.getMemberId(), null));
+    }
+
+    @Override
+    @PostMapping("/{inquiryId}/answers/seller")
+    public ResponseEntity<ApiResponse<InquiryAnswerResponseDto>> addSellerAnswer(
+            @PathVariable("inquiryId") Long inquiryId,
+            @RequestBody @Valid InquiryAnswerRequestDto request,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        // TODO: 판매자 JWT 구현 후 sellerId 교체 예정
+        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, null, userInfo.getMemberId()));
     }
 
     @Override
