@@ -58,19 +58,6 @@ public class Member extends BaseEntity {
     @Column(name = "social_id", unique = true, length = 255)
     private String socialId;
 
-    
-    @Builder.Default
-    @Column(name = "terms_agreed", nullable = false)
-    private Boolean termsAgreed = false;      // 필수
-
-    @Builder.Default
-    @Column(name = "privacy_agreed", nullable = false)
-    private Boolean privacyAgreed = false;    // 필수
-
-    @Builder.Default
-    @Column(name = "marketing_agreed", nullable = false)
-    private Boolean marketingAgreed = false;  // 선택
-
     public enum LoginType {
         LOCAL, KAKAO, NAVER, GOOGLE
     }

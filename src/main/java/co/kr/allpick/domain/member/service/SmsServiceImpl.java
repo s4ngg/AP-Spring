@@ -28,8 +28,8 @@ public class SmsServiceImpl implements SmsService {
 
     private static final String CODE_PREFIX = "sms:code:";
     private static final String VERIFIED_PREFIX = "sms:verified:";
-    private static final long CODE_TTL = 5;       // 인증번호 5분
-    private static final long VERIFIED_TTL = 10;  // 인증 완료 10분
+    private static final long CODE_TTL = 5;
+    private static final long VERIFIED_TTL = 30;
 
     @Value("${coolsms.sender}")
     private String sender;
