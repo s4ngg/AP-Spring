@@ -34,17 +34,17 @@ public class InquiryServiceImpl implements InquiryService {
     // 1. 문의 등록
     @Override
     @Transactional
-    public InquiryResponseDto createInquiry(InquiryCreateRequestDto request) {
-        logger.info("[InquiryService] 문의 등록 - memberId: {}", request.getMemberId());
+    public InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request) {
+        logger.info("[InquiryService] 문의 등록 - memberId: {}", memberId);
 
-        if (!memberRepository.existsById(request.getMemberId())) {
+        if (!memberRepository.existsById(memberId)) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
         if (request.getOrderItemId() != null && !orderItemRepository.existsById(request.getOrderItemId())) {
             throw new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND);
         }
 
-        Inquiry inquiry = inquiryRepository.save(request.toEntity());
+        Inquiry inquiry = inquiryRepository.save(request.toEntity(memberId));
         return InquiryResponseDto.from(inquiry, List.of());
     }
 

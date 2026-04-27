@@ -1,7 +1,5 @@
 package co.kr.allpick.domain.member.entity;
 
-import java.time.LocalDateTime;
-
 import co.kr.allpick.global.common.BaseEntity;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.persistence.Column;
@@ -57,6 +55,11 @@ public class Member extends BaseEntity {
 
     @Column(name = "social_id", unique = true, length = 255)
     private String socialId;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private MemberGrade grade = MemberGrade.NORMAL;
 
     
     @Builder.Default
@@ -112,9 +115,13 @@ public class Member extends BaseEntity {
         this.status = 0;
 
     }
+    
+    public void updateGrade(MemberGrade grade) {
+        this.grade = grade;
+    }
 
     // JWT 변환
     public JwtUserInfoDto toJwtUserInfoDto() {
-        return new JwtUserInfoDto(this.id, this.email, "BUYER");
+        return new JwtUserInfoDto(this.id, this.email);
     }
 }

@@ -27,6 +27,7 @@ public interface InquiryControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 회원 또는 주문 상품")
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryResponseDto>> createInquiry(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid InquiryCreateRequestDto request);
 
     @Operation(summary = "문의 상세 조회", description = "문의 ID로 상세 조회합니다.")
@@ -44,8 +45,14 @@ public interface InquiryControllerDocs {
     @Operation(summary = "전체 문의 목록 조회", description = "관리자가 전체 문의 목록을 조회합니다.")
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<List<InquiryResponseDto>>> getAllInquiries();
 
-    @Operation(summary = "답변 등록", description = "관리자 또는 판매자가 JWT 토큰 기반으로 답변을 등록합니다.")
-    ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryAnswerResponseDto>> addAnswer(
+    @Operation(summary = "관리자 답변 등록", description = "관리자가 JWT 토큰 기반으로 답변을 등록합니다. (관리자 JWT 구현 후 연결 예정)")
+    ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryAnswerResponseDto>> addAdminAnswer(
+            @Parameter(description = "문의 ID") @PathVariable("inquiryId") Long inquiryId,
+            @RequestBody @Valid InquiryAnswerRequestDto request,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
+
+    @Operation(summary = "판매자 답변 등록", description = "판매자가 JWT 토큰 기반으로 답변을 등록합니다. (판매자 JWT 구현 후 연결 예정)")
+    ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryAnswerResponseDto>> addSellerAnswer(
             @Parameter(description = "문의 ID") @PathVariable("inquiryId") Long inquiryId,
             @RequestBody @Valid InquiryAnswerRequestDto request,
             @AuthenticationPrincipal JwtUserInfoDto userInfo);

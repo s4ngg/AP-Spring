@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.servlet.FilterChain;
@@ -29,18 +30,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+
         String path = request.getRequestURI();
 
-        // 인증 없이 허용할 경로
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/signup")
                 || path.startsWith("/api/members/login")
-                || path.startsWith("/api/members/signup")
-                || path.startsWith("/api/orders")      
-                || path.startsWith("/api/coupons")) {
- 
+                || path.startsWith("/api/members/signup")      
+                || path.startsWith("/api/products")
+                || path.startsWith("/api/categories")) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -61,8 +61,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String email = jwtProvider.getEmailFromToken(token);
 
         // 토큰에서 추출한 memberId, email로 JwtUserInfoDto 생성해 SecurityContext에 인증 principal로 등록
-        // role은 회원에게 없으므로 null 유지 (관리자 기능 구현 시 AdminJwtProvider 별도 생성 예정)
-        JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email, null);
+        JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         userInfo,

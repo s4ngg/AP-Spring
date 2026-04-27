@@ -8,5 +8,4 @@ import lombok.Getter;
 public class JwtUserInfoDto {
     private Long memberId;
     private String email;
-    private String role;
 }
