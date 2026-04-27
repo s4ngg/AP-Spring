@@ -14,11 +14,11 @@ import co.kr.allpick.domain.seller.board.dto.InquiryAnswerDTO;
 import co.kr.allpick.domain.seller.board.dto.RefundRequestDTO;
 import co.kr.allpick.domain.seller.board.entity.Board;
 import co.kr.allpick.domain.seller.board.entity.Comment;
-import co.kr.allpick.domain.seller.board.entity.Inquiry;
+import co.kr.allpick.domain.seller.board.entity.BoardInquiry;
 import co.kr.allpick.domain.seller.board.dto.ExchangeRequestDTO;
 import co.kr.allpick.domain.seller.board.repository.BoardRepository;
-import co.kr.allpick.domain.seller.board.repository.CommentRepository;
-import co.kr.allpick.domain.seller.board.repository.InquiryRepository;
+import co.kr.allpick.domain.seller.board.repository.BoardCommentRepository;
+import co.kr.allpick.domain.seller.board.repository.BoardInquiryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
@@ -28,8 +28,8 @@ import org.springframework.data.domain.Pageable;
 public class SellerBoardServiceImpl implements SellerBoardService{
 
 	private final BoardRepository boardRepository;
-	private final CommentRepository commentRepository;
-	private final InquiryRepository inquiryRepository;
+	private final BoardCommentRepository commentRepository;
+	private final BoardInquiryRepository inquiryRepository;
 	
 	@Override
 	@Transactional(readOnly = true)
@@ -119,7 +119,7 @@ public class SellerBoardServiceImpl implements SellerBoardService{
 	@Override
 	@Transactional(readOnly = true)
 	public List<InquiryAnswerDTO> getInquiryList(boolean unanswered) {
-		List<Inquiry> inquiries = unanswered
+		List<BoardInquiry> inquiries = unanswered
 				? inquiryRepository.findByIsAnsweredFalse()
 				: inquiryRepository.findAll();
 		return inquiries.stream()
@@ -129,7 +129,7 @@ public class SellerBoardServiceImpl implements SellerBoardService{
 	
 	@Override
 	public void answerInquiry(Long inquiryId, InquiryAnswerDTO answerDTO) {
-		Inquiry inquiry = inquiryRepository.findById(inquiryId)
+		BoardInquiry inquiry = inquiryRepository.findById(inquiryId)
 				.orElseThrow(() -> new RuntimeException("문의를 찾을 수 없습니다. id: " +inquiryId));
 		inquiry.setAnswer(answerDTO.getAnswer());
 		inquiry.setAnswered(true);
@@ -138,7 +138,7 @@ public class SellerBoardServiceImpl implements SellerBoardService{
 	}
 	@Override
 	public void updateInquiryAnswer(Long inquiryId, InquiryAnswerDTO answerDTO) {
-		Inquiry inquiry = inquiryRepository.findById(inquiryId)
+		BoardInquiry inquiry = inquiryRepository.findById(inquiryId)
 				.orElseThrow(() -> new RuntimeException("문의를 찾을 수 없습니다. id: " + inquiryId));
 		inquiry.setAnswer(answerDTO.getAnswer());
 		inquiry.setAnsweredAt(LocalDateTime.now());
@@ -166,7 +166,7 @@ public class SellerBoardServiceImpl implements SellerBoardService{
 				.build();
 	}
 	
-	private InquiryAnswerDTO toInquiryDTO(Inquiry inquiry) {
+	private InquiryAnswerDTO toInquiryDTO(BoardInquiry inquiry) {
 		return InquiryAnswerDTO.builder()
 				.inquiryId(inquiry.getInquiryId())
 				.question(inquiry.getQuestion())

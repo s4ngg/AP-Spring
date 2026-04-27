@@ -6,16 +6,17 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "inquiries")
+@Table(name = "board_inquiries")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Inquiry {
+public class BoardInquiry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "inquiry_id")
     private Long inquiryId;
 
     @Column(columnDefinition = "TEXT")
