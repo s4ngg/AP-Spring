@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+
 @Schema(description = "배송지 요청 DTO")
 public class DeliveryAddressRequestDto {
 
