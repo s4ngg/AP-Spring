@@ -8,7 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "business.api") // ✅ @ConfigurationProperties
-public class BusinessValidationProperties {
-    private String key;
+@ConfigurationProperties(prefix = "coolsms")
+public class CoolSmsProperties {
+    private String apiKey;
+    private String apiSecret;
+    private String sender;
 }

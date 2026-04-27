@@ -19,7 +19,7 @@ public class SmsController implements SmsControllerDocs {
 
     private final SmsService smsService;
 
-    
+    @Override
     @PostMapping("/send")
     public ResponseEntity<ApiResponse<Void>> sendCode(
             @Valid @RequestBody SmsRequestDto dto) {
@@ -27,6 +27,7 @@ public class SmsController implements SmsControllerDocs {
         return ApiResponse.success("인증번호가 발송되었습니다.");
     }
 
+    @Override
     @PostMapping("/verify")
     public ResponseEntity<ApiResponse<Void>> verifyCode(
             @Valid @RequestBody SmsVerifyRequestDto dto) {
