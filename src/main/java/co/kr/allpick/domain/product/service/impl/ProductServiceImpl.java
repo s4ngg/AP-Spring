@@ -1,7 +1,6 @@
 package co.kr.allpick.domain.product.service.impl;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResDto;
 import co.kr.allpick.domain.product.entity.Product;
@@ -16,6 +15,13 @@ import lombok.RequiredArgsConstructor;
 public class ProductServiceImpl implements ProductService{
 	
 	private final ProductRepository productRepository;
+	
+	// 새로운 상품 생성하기
+	@Transactional
+	public void 
+	
+	
+	
 	@Override
 	@Transactional(readOnly = true)
 	// Id로 상품상세 페이지 조회
