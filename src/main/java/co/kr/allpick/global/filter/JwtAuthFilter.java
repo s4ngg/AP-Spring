@@ -62,7 +62,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String email = jwtProvider.getEmailFromToken(token);
 
         // 토큰에서 추출한 memberId, email로 JwtUserInfoDto 생성해 SecurityContext에 인증 principal로 등록
-        // role은 회원에게 없으나 member 메서드에 포함되어 있어 null로 유지 (관리자 기능 구현 시 AdminJwtProvider 별도 생성 협의 필요)
+        // role은 회원에게 없으나 member 메서드에 포함되어 있어 null로 유지
+        // (관리자 기능 구현 시 AdminJwtProvider 별도 생성 협의 필요)
         JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email, null);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
