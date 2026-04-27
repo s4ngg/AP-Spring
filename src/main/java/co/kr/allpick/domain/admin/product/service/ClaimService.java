@@ -10,7 +10,7 @@ import java.util.List;
 public interface ClaimService {
 
     // 클레임 등록
-    ClaimResponseDto createClaim(ClaimCreateRequestDto request);
+    ClaimResponseDto createClaim(Long memberId, ClaimCreateRequestDto request);
 
     // 클레임 상세 조회
     ClaimResponseDto getClaimById(Long claimId);

@@ -28,6 +28,7 @@ public interface ClaimControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 회원 또는 주문 상품")
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<ClaimResponseDto>> createClaim(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid ClaimCreateRequestDto request);
 
     @Operation(summary = "클레임 상세 조회", description = "클레임 ID로 상세 조회합니다.")
@@ -68,7 +69,7 @@ public interface ClaimControllerDocs {
     @Operation(summary = "클레임 취소", description = "접수(SUBMITTED) 상태인 클레임을 취소합니다. 접수 중(IN_PROGRESS) 이상은 취소 불가합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "클레임 취소 성공"),
-            @ApiResponse(responseCode = "400", description = "접수 중 이상의 클레임은 취소 불가"),
+            @ApiResponse(responseCode = "400", description = "접수 중 외의 클레임은 취소 불가"),
             @ApiResponse(responseCode = "403", description = "해당 클레임에 대한 권한 없음"),
             @ApiResponse(responseCode = "404", description = "존재하지 않는 클레임")
     })

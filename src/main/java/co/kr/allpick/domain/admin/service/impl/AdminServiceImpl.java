@@ -43,8 +43,7 @@ public class AdminServiceImpl implements AdminService {
 
         JwtUserInfoDto jwtUserInfoDto = new JwtUserInfoDto(
                 admin.getAdminId(),
-                admin.getEmail(),
-                null
+                admin.getEmail()
         );
 
         String token = jwtProvider.createToken(jwtUserInfoDto);

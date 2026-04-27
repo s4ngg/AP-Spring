@@ -46,10 +46,10 @@ public class ClaimServiceImpl implements ClaimService {
     // 1. 클레임 등록
     @Override
     @Transactional
-    public ClaimResponseDto createClaim(ClaimCreateRequestDto request) {
-        logger.info("[ClaimService] 클레임 등록 - memberId: {}", request.getMemberId());
+    public ClaimResponseDto createClaim(Long memberId, ClaimCreateRequestDto request) {
+        logger.info("[ClaimService] 클레임 등록 - memberId: {}", memberId);
 
-        if (!memberRepository.existsById(request.getMemberId())) {
+        if (!memberRepository.existsById(memberId)) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
@@ -71,7 +71,7 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_EXISTS);
         }
 
-        Claim claim = claimRepository.save(request.toEntity());
+        Claim claim = claimRepository.save(request.toEntity(memberId));
         return ClaimResponseDto.from(claim);
     }
 

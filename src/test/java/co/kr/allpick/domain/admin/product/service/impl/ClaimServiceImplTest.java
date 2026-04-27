@@ -61,7 +61,7 @@ class ClaimServiceImplTest {
     void 클레임_등록_성공() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
-                1L, 10L, null, Claim.ClaimType.RETURN,
+                10L, null, Claim.ClaimType.RETURN,
                 Claim.ReasonCode.CHANGE_MIND, "단순 변심입니다.",
                 Claim.ClaimPickupMethod.COURIER, null,
                 BigDecimal.valueOf(29000), BigDecimal.valueOf(3000));
@@ -73,7 +73,7 @@ class ClaimServiceImplTest {
         when(claimRepository.save(any(Claim.class))).thenReturn(mockClaim);
 
         // when
-        ClaimResponseDto result = claimService.createClaim(request);
+        ClaimResponseDto result = claimService.createClaim(1L, request);
 
         // then
         assertThat(result).isNotNull();
@@ -87,14 +87,14 @@ class ClaimServiceImplTest {
     void 클레임_등록_실패_회원없음() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
-                999L, 10L, null, Claim.ClaimType.RETURN,
+                10L, null, Claim.ClaimType.RETURN,
                 Claim.ReasonCode.CHANGE_MIND, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> claimService.createClaim(request))
+        assertThatThrownBy(() -> claimService.createClaim(999L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -104,7 +104,7 @@ class ClaimServiceImplTest {
     void 클레임_등록_실패_주문상품없음() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
-                1L, 999L, null, Claim.ClaimType.RETURN,
+                999L, null, Claim.ClaimType.RETURN,
                 Claim.ReasonCode.CHANGE_MIND, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
@@ -112,7 +112,7 @@ class ClaimServiceImplTest {
         when(orderItemRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> claimService.createClaim(request))
+        assertThatThrownBy(() -> claimService.createClaim(1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
     }
@@ -122,14 +122,14 @@ class ClaimServiceImplTest {
     void 클레임_등록_실패_반품에_교환사유() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
-                1L, 10L, null, Claim.ClaimType.RETURN,
+                10L, null, Claim.ClaimType.RETURN,
                 Claim.ReasonCode.SIZE_CHANGE, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(1L)).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> claimService.createClaim(request))
+        assertThatThrownBy(() -> claimService.createClaim(1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_REASON_MISMATCH.getMessage());
     }
@@ -139,14 +139,14 @@ class ClaimServiceImplTest {
     void 클레임_등록_실패_교환에_반품사유() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
-                1L, 10L, null, Claim.ClaimType.EXCHANGE,
+                10L, null, Claim.ClaimType.EXCHANGE,
                 Claim.ReasonCode.CHANGE_MIND, null,
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(1L)).thenReturn(true);
 
         // when & then
-        assertThatThrownBy(() -> claimService.createClaim(request))
+        assertThatThrownBy(() -> claimService.createClaim(1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_REASON_MISMATCH.getMessage());
     }

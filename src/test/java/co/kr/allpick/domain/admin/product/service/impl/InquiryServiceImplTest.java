@@ -82,13 +82,13 @@ class InquiryServiceImplTest {
     void 문의_등록_실패_회원없음() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
-                999L, null, 5L, Inquiry.InquiryType.PRODUCT,
+                null, 5L, Inquiry.InquiryType.PRODUCT,
                 "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
 
         when(memberRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> inquiryService.createInquiry(request))
+        assertThatThrownBy(() -> inquiryService.createInquiry(999L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -98,14 +98,14 @@ class InquiryServiceImplTest {
     void 문의_등록_실패_주문상품없음() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
-                1L, 999L, 5L, Inquiry.InquiryType.PRODUCT,
+                999L, 5L, Inquiry.InquiryType.PRODUCT,
                 "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
 
         when(memberRepository.existsById(1L)).thenReturn(true);
         when(orderItemRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> inquiryService.createInquiry(request))
+        assertThatThrownBy(() -> inquiryService.createInquiry(1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
     }

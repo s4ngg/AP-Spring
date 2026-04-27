@@ -26,8 +26,9 @@ public class ClaimController implements ClaimControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<ClaimResponseDto>> createClaim(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid ClaimCreateRequestDto request) {
-        return ApiResponse.success("클레임이 등록되었습니다.", claimService.createClaim(request));
+        return ApiResponse.success("클레임이 등록되었습니다.", claimService.createClaim(userInfo.getMemberId(), request));
     }
 
     @Override

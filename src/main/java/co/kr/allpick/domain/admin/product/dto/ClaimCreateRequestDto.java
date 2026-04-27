@@ -17,10 +17,6 @@ import java.math.BigDecimal;
 public class ClaimCreateRequestDto {
 
     @NotNull
-    @Schema(description = "회원 ID", example = "1")
-    private Long memberId;
-
-    @NotNull
     @Schema(description = "주문 상품 ID", example = "10")
     private Long orderItemId;
 
@@ -57,9 +53,9 @@ public class ClaimCreateRequestDto {
     @Schema(description = "배송비", example = "3000")
     private BigDecimal shippingFee;
 
-    public Claim toEntity() {
+    public Claim toEntity(Long memberId) {
         return Claim.builder()
-                .memberId(this.memberId)
+                .memberId(memberId)
                 .orderItemId(this.orderItemId)
                 .optionId(this.optionId)
                 .claimType(this.claimType)
