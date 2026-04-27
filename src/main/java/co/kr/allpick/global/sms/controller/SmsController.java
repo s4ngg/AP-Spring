@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.member.sms;
+package co.kr.allpick.global.sms.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import co.kr.allpick.global.response.ApiResponse;
+import co.kr.allpick.global.sms.dto.SmsRequestDto;
+import co.kr.allpick.global.sms.dto.SmsVerifyRequestDto;
+import co.kr.allpick.global.sms.docs.SmsControllerDocs; 
 import co.kr.allpick.domain.member.service.SmsService;
 
 @RestController

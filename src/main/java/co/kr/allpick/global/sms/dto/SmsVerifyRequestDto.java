@@ -1,5 +1,5 @@
 // SmsVerifyRequestDto.java
-package co.kr.allpick.domain.member.sms;
+package co.kr.allpick.global.sms.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

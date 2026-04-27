@@ -1,9 +1,12 @@
 package co.kr.allpick.domain.member.dto;
 
+import java.util.List;
+
 import co.kr.allpick.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,6 +40,12 @@ public class SignupRequestDto {
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
+    
+    
+    @Schema(description = "동의한 약관 ID 목록", example = "[1, 2, 3]",
+            requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "약관 동의 목록은 필수입니다.")
+    private List<Long> agreedTermsIds;
     
     public Member toEntity(String encodedPassword) {
     	return Member.builder()

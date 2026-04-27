@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class SmsServiceImpl implements SmsService {
     private static final long CODE_TTL = 5;
     private static final long VERIFIED_TTL = 30;
 
-    @Value("${coolsms.sender}")
+    @ConfigurationProperties("${coolsms.sender}")
     private String sender;
 
     @Override

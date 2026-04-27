@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -22,12 +23,15 @@ import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.member.repository.MemberTermsRepository;
+import co.kr.allpick.domain.member.repository.TermsRepository;
+import co.kr.allpick.domain.member.service.SmsService;
 import co.kr.allpick.domain.member.service.impl.AuthServiceImpl;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +42,15 @@ class AuthServiceImplTest {
 
     @Mock
     SellerRepository sellerRepository;
+    
+    @Mock
+    TermsRepository termsRepository;
+
+    @Mock
+    MemberTermsRepository memberTermsRepository;
+
+    @Mock
+    SmsService smsService;
     
     @Mock
     PasswordEncoder passwordEncoder;
@@ -55,10 +68,13 @@ class AuthServiceImplTest {
     void 일반_회원가입_성공() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
-
+            "test@test.com", "Password1234!", "홍길동", "010-1234-5678", "서울시 강남구",
+        List.of(1L, 2L, 3L));
+        when(smsService.isVerified(dto.getPhone())).thenReturn(true);
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
+        when(memberRepository.save(any())).thenReturn(any());
+        when(termsRepository.findAllById(any())).thenReturn(List.of()); //
 
         // when
         authService.signup(dto);
@@ -72,8 +88,9 @@ class AuthServiceImplTest {
     void 일반_회원가입_실패_중복이메일() {
         // given
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
-
+            "test@test.com", "Password1234!", "홍길동", "010-1234-5678", "서울시 강남구",
+            List.of(1L, 2L, 3L));
+        when(smsService.isVerified(dto.getPhone())).thenReturn(true);
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
         // when & then
