@@ -43,12 +43,19 @@ public enum ErrorCode {
 
     //Admin
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_NOT_FOUND", "관리자를 찾을 수 없습니다."),
-    ADMIN_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "ADMIN_DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다.");
+    ADMIN_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "ADMIN_DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
+
+    // FAQ
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다.");
 
 	
     // Product
     PRODUCT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PRODUCT_ALREADY_EXISTS", "이미 존재하는 상품입니다."),
-    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다.");
+    PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다."),
+
+    S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_UPLOAD_FAILED", "이미지 업로드에 실패했습니다."),
+    INVALID_FILE(HttpStatus.BAD_REQUEST, "INVALID_FILE", "파일이 없거나 비어있습니다."),
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일만 업로드 가능합니다.");
 
     private final HttpStatus status;
     private final String code;
