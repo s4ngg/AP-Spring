@@ -1,5 +1,7 @@
-package co.kr.allpick.domain.member.sms;
+package co.kr.allpick.domain.member.sms.controller.docs;
 
+import co.kr.allpick.domain.member.sms.dto.SmsRequestDto;
+import co.kr.allpick.domain.member.sms.dto.SmsVerifyRequestDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

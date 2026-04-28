@@ -44,6 +44,8 @@ public enum ErrorCode {
     // SMS
     SMS_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SMS_SEND_FAILED", "SMS 발송에 실패했습니다."),
     PHONE_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "PHONE_NOT_VERIFIED", "핸드폰 인증이 필요합니다."),
+    INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "INVALID_VERIFICATION_CODE", "인증번호가 일치하지 않습니다."),
+    MEMBER_NOT_FOUND_BY_PHONE(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND_BY_PHONE", "해당 번호로 가입된 계정이 없습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "INVALID_PASSWORD", "이메일 또는 비밀번호가 틀렸습니다."),
 
     // Admin

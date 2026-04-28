@@ -1,5 +1,5 @@
 // SmsRequestDto.java
-package co.kr.allpick.domain.member.sms;
+package co.kr.allpick.domain.member.sms.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "SMS 인증번호 발송 요청")
 public class SmsRequestDto {
 
-    @Schema(description = "전화번호", example = "01037560740")
+    @Schema(description = "전화번호", example = "01037560740", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(regexp = "^01[016789]\\d{7,8}$",
             message = "전화번호는 하이픈 없이 입력해주세요. 예) 01012341234")

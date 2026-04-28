@@ -23,27 +23,32 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
-
     private static final Logger logger = LogManager.getLogger(AuthServiceImpl.class);
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
-    private final SmsService smsService; // ← 추가
+    private final SmsService smsService;
+    // CODE_PREFIX 삭제 ❌ (여기서 안 씀)
 
     @Override
     public void signup(SignupRequestDto dto) {
         if (!smsService.isVerified(dto.getPhone())) {
             throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
         }
-
         if (memberRepository.existsByEmail(dto.getEmail())) {
             logger.warn("[AuthService] 이메일 중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
-
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
-        smsService.removeVerified(dto.getPhone()); // ← 추가
+        smsService.removeVerified(dto.getPhone());
         logger.info("[AuthService] 회원가입 완료");
+    }
+
+    @Override
+    public String verifyAndFindId(String phoneNumber, String inputCode) {
+        smsService.verifyCode(phoneNumber, inputCode);
+        return memberRepository.findEmailByUserPhone(phoneNumber)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND_BY_PHONE));
     }
 
     @Override

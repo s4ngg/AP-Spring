@@ -6,4 +6,5 @@ public interface SmsService {
     void verifyCode(String phoneNumber, String inputCode);
     boolean isVerified(String phoneNumber);
     void removeVerified(String phoneNumber);
+    
 }

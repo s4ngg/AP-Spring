@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.member.service;
+package co.kr.allpick.domain.member.service.impl;
 
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.member.service.SmsService;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -56,29 +57,24 @@ public class SmsServiceImpl implements SmsService {
 
     @Override
     public String verifyAndFindId(String phoneNumber, String inputCode) {
+        // ✅ 여기 교체
         String encodedCode = redisTemplate.opsForValue().get(CODE_PREFIX + phoneNumber);
-
         if (encodedCode == null || !passwordEncoder.matches(inputCode, encodedCode)) {
-            throw new IllegalArgumentException("인증번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
-
         redisTemplate.delete(CODE_PREFIX + phoneNumber);
-
         return memberRepository.findEmailByUserPhone(phoneNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 번호로 가입된 계정이 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND_BY_PHONE));
     }
 
     @Override
     public void verifyCode(String phoneNumber, String inputCode) {
+        // ✅ 여기 교체
         String encodedCode = redisTemplate.opsForValue().get(CODE_PREFIX + phoneNumber);
-
         if (encodedCode == null || !passwordEncoder.matches(inputCode, encodedCode)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
-
         redisTemplate.delete(CODE_PREFIX + phoneNumber);
-
-        // 인증 완료 표시 Redis에 저장 (10분 TTL)
         redisTemplate.opsForValue().set(VERIFIED_PREFIX + phoneNumber, "true", VERIFIED_TTL, TimeUnit.MINUTES);
     }
 

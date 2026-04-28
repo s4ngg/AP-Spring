@@ -1,18 +1,17 @@
 package co.kr.allpick.global.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import java.util.List;
 import java.util.Map;
+import co.kr.allpick.global.config.BusinessValidationProperties;
 
 @Service
 @RequiredArgsConstructor
 public class BusinessValidationService {
 
-    @Value("${business.api.key}")
-    private String apiKey;
+    private final BusinessValidationProperties businessValidationProperties; // ✅ @Value 제거, Properties 주입
 
     public boolean validateBusinessNumber(String businessNumber) {
         String cleaned = businessNumber.replaceAll("-", "");
@@ -21,8 +20,9 @@ public class BusinessValidationService {
 
         WebClient webClient = WebClient.create();
 
-        Map response = webClient.post()
-                .uri("https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey=" + apiKey)
+        Map<String, Object> response = webClient.post()  // ✅ 제네릭 명시
+                .uri("https://api.odcloud.kr/api/nts-businessman/v1/status?serviceKey="
+                        + businessValidationProperties.getKey()) // ✅ Properties에서 가져오기
                 .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
