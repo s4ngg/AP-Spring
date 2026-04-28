@@ -34,7 +34,7 @@ public class ClaimResponseDto {
     @Schema(description = "사유 코드 " +
             "[반품] CHANGE_MIND=단순 변심, SIZE_COLOR=사이즈/색상 불만족, DESCRIPTION_DIFF=상품 설명과 다름 " +
             "[교환] SIZE_CHANGE=사이즈 변경, COLOR_CHANGE=색상 변경 " +
-            "[공통] DEFECT=상품 불량/파손, WRONG_ITEM=오배송, MISSING_ITEM=구성품 누락, OTHER=기타",
+            "[공통] DEFECT=상품 불량/파손, WRONG_ITEM=오배송, MISSING_ITEM=구성품 누락, ETC=기타",
             example = "CHANGE_MIND")
     private Claim.ReasonCode reasonCode;
 

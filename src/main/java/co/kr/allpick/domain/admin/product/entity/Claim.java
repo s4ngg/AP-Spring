@@ -125,7 +125,7 @@ public class Claim extends BaseEntity {
         DEFECT,             // 상품 불량/파손
         WRONG_ITEM,         // 오배송 (다른 상품 수령)
         MISSING_ITEM,       // 구성품 누락
-        OTHER               // 기타
+        ETC                 // 기타
     }
 
 }
