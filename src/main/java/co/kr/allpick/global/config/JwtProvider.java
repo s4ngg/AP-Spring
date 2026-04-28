@@ -32,7 +32,21 @@ public class JwtProvider {
         return Jwts.builder()
                 .setSubject(String.valueOf(jwtUserInfoDto.getMemberId()))
                 .claim("email", jwtUserInfoDto.getEmail())
-                .claim("role", jwtUserInfoDto.getRole())
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + expireTime))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+
+    public String createToken(AdminJwtUserInfoDto adminJwtUserInfoDto) {
+        Date now = new Date();
+        long expireTime = jwtProperties.getExpirationTime();
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(adminJwtUserInfoDto.getAdminId()))
+                .claim("email", adminJwtUserInfoDto.getEmail())
+                .claim("role", adminJwtUserInfoDto.getRole().name())  // enum → String
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expireTime))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
@@ -47,6 +61,15 @@ public class JwtProvider {
                 .getBody()
                 .getSubject();
         return Long.valueOf(subject);
+    }
+
+    public String getEmailFromToken(String token) {
+        return (String) Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("email");
     }
 
     public boolean validateToken(String token) {

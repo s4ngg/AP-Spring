@@ -2,7 +2,6 @@ package co.kr.allpick.global.filter;
 
 import java.io.IOException;
 import java.util.Collections;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import co.kr.allpick.global.config.JwtProvider;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,10 +38,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/signup")
                 || path.startsWith("/api/members/login")
-                || path.startsWith("/api/members/signup")
-                || path.startsWith("/api/orders")
+                || path.startsWith("/api/members/signup")      
                 || path.startsWith("/api/products")
-                || path.startsWith("/api/coupons")
                 || path.startsWith("/api/categories")) {
             filterChain.doFilter(request, response);
             return;
@@ -60,16 +58,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         Long memberId = jwtProvider.getMemberIdFromToken(token);
-        request.setAttribute("memberId", memberId);
+        String email = jwtProvider.getEmailFromToken(token);
 
+        // 토큰에서 추출한 memberId, email로 JwtUserInfoDto 생성해 SecurityContext에 인증 principal로 등록
+        JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
-                        memberId,
+                        userInfo,
                         null,
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
                 );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         logger.info("인증 성공 - memberId: {}", memberId);
         filterChain.doFilter(request, response);
     }
