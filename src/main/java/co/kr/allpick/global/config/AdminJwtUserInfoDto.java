@@ -1,5 +1,6 @@
 package co.kr.allpick.global.config;
 
+import co.kr.allpick.domain.admin.entity.Admin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,5 +9,5 @@ import lombok.Getter;
 public class AdminJwtUserInfoDto {
     private Long adminId;
     private String email;
-    private String role;
+    private Admin.AdminRole role;
 }
