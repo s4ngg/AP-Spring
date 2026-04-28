@@ -19,6 +19,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 		   "AND p.approvalStatus = 'APPROVED' ")
 	
 	Optional<Product> findValidProduct(@Param("id") Long productId);
+
+	
 }
 
   
