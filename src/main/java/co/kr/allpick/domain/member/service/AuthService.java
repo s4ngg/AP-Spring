@@ -6,5 +6,6 @@ import co.kr.allpick.domain.member.dto.SignupRequestDto;
 
 public interface AuthService {
     void signup(SignupRequestDto dto);
+    String verifyAndFindId(String phoneNumber, String inputCode);
     AuthResponseDto login(LoginRequestDto dto);
 }
