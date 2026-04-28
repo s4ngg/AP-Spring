@@ -25,10 +25,11 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
             	    .requestMatchers("/api/auth/**").permitAll()
+            	    .requestMatchers("/api/products/**").permitAll()
             	    .requestMatchers("/swagger-ui/**", "/api/sms/**", "/v3/api-docs/**").permitAll()
             	    .anyRequest().authenticated()
             	)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-}
+} 
