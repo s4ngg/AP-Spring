@@ -2,13 +2,11 @@ package co.kr.allpick.domain.member.service.impl;
 
 import co.kr.allpick.domain.member.service.AuthService;
 import co.kr.allpick.domain.member.service.SmsService;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
@@ -28,7 +26,6 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final SmsService smsService;
-    // CODE_PREFIX 삭제 ❌ (여기서 안 씀)
 
     @Override
     public void signup(SignupRequestDto dto) {

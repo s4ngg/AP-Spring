@@ -28,8 +28,14 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+<<<<<<< HEAD
+=======
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+	
+>>>>>>> 99ee1f3d4cbc417007f72715828a5b302e19d2ec
     // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j'
+    implementation 'net.nurigo:sdk:4.3.0'
     
     // Lombok
     implementation 'org.projectlombok:lombok:1.18.38'

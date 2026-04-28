@@ -19,7 +19,10 @@ bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 .env
+<<<<<<< HEAD
 
+=======
+>>>>>>> 99ee1f3d4cbc417007f72715828a5b302e19d2ec
 ### IntelliJ IDEA ###
 .idea
 *.iws
