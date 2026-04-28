@@ -45,6 +45,9 @@ public enum ErrorCode {
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_NOT_FOUND", "관리자를 찾을 수 없습니다."),
     ADMIN_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "ADMIN_DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
 
+    // FAQ
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다.");
+
 	
     // Product
     PRODUCT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PRODUCT_ALREADY_EXISTS", "이미 존재하는 상품입니다."),
