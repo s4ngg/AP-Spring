@@ -38,6 +38,21 @@ public class JwtProvider {
                 .compact();
     }
 
+
+    public String createToken(AdminJwtUserInfoDto adminJwtUserInfoDto) {
+        Date now = new Date();
+        long expireTime = jwtProperties.getExpirationTime();
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(adminJwtUserInfoDto.getAdminId()))
+                .claim("email", adminJwtUserInfoDto.getEmail())
+                .claim("role", adminJwtUserInfoDto.getRole().name())  // enum → String
+                .setIssuedAt(now)
+                .setExpiration(new Date(now.getTime() + expireTime))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     public Long getMemberIdFromToken(String token) {
         String subject = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
