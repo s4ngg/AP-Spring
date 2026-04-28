@@ -68,6 +68,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         null,
                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
                 );
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         logger.info("인증 성공 - memberId: {}", memberId);
         filterChain.doFilter(request, response);
