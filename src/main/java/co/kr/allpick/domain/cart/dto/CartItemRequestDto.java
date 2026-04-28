@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 
 @Schema(description = "장바구니 요청 Dto")
-public class CartItemReqDto {
+public class CartItemRequestDto {
 	@Schema(description = "상품 Id", example = "1")
 	private Long productId;
 	@Schema(description = "장바구니 상품 Id", example = "1")

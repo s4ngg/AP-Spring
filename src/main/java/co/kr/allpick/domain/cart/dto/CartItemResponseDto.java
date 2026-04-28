@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 
 @Schema(description = "장바구니 상품 응답 Dto")
-public class CartItemResDto {
+public class CartItemResponseDto {
 	@Schema(description = "장바구니 상품 Id")
 	private Long cartItemId;
 	@Schema(description = "브랜드명", example = "나이키")
@@ -29,8 +29,8 @@ public class CartItemResDto {
 	
 	
 	@Schema(description = "장바구니에 담은 상품을 응답dto로 변환 (화면용)")
-	public static CartItemResDto from(CartItem cartItem) {
-		return CartItemResDto.builder()
+	public static CartItemResponseDto from(CartItem cartItem) {
+		return CartItemResponseDto.builder()
 				.cartItemId(cartItem.getCartItemId())
 				.brandName(cartItem.getProduct().getBrand())
 				.productName(cartItem.getProduct().getProductName())
