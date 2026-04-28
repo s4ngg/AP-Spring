@@ -9,7 +9,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.servlet.FilterChain;
@@ -38,7 +37,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/signup")
                 || path.startsWith("/api/members/login")
-                || path.startsWith("/api/members/signup")      
+                || path.startsWith("/api/members/signup")
                 || path.startsWith("/api/products")
                 || path.startsWith("/api/categories")) {
             filterChain.doFilter(request, response);
@@ -47,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인이 필요합니다.");
+            filterChain.doFilter(request, response);
             return;
         }
 
@@ -60,7 +59,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         String email = jwtProvider.getEmailFromToken(token);
 
-        // 토큰에서 추출한 memberId, email로 JwtUserInfoDto 생성해 SecurityContext에 인증 principal로 등록
         JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email);
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
