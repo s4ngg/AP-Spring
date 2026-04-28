@@ -36,6 +36,11 @@ public enum ErrorCode {
     CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
     CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
 
+    // Attachment
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTACHMENT_NOT_FOUND", "첨부파일을 찾을 수 없습니다."),
+    ATTACHMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "ATTACHMENT_ALREADY_DELETED", "이미 삭제된 첨부파일입니다."),
+    ATTACHMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "ATTACHMENT_UNAUTHORIZED", "본인의 첨부파일만 삭제할 수 있습니다."),
+
     // Seller
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
