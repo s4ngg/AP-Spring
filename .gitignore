@@ -13,9 +13,12 @@ build/
 .settings
 .springBeans
 .sts4-cache
+.env
+.metadata/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+.env
 
 ### IntelliJ IDEA ###
 .idea
