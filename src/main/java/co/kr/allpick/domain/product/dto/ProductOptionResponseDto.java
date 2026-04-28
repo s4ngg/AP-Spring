@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Getter
 
 @Schema(description = "상품옵션 응답 DTO")
-public class ProductOptionResDto {
+public class ProductOptionResponseDto {
 	@NotNull
 	@Schema(description = "옵션Id", example = "1", requiredMode = RequiredMode.REQUIRED)
 	private Long optionId;
@@ -34,8 +34,8 @@ public class ProductOptionResDto {
 	private Integer stockQuantity;
 	
 	// 옵션 응답객체 변환 메서드
-	public static ProductOptionResDto from(ProductOption option) {
-		return ProductOptionResDto
+	public static ProductOptionResponseDto from(ProductOption option) {
+		return ProductOptionResponseDto
 				.builder()
 				.optionId(option.getOptionId())
 				.optionName(option.getOptionName())

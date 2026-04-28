@@ -1,5 +1,7 @@
 package co.kr.allpick.domain.cart.dto;
 
+import com.sun.istack.NotNull;
+
 import co.kr.allpick.domain.cart.entity.Cart;
 import co.kr.allpick.domain.cart.entity.CartItem;
 import co.kr.allpick.domain.product.entity.Product;
@@ -16,11 +18,14 @@ import lombok.NoArgsConstructor;
 
 @Schema(description = "장바구니 요청 Dto")
 public class CartItemRequestDto {
-	@Schema(description = "상품 Id", example = "1")
+	
+	@NotNull @Schema(description = "상품 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long productId;
-	@Schema(description = "장바구니 상품 Id", example = "1")
+	
+	@NotNull @Schema(description = "장바구니 상품 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long CartItemId;
-	@Schema(description = "사용자 수량 선택저장", example = "2")
+	
+	@NotNull @Schema(description = "사용자 수량 선택저장", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer quantity;
 	
 	

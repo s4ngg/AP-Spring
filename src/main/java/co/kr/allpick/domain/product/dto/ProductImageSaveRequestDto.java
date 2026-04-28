@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Schema(description = "상품 이미지 등록 요청 DTO")
-public class ProductImageSaveReqDto {
+public class ProductImageSaveRequestDto {
 	@NotBlank
 	@Schema(description = "상품 이미지 url" , requiredMode = Schema.RequiredMode.REQUIRED )
 	private String imageUrl;

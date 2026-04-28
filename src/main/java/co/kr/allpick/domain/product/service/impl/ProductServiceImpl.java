@@ -1,8 +1,9 @@
 package co.kr.allpick.domain.product.service.impl;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import co.kr.allpick.domain.product.dto.ProductDetailResDto;
+import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
@@ -16,21 +17,18 @@ public class ProductServiceImpl implements ProductService{
 	
 	private final ProductRepository productRepository;
 	
-	// 새로운 상품 생성하기
-	@Transactional
-	public void 
 	
 	
 	
 	@Override
 	@Transactional(readOnly = true)
 	// Id로 상품상세 페이지 조회
- 	public ProductDetailResDto getProductDetail(Long productId) {
+ 	public ProductDetailResponseDto getProductDetail(Long productId) {
 		// findValidProduct 메서드가 판매상태와, 승인상태 검증해줌.
 		Product product = productRepository.findValidProduct(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		
-		return ProductDetailResDto.from(product);
+		return ProductDetailResponseDto.from(product);
 	}
 }
   

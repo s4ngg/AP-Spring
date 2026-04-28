@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 
 @Schema(description = "상품이미지 응답 DTO")
-public class ProductImageResDto {
+public class ProductImageResponseDto {
 	@NotBlank
 	@Schema(name ="상세 이미지 url" , example =  "https://allpick.com", requiredMode = RequiredMode.REQUIRED)
 	private String imageUrl;
@@ -23,8 +23,8 @@ public class ProductImageResDto {
 	@Schema(name ="이미지 노출 순서" , example = "1", requiredMode = RequiredMode.REQUIRED)
 	private Integer sortOrder;
 	 
-	public static ProductImageResDto from(ProductImage productImage) {
-		return ProductImageResDto.builder()
+	public static ProductImageResponseDto from(ProductImage productImage) {
+		return ProductImageResponseDto.builder()
 				.imageUrl(productImage.getImageUrl())
 				.sortOrder(productImage.getSortOrder())
 				.build();

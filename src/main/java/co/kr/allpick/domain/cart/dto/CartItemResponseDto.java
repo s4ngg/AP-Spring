@@ -1,7 +1,10 @@
 package co.kr.allpick.domain.cart.dto;
 
+import com.sun.istack.NotNull;
+
 import co.kr.allpick.domain.cart.entity.CartItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,17 +17,17 @@ import lombok.NoArgsConstructor;
 
 @Schema(description = "장바구니 상품 응답 Dto")
 public class CartItemResponseDto {
-	@Schema(description = "장바구니 상품 Id")
+	@NotNull @Schema(description = "장바구니 상품 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long cartItemId;
-	@Schema(description = "브랜드명", example = "나이키")
+	@NotBlank @Schema(description = "브랜드명", example = "나이키", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String brandName;
-	@Schema(description = "상품명", example = "에어포스")
+	@NotBlank @Schema(description = "상품명", example = "에어포스", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String productName;
-	@Schema(description = "가격", example = "17000")
+	@NotNull @Schema(description = "가격", example = "17000", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer price;
-	@Schema(description = "상품옵션", example = "270")
+	@NotBlank @Schema(description = "상품옵션", example = "270", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String option;
-	@Schema(description = "수량 선택값", example = "2")
+	@NotNull @Schema(description = "수량 선택값", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer quantity;
 	
 	

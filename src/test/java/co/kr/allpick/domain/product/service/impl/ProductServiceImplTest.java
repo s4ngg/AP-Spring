@@ -15,7 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import co.kr.allpick.domain.product.dto.ProductDetailResDto;
+import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ProductRepository;
@@ -58,7 +58,7 @@ class ProductServiceImplTest {
         when(productRepository.findValidProduct(productId)).thenReturn(Optional.of(mockProduct));
 
         // when
-        ProductDetailResDto result = productService.getProductDetail(productId);
+        ProductDetailResponseDto result = productService.getProductDetail(productId);
 
         // then
         assertThat(result).isNotNull();

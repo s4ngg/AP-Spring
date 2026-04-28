@@ -35,8 +35,9 @@ public enum ErrorCode {
     CLAIM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_DELETED", "이미 삭제된 클레임입니다."),
     CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
     CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
-
-    // Seller
+    
+   
+    // Seller, Member
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),

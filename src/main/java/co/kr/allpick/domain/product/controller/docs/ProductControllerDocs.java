@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import co.kr.allpick.domain.product.dto.ProductDetailResDto;
+import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,7 +54,7 @@ public interface ProductControllerDocs {
         )
     })
     @GetMapping("/{productId}") 
-    ResponseEntity<ApiResponse<ProductDetailResDto>> getProductDetail(
+    ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail(
         @Parameter(description = "조회할 상품 ID", example = "1", required = true) 
         @PathVariable("productId") Long productId 
     );

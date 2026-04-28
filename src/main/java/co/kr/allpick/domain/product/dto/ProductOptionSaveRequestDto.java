@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Schema(description = "상품 옵션 요청 Dto")
-public class ProductOptionSaveReqDto {
+public class ProductOptionSaveRequestDto {
 	@Schema(description = "옵션명", example = "사이즈", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String optionName;
 	@Schema(description = "옵션 값", example = "250", requiredMode = Schema.RequiredMode.REQUIRED)
