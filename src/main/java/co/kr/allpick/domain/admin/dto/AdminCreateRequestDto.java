@@ -4,6 +4,7 @@ import co.kr.allpick.domain.admin.entity.Admin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -30,12 +31,18 @@ public class AdminCreateRequestDto {
     @NotBlank(message = "전화번호는 필수입니다.")
     private String adminPhone;
 
+    @Schema(description = "관리자 권한", example = "SUPER_ADMIN")
+    @NotBlank(message = "관리자 권한은 필수입니다.")
+    @Pattern(regexp = "SUPER_ADMIN|CS_ADMIN", message = "role은 SUPER_ADMIN 또는 CS_ADMIN이어야 합니다.")
+    private String role;
+
     public Admin toEntity(String encodedPassword) {
         return Admin.builder()
                 .adminName(this.getAdminName())
                 .email(this.getEmail())
                 .password(encodedPassword)
                 .adminPhone(this.getAdminPhone())
+                .role(Admin.AdminRole.valueOf(this.getRole()))
                 .status(Admin.AdminStatus.ACTIVE)
                 .build();
     }

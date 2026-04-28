@@ -9,11 +9,13 @@ import lombok.Getter;
 public class AdminLoginResponseDto {
 
     private String adminName;
+    private Admin.AdminRole role;
     private String token;
 
-    public static AdminLoginResponseDto from(Admin admin, String token){
+    public static AdminLoginResponseDto from(Admin admin, String token) {
         return AdminLoginResponseDto.builder()
                 .adminName(admin.getAdminName())
+                .role(admin.getRole())
                 .token(token)
                 .build();
     }

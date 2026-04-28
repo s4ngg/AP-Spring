@@ -6,8 +6,8 @@ import co.kr.allpick.domain.admin.dto.AdminLoginResponseDto;
 import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.admin.service.AdminService;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.config.JwtProvider;
-import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +39,13 @@ public class AdminServiceImpl implements AdminService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        JwtUserInfoDto jwtUserInfoDto = new JwtUserInfoDto(
+        AdminJwtUserInfoDto adminJwtUserInfoDto = new AdminJwtUserInfoDto(
                 admin.getAdminId(),
-                admin.getEmail()
+                admin.getEmail(),
+                admin.getRole()
         );
 
-        String token = jwtProvider.createToken(jwtUserInfoDto);
+        String token = jwtProvider.createToken(adminJwtUserInfoDto);
         admin.updateLastLoginAt(LocalDateTime.now());
 
         logger.info("[AdminServiceImpl] 관리자 로그인 성공 - adminId: {}", admin.getAdminId());
