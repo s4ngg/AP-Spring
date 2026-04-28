@@ -54,7 +54,6 @@ public class SmsServiceImpl implements SmsService {
 
     @Override
     public String verifyAndFindId(String phoneNumber, String inputCode) {
-        // ✅ 여기 교체
         String encodedCode = redisTemplate.opsForValue().get(CODE_PREFIX + phoneNumber);
         if (encodedCode == null || !passwordEncoder.matches(inputCode, encodedCode)) {
             throw new BusinessException(ErrorCode.INVALID_VERIFICATION_CODE);
@@ -66,7 +65,6 @@ public class SmsServiceImpl implements SmsService {
 
     @Override
     public void verifyCode(String phoneNumber, String inputCode) {
-        // ✅ 여기 교체
         String encodedCode = redisTemplate.opsForValue().get(CODE_PREFIX + phoneNumber);
         if (encodedCode == null || !passwordEncoder.matches(inputCode, encodedCode)) {
             throw new BusinessException(ErrorCode.INVALID_VERIFICATION_CODE);

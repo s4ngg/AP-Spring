@@ -1,7 +1,7 @@
 package co.kr.allpick.domain.member.sms.service.impl;
 
 import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.global.config.CoolSmsProperties;
+import co.kr.allpick.domain.member.sms.config.CoolSmsProperties;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import net.nurigo.sdk.message.service.DefaultMessageService;
@@ -49,12 +49,13 @@ class SmsServiceImplTest {
         // given
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(coolSmsProperties.getSender()).willReturn("01012345678");
+        given(passwordEncoder.encode(anyString())).willReturn("encodedCode"); // ✅ 추가
 
         // when
         smsService.sendVerificationCode("01012345678");
 
         // then
-        verify(valueOperations, times(1)).set(anyString(), anyString(), anyLong(), any());
+        verify(valueOperations, times(1)).set(anyString(), any(), anyLong(), any()); // ✅ anyString() → any()
         verify(messageService, times(1)).sendOne(any());
     }
 
@@ -64,6 +65,7 @@ class SmsServiceImplTest {
         // given
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(coolSmsProperties.getSender()).willReturn("01012345678");
+        given(passwordEncoder.encode(anyString())).willReturn("encodedCode"); // ✅ 추가
         willThrow(new RuntimeException("SMS 오류")).given(messageService).sendOne(any());
 
         // when & then
@@ -71,7 +73,6 @@ class SmsServiceImplTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SMS_SEND_FAILED.getMessage());
     }
-
     // ==================== 인증번호 검증 ====================
 
     @Test
