@@ -1,0 +1,58 @@
+package co.kr.allpick.domain.cart.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import co.kr.allpick.domain.cart.dto.CartItemReqDto;
+import co.kr.allpick.domain.cart.dto.CartItemResDto;
+import co.kr.allpick.domain.cart.entity.Cart;
+import co.kr.allpick.domain.cart.entity.CartItem;
+import co.kr.allpick.domain.cart.repository.CartItemRepository;
+import co.kr.allpick.domain.cart.repository.CartRepository;
+import co.kr.allpick.domain.cart.service.impl.CartItemService;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.global.exception.BusinessException;
+import co.kr.allpick.global.exception.ErrorCode;
+import lombok.RequiredArgsConstructor;
+
+
+@RequiredArgsConstructor
+@Service
+public class CartItemServiceImpl implements CartItemService{
+	
+	private final CartRepository cartRepository;
+	private final ProductRepository productRepository;
+	private final CartItemRepository cartItemRepository;	
+	
+	@Transactional
+	@Override
+	// 장바구니에 상품 추가
+	// reqdto: 상품, 장바구니, 수량 지정 가능
+	// 상품, 장바구니를 레포지토리에서 조회해서, cartItem 엔티티에 행으로 저장하기.
+	// ! 만약 장바구니가 없다면 새로 만들어줌.
+	
+	public CartItemResDto addCart(CartItemReqDto reqDto, Member member) {
+		
+		// 어떤 사용자의 장바구니? -> 장바구니가 없다면 새로운 장바구니 생성
+		Cart cart = cartRepository.findByMemberId(member.getId())
+				.orElseGet(() -> {
+					Cart newCart = Cart.createCart(member);
+					
+					return cartRepository.save(newCart); 
+				});
+		// 어떤 상품인지?
+		Product product = productRepository.findById(reqDto.getProductId())
+				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+		
+		// 모두 특정한 후에, 장바구니 상품 테이블에 행으로 저장. (위에서  사용자,장바구니,상품,수량까지 특정해둔 상태 )
+		CartItem cartItem = CartItemReqDto.addToCart(product, cart, reqDto.getQuantity());
+		cartItemRepository.save(cartItem);
+		
+		// 장바구니 상품 테이블에 행으로 저장된거 응답객체로 바꿔서 반환
+		return CartItemResDto.from(cartItem);
+	}
+	
+}
+   
