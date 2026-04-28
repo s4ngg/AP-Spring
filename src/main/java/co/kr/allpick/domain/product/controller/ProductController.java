@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.product.controller;
 
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -28,7 +29,7 @@ public class ProductController implements ProductControllerDocs{
 	@Override
 	@GetMapping
 	public ResponseEntity<ApiResponse<Page<ProductListResponseDto>>> getProductList(
-			@PageableDefault(size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+			@ParameterObject @PageableDefault(size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 		return ApiResponse.success("상품 목록을 조회합니다.", productService.getProductList(pageable));
 	}
 
