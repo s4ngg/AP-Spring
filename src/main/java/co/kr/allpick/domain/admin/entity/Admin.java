@@ -40,10 +40,6 @@ public class Admin extends BaseEntity {
     private String adminPhone;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private AdminRole role;
-
-    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AdminStatus status;
 
@@ -53,12 +49,11 @@ public class Admin extends BaseEntity {
 
     @Builder
     public Admin( String email, String password, String adminName
-            , String adminPhone, AdminRole role, AdminStatus status) {
+            , String adminPhone, AdminStatus status) {
         this.email = email;
         this.password = password;
         this.adminName =adminName;
         this.adminPhone = adminPhone;
-        this.role = role;
         this.status =status;
     }
 
@@ -71,7 +66,7 @@ public class Admin extends BaseEntity {
         this.lastLoginAt =lastLoginAt;
     }
 
-
+    // TODO: 공통 JWT 코드 정리 후 제거 예정
     public enum AdminRole{
         SUPER_ADMIN, CS_ADMIN
     }
