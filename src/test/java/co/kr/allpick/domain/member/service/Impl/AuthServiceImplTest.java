@@ -27,7 +27,6 @@ import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -35,9 +34,6 @@ class AuthServiceImplTest {
 
     @Mock
     MemberRepository memberRepository;
-
-    @Mock
-    SellerRepository sellerRepository;
     
     @Mock
     PasswordEncoder passwordEncoder;

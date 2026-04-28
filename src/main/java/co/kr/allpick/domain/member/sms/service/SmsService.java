@@ -1,4 +1,4 @@
-package co.kr.allpick.domain.member.service;
+package co.kr.allpick.domain.member.sms.service;
 
 public interface SmsService {
     void sendVerificationCode(String phoneNumber);

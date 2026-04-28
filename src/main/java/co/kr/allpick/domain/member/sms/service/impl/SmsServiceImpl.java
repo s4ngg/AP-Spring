@@ -1,14 +1,13 @@
-package co.kr.allpick.domain.member.service.impl;
+package co.kr.allpick.domain.member.sms.service.impl;
 
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.domain.member.service.SmsService;
+import co.kr.allpick.domain.member.sms.service.SmsService;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +15,7 @@ import net.nurigo.sdk.message.model.Message;
 import net.nurigo.sdk.message.request.SingleMessageSendingRequest;
 import net.nurigo.sdk.message.service.DefaultMessageService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import co.kr.allpick.domain.member.sms.config.CoolSmsProperties;
 
 @Service
 @RequiredArgsConstructor
@@ -26,14 +26,11 @@ public class SmsServiceImpl implements SmsService {
     private final RedisTemplate<String, String> redisTemplate;
     private final PasswordEncoder passwordEncoder;
     private final SecureRandom secureRandom = new SecureRandom();
-
+    private final CoolSmsProperties coolSmsProperties;
     private static final String CODE_PREFIX = "sms:code:";
     private static final String VERIFIED_PREFIX = "sms:verified:";
     private static final long CODE_TTL = 5;
     private static final long VERIFIED_TTL = 30;
-
-    @Value("${coolsms.sender}")
-    private String sender;
 
     @Override
     public void sendVerificationCode(String phoneNumber) {
@@ -44,7 +41,7 @@ public class SmsServiceImpl implements SmsService {
         redisTemplate.opsForValue().set(CODE_PREFIX + phoneNumber, encodedCode, CODE_TTL, TimeUnit.MINUTES);
 
         Message message = new Message();
-        message.setFrom(sender);
+        message.setFrom(coolSmsProperties.getSender());
         message.setTo(phoneNumber);
         message.setText("[AllPick] 인증번호: " + code + "\n5분 내 입력해주세요.");
 

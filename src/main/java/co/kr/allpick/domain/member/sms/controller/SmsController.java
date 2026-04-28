@@ -6,10 +6,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import co.kr.allpick.domain.member.service.SmsService;
 import co.kr.allpick.domain.member.sms.controller.docs.SmsControllerDocs;
 import co.kr.allpick.domain.member.sms.dto.SmsRequestDto;
 import co.kr.allpick.domain.member.sms.dto.SmsVerifyRequestDto;
+import co.kr.allpick.domain.member.sms.service.SmsService;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
