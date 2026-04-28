@@ -59,9 +59,11 @@ public enum ErrorCode {
     PRODUCT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PRODUCT_ALREADY_EXISTS", "이미 존재하는 상품입니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다."),
 
+
 	
 	// Cart 
 	MEMBER_CART_NOT_FOUND(HttpStatus.NOT_FOUND,"CART_NOT_FOUND", "해당 사용자의 장바구니가 존재하지 않습니다."),
+
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 카테고리입니다."),
@@ -72,11 +74,13 @@ public enum ErrorCode {
     INVALID_FILE(HttpStatus.BAD_REQUEST, "INVALID_FILE", "파일이 없거나 비어있습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일만 업로드 가능합니다."),
 
+
     
     // External Api
     INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다.");
 
 	
+
     private final HttpStatus status;
     private final String code;
     private final String message;
