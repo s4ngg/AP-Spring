@@ -19,13 +19,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 public class ParentCategory extends BaseEntity{
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long parentCategoryId;
 	
 	@Column(name = "category_name", length = 50 ,nullable = false)
 	private String categoryName;	// 카테고리명
-	
-	
+
 	@Builder.Default
 	@Column(name = "sort_order", nullable = false)
 	private Integer sortOrder = 0;  	// 사용자가 보는 순서

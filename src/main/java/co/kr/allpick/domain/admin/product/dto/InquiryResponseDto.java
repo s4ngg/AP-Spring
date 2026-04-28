@@ -25,7 +25,7 @@ public class InquiryResponseDto {
     @Schema(description = "상품 ID", example = "10")
     private Long productId;
 
-    @Schema(description = "문의 유형", example = "제품")
+    @Schema(description = "문의 유형 (PRODUCT=상품, DELIVERY=배송, PAYMENT=결제, ETC=기타)", example = "PRODUCT")
     private Inquiry.InquiryType inquiryType;
 
     @Schema(description = "문의 제목", example = "사이즈 문의")
@@ -34,7 +34,7 @@ public class InquiryResponseDto {
     @Schema(description = "문의 내용", example = "사이즈 문의드립니다.")
     private String content;
 
-    @Schema(description = "문의 상태", example = "접수 대기")
+    @Schema(description = "문의 상태 (PENDING=접수 대기, PROCESSING=처리 중, COMPLETED=처리 완료, CANCELLED=취소)", example = "PENDING")
     private Inquiry.InquiryStatus status;
 
     @Schema(description = "문의 등록 일시", example = "2026-04-22")

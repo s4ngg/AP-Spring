@@ -13,6 +13,8 @@ import co.kr.allpick.domain.admin.product.entity.InquiryAnswer;
 import co.kr.allpick.domain.admin.product.repository.InquiryRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
+import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,13 +28,23 @@ public class InquiryServiceImpl implements InquiryService {
 
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository inquiryAnswerRepository;
+    private final MemberRepository memberRepository;
+    private final OrderItemRepository orderItemRepository;
 
     // 1. 문의 등록
     @Override
     @Transactional
-    public InquiryResponseDto createInquiry(InquiryCreateRequestDto request) {
-        logger.info("[InquiryService] 문의 등록 - memberId: {}", request.getMemberId());
-        Inquiry inquiry = inquiryRepository.save(request.toEntity());
+    public InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request) {
+        logger.info("[InquiryService] 문의 등록 - memberId: {}", memberId);
+
+        if (!memberRepository.existsById(memberId)) {
+            throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
+        }
+        if (request.getOrderItemId() != null && !orderItemRepository.existsById(request.getOrderItemId())) {
+            throw new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+        }
+
+        Inquiry inquiry = inquiryRepository.save(request.toEntity(memberId));
         return InquiryResponseDto.from(inquiry, List.of());
     }
 

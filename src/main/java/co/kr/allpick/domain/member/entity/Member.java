@@ -61,19 +61,6 @@ public class Member extends BaseEntity {
     @Builder.Default
     private MemberGrade grade = MemberGrade.NORMAL;
 
-    
-    @Builder.Default
-    @Column(name = "terms_agreed", nullable = false)
-    private Boolean termsAgreed = false;      // 필수
-
-    @Builder.Default
-    @Column(name = "privacy_agreed", nullable = false)
-    private Boolean privacyAgreed = false;    // 필수
-
-    @Builder.Default
-    @Column(name = "marketing_agreed", nullable = false)
-    private Boolean marketingAgreed = false;  // 선택
-
     public enum LoginType {
         LOCAL, KAKAO, NAVER, GOOGLE
     }
@@ -122,6 +109,6 @@ public class Member extends BaseEntity {
 
     // JWT 변환
     public JwtUserInfoDto toJwtUserInfoDto() {
-        return new JwtUserInfoDto(this.id, this.email, "BUYER");
+        return new JwtUserInfoDto(this.id, this.email);
     }
 }

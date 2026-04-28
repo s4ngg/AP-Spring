@@ -4,7 +4,6 @@ import co.kr.allpick.domain.member.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +20,7 @@ public class SignupRequestDto {
     @Email(message = "이메일 형식이 올바르지 않습니다.")
     private String email;
 
-    @Schema(description = "비밀번호 (8자 이상)", example = "password123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "비밀번호 (8자 이상)", example = "Password1234!", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "비밀번호는 필수입니다.")
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$",
             message = "비밀번호는 8자 이상, 영문, 숫자, 특수문자를 포함해야 합니다.")
@@ -31,24 +30,13 @@ public class SignupRequestDto {
     @NotBlank(message = "이름은 필수입니다.")
     private String name;
 
-    @Schema(description = "전화번호", example = "010-1234-5678", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "전화번호", example = "01037560740", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "전화번호는 필수입니다.")
     private String phone;
 
     @Schema(description = "주소", example = "서울시 강남구 테헤란로 123", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "주소는 필수입니다.")
     private String address;
-    
-    @Schema(description = "서비스 이용약관 동의", example = "true")
-    @NotNull(message = "서비스 이용약관 동의는 필수입니다.")
-    private Boolean termsAgreed;
-
-    @Schema(description = "개인정보 처리방침 동의", example = "true")
-    @NotNull(message = "개인정보 처리방침 동의는 필수입니다.")
-    private Boolean privacyAgreed;
-
-    @Schema(description = "마케팅 수신 동의", example = "false")
-    private Boolean marketingAgreed = false;
     
     public Member toEntity(String encodedPassword) {
     	return Member.builder()
