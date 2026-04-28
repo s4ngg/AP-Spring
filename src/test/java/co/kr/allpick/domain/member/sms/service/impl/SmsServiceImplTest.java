@@ -49,13 +49,13 @@ class SmsServiceImplTest {
         // given
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(coolSmsProperties.getSender()).willReturn("01012345678");
-        given(passwordEncoder.encode(anyString())).willReturn("encodedCode"); // ✅ 추가
+        given(passwordEncoder.encode(anyString())).willReturn("encodedCode");
 
         // when
         smsService.sendVerificationCode("01012345678");
 
         // then
-        verify(valueOperations, times(1)).set(anyString(), any(), anyLong(), any()); // ✅ anyString() → any()
+        verify(valueOperations, times(1)).set(anyString(), any(), anyLong(), any());
         verify(messageService, times(1)).sendOne(any());
     }
 
@@ -65,7 +65,7 @@ class SmsServiceImplTest {
         // given
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(coolSmsProperties.getSender()).willReturn("01012345678");
-        given(passwordEncoder.encode(anyString())).willReturn("encodedCode"); // ✅ 추가
+        given(passwordEncoder.encode(anyString())).willReturn("encodedCode");
         willThrow(new RuntimeException("SMS 오류")).given(messageService).sendOne(any());
 
         // when & then
