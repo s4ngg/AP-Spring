@@ -1,5 +1,16 @@
 package co.kr.allpick.domain.seller.repository;
 
-public interface SellerRepository {
-	
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface SellerRepository extends JpaRepository<Seller, Long> {
+
+    Optional<Seller> findByMemberId(Long memberId);
+
+    boolean existsByBusinessNumber(String businessNumber);
+
+    Optional<Seller> findByBusinessNumber(String businessNumber);
 }
