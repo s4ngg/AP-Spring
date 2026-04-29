@@ -62,7 +62,7 @@ public class Member extends BaseEntity {
     private MemberGrade grade = MemberGrade.NORMAL;
 
     public enum LoginType {
-        LOCAL, KAKAO, NAVER, GOOGLE
+        LOCAL
     }
 
     // 일반 회원가입 (BUYER)

@@ -4,6 +4,7 @@ import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.seller.dto.SellerLoginRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerLoginResponseDto;
+import co.kr.allpick.domain.seller.dto.SellerProductResponseDto;
 import co.kr.allpick.domain.seller.dto.SellerSignupRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 import co.kr.allpick.domain.seller.entity.Seller;
@@ -13,6 +14,9 @@ import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,7 +35,28 @@ public class SellerAuthServiceImpl implements SellerAuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    
+    @Override
+    @Transactional
+    public void update(Long sellerId, SellerUpdateRequestDto dto) {
+        Seller seller = sellerRepository.findById(sellerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
+        seller.updateInfo(
+                dto.getBusinessName(),
+                dto.getRepresentativeName(),
+                dto.getBankName(),
+                dto.getBankAccount()
+        );
+        logger.info("[SellerAuthService] 판매자 정보 수정 완료 - sellerId: {}", sellerId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteSeller(Long sellerId) {
+        Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
+        seller.delete();
+        sellerRepository.save(seller);
+    }
     @Override
     @Transactional
     public void signup(SellerSignupRequestDto dto, Long memberId) {
@@ -43,25 +68,16 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        // ✅ 이메일 중복 확인 제거 (이미 회원가입 시 체크 완료)
+        // ✅ 이미 판매자 등록된 회원인지 확인
+        if (sellerRepository.existsByMemberId(memberId)) {
+            logger.warn("[SellerAuthService] 이미 판매자 등록된 회원 - memberId: {}", memberId);
+            throw new BusinessException(ErrorCode.NOT_SELLER);
+        }
+
         Seller seller = dto.toEntity(member);
         sellerRepository.save(seller);
         logger.info("[SellerAuthService] 판매자 등록 완료 - memberId: {}", memberId);
-    }
-
-    @Override
-    @Transactional
-    public void update(Long sellerId, SellerUpdateRequestDto dto) {
-        Seller seller = sellerRepository.findById(sellerId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-
-        seller.updateInfo(
-                dto.getBusinessName(),
-                dto.getRepresentativeName(),
-                dto.getBankName(),
-                dto.getBankAccount()
-        );
-
-        logger.info("[SellerAuthService] 판매자 정보 수정 완료 - sellerId: {}", sellerId);
     }
     
     @Override
@@ -85,5 +101,11 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         logger.info("[SellerAuthService] 판매자 로그인 성공 - sellerId: {}", seller.getSellerId());
 
         return SellerLoginResponseDto.of(seller, token);
+    }
+    
+    @Override
+    public List<SellerProductResponseDto> getMyProducts(Long sellerId) {
+        // TODO: Product 도메인 구현 후 연결 예정
+        throw new BusinessException(ErrorCode.NOT_IMPLEMENTED);
     }
 }

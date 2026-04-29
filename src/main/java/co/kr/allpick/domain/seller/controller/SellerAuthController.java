@@ -1,6 +1,8 @@
 package co.kr.allpick.domain.seller.controller;
 
+
 import co.kr.allpick.domain.seller.controller.docs.SellerAuthControllerDocs;
+import co.kr.allpick.domain.seller.dto.SellerDeleteRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerLoginRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerLoginResponseDto;
 import co.kr.allpick.domain.seller.dto.SellerSignupRequestDto;
@@ -8,9 +10,12 @@ import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 import co.kr.allpick.domain.seller.service.SellerAuthService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,21 +37,29 @@ public class SellerAuthController implements SellerAuthControllerDocs {
             @RequestBody SellerSignupRequestDto dto,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
         sellerAuthService.signup(dto, userInfo.getMemberId());
-        return ApiResponse.success("판매자 등록이 완료되었습니다."); // ✅ ResponseEntity.ok() 제거
+        return ApiResponse.success("판매자 등록이 완료되었습니다.");
     }
 
     @Override
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<SellerLoginResponseDto>> login(
             @RequestBody SellerLoginRequestDto dto) {
-        return ApiResponse.success("로그인 성공", sellerAuthService.login(dto)); // ✅ ResponseEntity.ok() 제거
+        return ApiResponse.success("로그인 성공", sellerAuthService.login(dto));
     }
+    
     @Override
     @PatchMapping("/{sellerId}")
     public ResponseEntity<ApiResponse<Void>> update(
-            @PathVariable Long sellerId,
             @RequestBody SellerUpdateRequestDto dto) {
-        sellerAuthService.update(sellerId, dto);
+        sellerAuthService.update(dto.getSellerId(), dto);
         return ApiResponse.success("판매자 정보가 수정되었습니다.");
+    }
+    
+    @Override
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteSeller(
+            @RequestBody SellerDeleteRequestDto dto) {
+        sellerAuthService.deleteSeller(dto.getSellerId());
+        return ApiResponse.success("판매자 삭제가 완료되었습니다.");
     }
 }

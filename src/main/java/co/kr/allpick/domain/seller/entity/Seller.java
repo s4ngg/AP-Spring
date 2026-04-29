@@ -45,8 +45,6 @@ public class Seller extends BaseEntity {
     @Builder.Default
     private SellerStatus status = SellerStatus.PENDING;
 
-    @Column(name = "deleted_at")
-    private java.time.LocalDateTime deletedAt;
 
     /**
      * 판매자 승인 상태 변경 메서드
@@ -68,5 +66,9 @@ public class Seller extends BaseEntity {
         this.representativeName = representativeName;
         this.bankName = bankName;
         this.bankAccount = bankAccount;
+    }
+    public void delete() {
+        this.status = SellerStatus.SUSPENDED;
+        super.delete();
     }
 }
