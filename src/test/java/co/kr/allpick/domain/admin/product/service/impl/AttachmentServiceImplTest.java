@@ -58,7 +58,7 @@ class AttachmentServiceImplTest {
                 .memberId(1L)
                 .orderItemId(10L)
                 .claimType(Claim.ClaimType.RETURN)
-                .reasonCode("CHANGE_MIND")
+                .reasonCode(Claim.ReasonCode.CHANGE_MIND)
                 .pickupMethod(Claim.ClaimPickupMethod.COURIER)
                 .rejectReason(null)
                 .build();
