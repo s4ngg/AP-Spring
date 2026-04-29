@@ -23,7 +23,7 @@ public class Claim extends BaseEntity {
     @Column(name = "member_id")
     private Long memberId;
 
-    @Column(name = "order_item_id", unique = true)
+    @Column(name = "order_item_id")
     private Long orderItemId;
 
     @Column(name = "option_id")
@@ -37,8 +37,9 @@ public class Claim extends BaseEntity {
     @Column(name = "status", nullable = false)
     private ClaimStatus status;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "reason_code", nullable = false, length = 30)
-    private String reasonCode;
+    private ReasonCode reasonCode;
 
     @Column(name = "detail", columnDefinition = "TEXT")
     private String detail;
@@ -66,8 +67,8 @@ public class Claim extends BaseEntity {
     private LocalDateTime completedAt;
 
     @Builder
-    public Claim(Long memberId,Long orderItemId, Long optionId,
-                 ClaimType claimType, String reasonCode,
+    public Claim(Long memberId, Long orderItemId, Long optionId,
+                 ClaimType claimType, ReasonCode reasonCode,
                  String detail, ClaimPickupMethod pickupMethod, String rejectReason,
                  String exchangeOption, BigDecimal refundAmount, BigDecimal shippingFee) {
         this.memberId = memberId;
@@ -82,12 +83,11 @@ public class Claim extends BaseEntity {
         this.exchangeOption = exchangeOption;
         this.refundAmount = refundAmount;
         this.shippingFee = shippingFee;
-
     }
 
     public void updateStatus(ClaimStatus status) {
         this.status = status;
-        if (status == ClaimStatus.SUBMITTED) {
+        if (status == ClaimStatus.COMPLETED) {
             this.completedAt = LocalDateTime.now();
         }
     }
@@ -97,17 +97,35 @@ public class Claim extends BaseEntity {
         this.rejectReason = rejectReason;
     }
 
+    public void cancel() {
+        this.status = ClaimStatus.CANCELLED;
+    }
+
     public enum ClaimType {
         EXCHANGE, RETURN
     }
 
     public enum ClaimStatus {
-        SUBMITTED, IN_PROGRESS, COMPLETED, REJECTED
+        SUBMITTED, IN_PROGRESS, COMPLETED, REJECTED, CANCELLED
     }
 
     public enum ClaimPickupMethod {
         COURIER, VISIT
     }
 
+    public enum ReasonCode {
+        // 반품 사유
+        CHANGE_MIND,        // 단순 변심
+        SIZE_COLOR,         // 사이즈/색상 불만족
+        DESCRIPTION_DIFF,   // 상품 설명과 다름
+        // 교환 사유
+        SIZE_CHANGE,        // 사이즈 변경
+        COLOR_CHANGE,       // 색상 변경
+        // 공통 사유
+        DEFECT,             // 상품 불량/파손
+        WRONG_ITEM,         // 오배송 (다른 상품 수령)
+        MISSING_ITEM,       // 구성품 누락
+        ETC                 // 기타
+    }
 
 }

@@ -78,6 +78,39 @@ class InquiryServiceImplTest {
     }
 
     @Test
+    @DisplayName("문의 등록 실패 - 존재하지 않는 회원")
+    void 문의_등록_실패_회원없음() {
+        // given
+        InquiryCreateRequestDto request = new InquiryCreateRequestDto(
+                null, 5L, Inquiry.InquiryType.PRODUCT,
+                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+
+        when(memberRepository.existsById(999L)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> inquiryService.createInquiry(999L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("문의 등록 실패 - 존재하지 않는 주문 상품")
+    void 문의_등록_실패_주문상품없음() {
+        // given
+        InquiryCreateRequestDto request = new InquiryCreateRequestDto(
+                999L, 5L, Inquiry.InquiryType.PRODUCT,
+                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.existsById(999L)).thenReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> inquiryService.createInquiry(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
+    }
+
+    @Test
     @DisplayName("문의 상세 조회 성공")
     void 문의_상세_조회_성공() {
         // given
