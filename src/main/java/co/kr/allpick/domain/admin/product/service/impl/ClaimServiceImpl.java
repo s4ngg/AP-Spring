@@ -8,6 +8,7 @@ import co.kr.allpick.domain.admin.product.entity.Claim;
 import co.kr.allpick.domain.admin.product.repository.ClaimRepository;
 import co.kr.allpick.domain.admin.product.service.ClaimService;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -62,8 +63,11 @@ public class ClaimServiceImpl implements ClaimService {
                 RETURN_ONLY_REASONS.contains(request.getReasonCode())) {
             throw new BusinessException(ErrorCode.CLAIM_REASON_MISMATCH);
         }
-        if (!orderItemRepository.existsById(request.getOrderItemId())) {
-            throw new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND);
+        // OrderItem 소유권까지 확인
+        OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+        if (!orderItem.getOrder().getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
         }
         if (claimRepository.existsByOrderItemIdAndStatusNotIn(
                 request.getOrderItemId(),
