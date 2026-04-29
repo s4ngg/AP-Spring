@@ -21,6 +21,10 @@ public class AdminCreateRequestDto {
 
     @Schema(description = "관리자 비밀번호", example = "Admin1234!")
     @NotBlank(message = "비밀번호는 필수입니다.")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
+            message = "비밀번호는 최소 8자, 영문+숫자+특수문자 조합이어야 합니다."
+    )
     private String password;
 
     @Schema(description = "관리자 이름", example = "이소정")
