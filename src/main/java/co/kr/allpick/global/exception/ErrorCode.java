@@ -35,6 +35,10 @@ public enum ErrorCode {
     CLAIM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_DELETED", "이미 삭제된 클레임입니다."),
     CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
     CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
+    CLAIM_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_CANCELLED", "이미 취소된 클레임입니다."),
+    CLAIM_ALREADY_EXISTS(HttpStatus.CONFLICT, "CLAIM_ALREADY_EXISTS", "이미 처리 중인 클레임이 존재합니다."),
+    CLAIM_REASON_MISMATCH(HttpStatus.BAD_REQUEST, "CLAIM_REASON_MISMATCH", "클레임 유형과 사유 코드가 일치하지 않습니다."),
+    CLAIM_UNAUTHORIZED(HttpStatus.FORBIDDEN, "CLAIM_UNAUTHORIZED", "본인의 클레임만 취소할 수 있습니다."),
 
     // Seller
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
