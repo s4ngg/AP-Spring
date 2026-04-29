@@ -19,9 +19,11 @@ import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
 import co.kr.allpick.domain.order.service.OrderService;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,35 +55,35 @@ public class OrderController implements OrderControllerDocs {
     }
 
     @Override
-    @PostMapping("/{memberId}/addresses")
+    @PostMapping("/addresses")
     public ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> addDeliveryAddress(
-            @PathVariable("memberId") Long memberId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid DeliveryAddressRequestDto request) {
-        return ApiResponse.success("배송지가 추가되었습니다.", orderService.addDeliveryAddress(memberId, request));
+        return ApiResponse.success("배송지가 추가되었습니다.", orderService.addDeliveryAddress(userInfo.getMemberId(), request));
     }
 
     @Override
-    @GetMapping("/{memberId}/addresses")
+    @GetMapping("/addresses")
     public ResponseEntity<ApiResponse<List<DeliveryAddressResponseDto>>> getDeliveryAddresses(
-            @PathVariable("memberId") Long memberId) {
-        return ApiResponse.success("배송지 목록 조회 성공.", orderService.getDeliveryAddresses(memberId));
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        return ApiResponse.success("배송지 목록 조회 성공.", orderService.getDeliveryAddresses(userInfo.getMemberId()));
     }
 
     @Override
-    @PatchMapping("/{memberId}/addresses/{addressId}")
+    @PatchMapping("/addresses/{addressId}")
     public ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> updateDeliveryAddress(
-            @PathVariable("memberId") Long memberId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @PathVariable("addressId") Long addressId,
             @RequestBody @Valid DeliveryAddressRequestDto request) {
-        return ApiResponse.success("배송지 수정 성공", orderService.updateDeliveryAddress(memberId, addressId, request));
+        return ApiResponse.success("배송지 수정 성공", orderService.updateDeliveryAddress(userInfo.getMemberId(), addressId, request));
     }
 
     @Override
-    @DeleteMapping("/{memberId}/addresses/{addressId}")
+    @DeleteMapping("/addresses/{addressId}")
     public ResponseEntity<ApiResponse<Void>> deleteDeliveryAddress(
-            @PathVariable("memberId") Long memberId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @PathVariable("addressId") Long addressId) {
-        orderService.deleteDeliveryAddress(memberId, addressId);
+        orderService.deleteDeliveryAddress(userInfo.getMemberId(), addressId);
         return ApiResponse.success("배송지 삭제 성공");
     }
 }

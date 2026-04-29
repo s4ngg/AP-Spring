@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import co.kr.allpick.domain.member.repository.MemberRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -41,7 +39,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressRepository deliveryAddressRepository;
-    private final MemberRepository memberRepository;
 
     @Override
     @Transactional
@@ -96,11 +93,7 @@ public class OrderServiceImpl implements OrderService {
     public DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request) {
         logger.info("배송지 추가 - memberId: {}", memberId);
 
-        // #26 회원 존재 검증
-        memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // #26 중복 배송지 검증
+        // 중복 배송지 검증
         if (deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(
                 memberId, request.getAddress(), request.getAddressDetail())) {
             throw new BusinessException(ErrorCode.DELIVERY_ADDRESS_DUPLICATE);
@@ -119,7 +112,7 @@ public class OrderServiceImpl implements OrderService {
         return deliveryAddressRepository.findByMemberId(memberId)
                 .stream()
                 .map(DeliveryAddressResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
     
     @Override
