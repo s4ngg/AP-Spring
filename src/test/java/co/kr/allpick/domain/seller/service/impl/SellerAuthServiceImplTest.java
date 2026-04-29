@@ -138,7 +138,7 @@ class SellerAuthServiceImplTest {
         // when & then
         assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.NOT_SELLER.getMessage());
+                .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
 
     // ==================== 로그인 ====================
