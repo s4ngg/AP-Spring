@@ -6,6 +6,7 @@ import co.kr.allpick.domain.admin.product.dto.ClaimRejectRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
 import co.kr.allpick.domain.admin.product.service.ClaimService;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -47,13 +48,15 @@ public class ClaimController implements ClaimControllerDocs {
 
     @Override
     @GetMapping("/admin")
-    public ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getAllClaims() {
+    public ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getAllClaims(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
         return ApiResponse.success("전체 클레임 목록 조회 성공.", claimService.getAllClaims());
     }
 
     @Override
     @PatchMapping("/{claimId}/status")
     public ResponseEntity<ApiResponse<ClaimResponseDto>> updateStatus(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimStatusUpdateRequestDto request) {
         return ApiResponse.success("클레임 상태가 변경되었습니다.", claimService.updateStatus(claimId, request));
@@ -62,6 +65,7 @@ public class ClaimController implements ClaimControllerDocs {
     @Override
     @PatchMapping("/{claimId}/reject")
     public ResponseEntity<ApiResponse<ClaimResponseDto>> rejectClaim(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimRejectRequestDto request) {
         return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaim(claimId, request));

@@ -4,6 +4,7 @@ import co.kr.allpick.domain.admin.product.dto.ClaimCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimRejectRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -44,7 +45,8 @@ public interface ClaimControllerDocs {
             @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
     @Operation(summary = "전체 클레임 목록 조회", description = "관리자가 전체 클레임 목록을 조회합니다.")
-    ResponseEntity<co.kr.allpick.global.response.ApiResponse<List<ClaimResponseDto>>> getAllClaims();
+    ResponseEntity<co.kr.allpick.global.response.ApiResponse<List<ClaimResponseDto>>> getAllClaims(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo);
 
     @Operation(summary = "클레임 상태 변경", description = "관리자 또는 판매자가 클레임 상태를 변경합니다.")
     @ApiResponses({
@@ -53,6 +55,7 @@ public interface ClaimControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 클레임")
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<ClaimResponseDto>> updateStatus(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimStatusUpdateRequestDto request);
 
@@ -63,6 +66,7 @@ public interface ClaimControllerDocs {
             @ApiResponse(responseCode = "404", description = "존재하지 않는 클레임")
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<ClaimResponseDto>> rejectClaim(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimRejectRequestDto request);
 
