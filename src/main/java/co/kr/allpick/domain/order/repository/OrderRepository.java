@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.order.repository;
 
 import co.kr.allpick.domain.order.entity.Order;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +12,9 @@ import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByOrderNumber(String orderNumber);
+
+    @EntityGraph(attributePaths = {"orderItems"})
+    List<Order> findByMemberIdOrderByOrderedAtDesc(Long memberId);
     
     @Query("""
     	    SELECT o.memberId, SUM(o.totalAmount)
