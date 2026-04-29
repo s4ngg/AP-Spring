@@ -9,6 +9,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import co.kr.allpick.domain.admin.entity.Admin;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.servlet.FilterChain;
@@ -36,6 +38,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/api/auth/login")
                 || path.startsWith("/api/auth/signup")
+                || path.startsWith("/api/admins/login")
                 || path.startsWith("/api/members/login")
                 || path.startsWith("/api/members/signup")
                 || path.startsWith("/api/products")
@@ -58,6 +61,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         Long memberId = jwtProvider.getMemberIdFromToken(token);
         String email = jwtProvider.getEmailFromToken(token);
+        String role = jwtProvider.getRoleFromToken(token);
+
+        if (role != null) {
+            Admin.AdminRole adminRole = Admin.AdminRole.valueOf(role);
+            AdminJwtUserInfoDto adminUserInfo = new AdminJwtUserInfoDto(memberId, email, adminRole);
+            UsernamePasswordAuthenticationToken authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            adminUserInfo,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            logger.info("관리자 인증 성공 - adminId: {}", memberId);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         JwtUserInfoDto userInfo = new JwtUserInfoDto(memberId, email);
         UsernamePasswordAuthenticationToken authentication =

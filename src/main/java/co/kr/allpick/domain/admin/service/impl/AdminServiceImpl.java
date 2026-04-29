@@ -35,6 +35,10 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.findByEmail(adminLoginRequestDto.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
 
+        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
+            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
+        }
+
         if (!passwordEncoder.matches(adminLoginRequestDto.getPassword(), admin.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
