@@ -228,4 +228,44 @@ class SellerAuthServiceImplTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.NOT_SELLER.getMessage());
     }
+ // ==================== 판매자 삭제 ====================
+
+    @Test
+    @DisplayName("판매자 삭제 성공")
+    void deleteSeller_validRequest_success() {
+        // given
+        Long sellerId = 1L;
+
+        Seller mockSeller = Seller.builder()
+                .businessName("나이키 코리아")
+                .representativeName("홍길동")
+                .businessNumber("1234567890")
+                .status(SellerStatus.APPROVED)
+                .build();
+
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
+                .willReturn(Optional.of(mockSeller));
+
+        // when
+        sellerAuthService.deleteSeller(sellerId);
+
+        // then
+        verify(sellerRepository, times(1)).save(any(Seller.class));
+    }
+
+    @Test
+    @DisplayName("판매자 삭제 실패 - 존재하지 않는 판매자")
+    void deleteSeller_sellerNotFound_throwException() {
+        // given
+        Long sellerId = 999L;
+
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> sellerAuthService.deleteSeller(sellerId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
+    }
+    
 }

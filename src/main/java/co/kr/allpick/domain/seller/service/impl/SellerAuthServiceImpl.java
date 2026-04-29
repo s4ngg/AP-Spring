@@ -4,7 +4,6 @@ import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.seller.dto.SellerLoginRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerLoginResponseDto;
-import co.kr.allpick.domain.seller.dto.SellerProductResponseDto;
 import co.kr.allpick.domain.seller.dto.SellerSignupRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 import co.kr.allpick.domain.seller.entity.Seller;
@@ -68,8 +67,6 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // ✅ 이메일 중복 확인 제거 (이미 회원가입 시 체크 완료)
-        // ✅ 이미 판매자 등록된 회원인지 확인
         if (sellerRepository.existsByMemberId(memberId)) {
             logger.warn("[SellerAuthService] 이미 판매자 등록된 회원 - memberId: {}", memberId);
             throw new BusinessException(ErrorCode.NOT_SELLER);
@@ -101,11 +98,5 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         logger.info("[SellerAuthService] 판매자 로그인 성공 - sellerId: {}", seller.getSellerId());
 
         return SellerLoginResponseDto.of(seller, token);
-    }
-    
-    @Override
-    public List<SellerProductResponseDto> getMyProducts(Long sellerId) {
-        // TODO: Product 도메인 구현 후 연결 예정
-        throw new BusinessException(ErrorCode.NOT_IMPLEMENTED);
     }
 }

@@ -15,7 +15,7 @@ public class SellerUpdateRequestDto {
 
 	@Schema(description = "판매자 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "판매자 ID는 필수입니다.")
-    private Long sellerId;  // ✅ 추가
+    private Long sellerId;
 
     @NotBlank
     @Schema(description = "상호명", example = "나이키 코리아",
