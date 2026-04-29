@@ -14,6 +14,7 @@ public enum ErrorCode {
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_NOT_FOUND", "결제 정보를 찾을 수 없습니다."),
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "배송지를 찾을 수 없습니다."),
     DELIVERY_ADDRESS_DUPLICATE(HttpStatus.CONFLICT, "DELIVERY_ADDRESS_DUPLICATE", "이미 등록된 배송지입니다."),
+    UNAUTHORIZED_ADDRESS(HttpStatus.FORBIDDEN, "UNAUTHORIZED_ADDRESS", "본인의 배송지만 수정/삭제할 수 있습니다."),
 
     // Coupon
     COUPON_ALREADY_ISSUED(HttpStatus.BAD_REQUEST, "COUPON_ALREADY_ISSUED", "이미 보유한 쿠폰입니다."),
