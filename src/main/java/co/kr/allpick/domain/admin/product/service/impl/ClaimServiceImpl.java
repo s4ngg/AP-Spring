@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -38,6 +39,12 @@ public class ClaimServiceImpl implements ClaimService {
     private static final Set<Claim.ReasonCode> EXCHANGE_ONLY_REASONS = Set.of(
             Claim.ReasonCode.SIZE_CHANGE,
             Claim.ReasonCode.COLOR_CHANGE
+    );
+
+    // 허용된 상태 전이 규칙: SUBMITTED → IN_PROGRESS → COMPLETED
+    private static final Map<Claim.ClaimStatus, Set<Claim.ClaimStatus>> ALLOWED_TRANSITIONS = Map.of(
+            Claim.ClaimStatus.SUBMITTED, Set.of(Claim.ClaimStatus.IN_PROGRESS),
+            Claim.ClaimStatus.IN_PROGRESS, Set.of(Claim.ClaimStatus.COMPLETED)
     );
 
     private final ClaimRepository claimRepository;
@@ -115,13 +122,7 @@ public class ClaimServiceImpl implements ClaimService {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
-        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
+        if (!ALLOWED_TRANSITIONS.getOrDefault(claim.getStatus(), Set.of()).contains(request.getStatus())) {
             throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
 
