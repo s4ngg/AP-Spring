@@ -1,8 +1,8 @@
 package co.kr.allpick.domain.member.service.impl;
 
 import co.kr.allpick.domain.member.dto.MemberResponseDto;
-import co.kr.allpick.domain.member.dto.MemberUpdateRequestDto;
-import co.kr.allpick.domain.member.dto.PasswordChangeRequestDto;
+import co.kr.allpick.domain.member.dto.mypage.MemberUpdateRequestDto;
+import co.kr.allpick.domain.member.dto.mypage.PasswordChangeRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.MemberService;
