@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -54,6 +53,7 @@ public class MemberServiceImpl implements MemberService {
         logger.info("[MemberService] 비밀번호 변경 - memberId: {}", memberId);
         Member member = findMemberById(memberId);
         validateCurrentPassword(request.getCurrentPassword(), member.getPassword());
+        validateNewPassword(request.getNewPassword(), member.getPassword());
         member.updatePassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
@@ -71,7 +71,7 @@ public class MemberServiceImpl implements MemberService {
         List<Order> orders = orderRepository.findByMemberIdOrderByOrderedAtDesc(memberId);
         return orders.stream()
                 .map(order -> OrderResponseDto.from(order, order.getOrderItems()))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private Member findMemberById(Long memberId) {
@@ -82,6 +82,12 @@ public class MemberServiceImpl implements MemberService {
     private void validateCurrentPassword(String rawPassword, String encodedPassword) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+    }
+
+    private void validateNewPassword(String newRawPassword, String encodedCurrentPassword) {
+        if (passwordEncoder.matches(newRawPassword, encodedCurrentPassword)) {
+            throw new BusinessException(ErrorCode.SAME_PASSWORD);
         }
     }
 }

@@ -75,7 +75,28 @@ public interface MypageControllerDocs {
                 {
                     "success": true,
                     "message": "주문 목록 조회 성공",
-                    "data": []
+                    "data": [
+                        {
+                            "orderId": 1,
+                            "orderNumber": "ORD-20260415-000001",
+                            "totalAmount": 50000,
+                            "discountAmount": 0,
+                            "memberCouponId": null,
+                            "shippingFee": 3000,
+                            "status": "PENDING",
+                            "orderedAt": "2026-04-15T10:00:00",
+                            "orderItems": [
+                                {
+                                    "orderItemId": 1,
+                                    "productId": 10,
+                                    "productName": "나이키 에어맥스",
+                                    "productPrice": 47000,
+                                    "quantity": 2,
+                                    "totalPrice": 94000
+                                }
+                            ]
+                        }
+                    ]
                 }
             """)))
     })
