@@ -1,9 +1,9 @@
 package co.kr.allpick.domain.cart.entity;
 
+import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.global.common.BaseEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,6 +35,10 @@ public class CartItem extends BaseEntity{
 	private Product product;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id", nullable = false)
+	private Member member;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "cart_id", nullable = false)
 	private Cart cart;
 	
@@ -45,13 +49,25 @@ public class CartItem extends BaseEntity{
 	@Column(name = "quantity", nullable = false)
 	private Integer quantity;
 	
+	 
 	
 	
-	@Schema(description = "상세페이지에서 상품 수량 증량하는 메서드")
+	public static CartItem addToCart(Product product, Cart cart, Member member, 
+										ProductOption productOption,int quantity) {
+		return CartItem.builder()
+				.product(product)
+				.cart(cart)
+				.member(member)
+				.productOption(productOption)
+				.quantity(quantity)
+				.build();
+	} 
+	
+	
 	public void addQuantityAtProductDetail(int quantity) {
 		this.quantity += quantity;
 	}
-	@Schema(description = "장바구니에서 상품수량을 최종 결정하는 메서드")
+	
 	public void addQuantityAtCart(int quantity) {
 		this.quantity = quantity;
 	}

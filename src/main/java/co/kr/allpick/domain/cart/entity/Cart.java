@@ -32,7 +32,7 @@ public class Cart extends BaseEntity{
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id", nullable = false)
 	private Member member;
-	
+	   
 	//새로운 장바구니 생성 메서드  (장바구니 id는 자동생성됨)
 	public static Cart createCart(Member member) {	
 		return Cart.builder()

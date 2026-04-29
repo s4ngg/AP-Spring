@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.kr.allpick.domain.cart.dto.CartItemRequestDto;
 import co.kr.allpick.domain.cart.dto.CartItemResponseDto;
-import co.kr.allpick.domain.cart.service.CartItemService;
+import co.kr.allpick.domain.cart.service.CartService;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +21,20 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/carts")
 @RequiredArgsConstructor
 public class CartItemController {
-	private final CartItemService cartItemService;
+	private final CartService cartService;
 	
 	// 사용자의 장바구니에 상품 추가
-	@PostMapping("/{memberId}")
+	@PostMapping
 	public ResponseEntity<ApiResponse<CartItemResponseDto>> addCart(
-			@PathVariable("memberId") Long memberId,
-			@RequestBody @Valid CartItemRequestDto reqDto) {
-		return ApiResponse.success("장바구니에 상품이 추가되었습니다.", cartItemService.addCart(reqDto, memberId));
+						@RequestBody @Valid CartItemRequestDto reqDto) {
+		return ApiResponse.success("장바구니에 상품이 추가되었습니다.", cartService.addCart(reqDto));
 	}
 	// 사용자 한명의 장바구니에 담긴 상품 조회
 	@GetMapping("/{memberId}")
 	public ResponseEntity<ApiResponse<List<CartItemResponseDto>>> getCartItem(
 			@PathVariable("memberId") Long memberId
 			) {
-		return ApiResponse.success("장바구니 목록을 성공적으로 불러왔습니다.", cartItemService.getCartItem(memberId));
+		return ApiResponse.success("장바구니 목록을 성공적으로 불러왔습니다.", cartService.getCartItem(memberId));
 	}
 }
+ 
