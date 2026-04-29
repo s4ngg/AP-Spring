@@ -7,6 +7,8 @@ import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
 import co.kr.allpick.domain.admin.product.entity.Claim;
 import co.kr.allpick.domain.admin.product.repository.ClaimRepository;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.order.entity.Order;
+import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -18,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,6 +43,28 @@ class ClaimServiceImplTest {
 
     @InjectMocks
     ClaimServiceImpl claimService;
+
+    // 테스트용 OrderItem 객체 생성 헬퍼
+    private OrderItem buildMockOrderItem(Long memberId) {
+        Order mockOrder = Order.builder()
+                .memberId(memberId)
+                .addressId(1L)
+                .orderNumber("TEST-001")
+                .totalAmount(BigDecimal.ZERO)
+                .discountAmount(BigDecimal.ZERO)
+                .shippingFee(0)
+                .status(Order.OrderStatus.PAID)
+                .orderedAt(LocalDateTime.now())
+                .build();
+        return OrderItem.builder()
+                .order(mockOrder)
+                .productId(1L)
+                .productName("테스트상품")
+                .productPrice(BigDecimal.valueOf(29000))
+                .quantity(1)
+                .totalPrice(BigDecimal.valueOf(29000))
+                .build();
+    }
 
     // 테스트용 Claim 객체 생성 헬퍼
     private Claim buildMockClaim() {
@@ -69,7 +94,7 @@ class ClaimServiceImplTest {
         Claim mockClaim = buildMockClaim();
 
         when(memberRepository.existsById(1L)).thenReturn(true);
-        when(orderItemRepository.existsById(10L)).thenReturn(true);
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(buildMockOrderItem(1L)));
         when(claimRepository.save(any(Claim.class))).thenReturn(mockClaim);
 
         // when
@@ -109,7 +134,7 @@ class ClaimServiceImplTest {
                 Claim.ClaimPickupMethod.COURIER, null, null, null);
 
         when(memberRepository.existsById(1L)).thenReturn(true);
-        when(orderItemRepository.existsById(999L)).thenReturn(false);
+        when(orderItemRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> claimService.createClaim(1L, request))
@@ -269,7 +294,7 @@ class ClaimServiceImplTest {
         // when & then
         assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_ALREADY_COMPLETED.getMessage());
+                .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
     }
 
     @Test
@@ -303,7 +328,7 @@ class ClaimServiceImplTest {
         // when & then
         assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
+                .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
     }
 
     @Test
