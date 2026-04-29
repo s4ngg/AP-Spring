@@ -7,7 +7,13 @@ import java.util.List;
 
 public interface AttachmentService {
 
-    List<AttachmentResponseDto> uploadInquiryAttachments(Long inquiryId, Long memberId, List<MultipartFile> files);
+    AttachmentResponseDto uploadInquiryAttachment(Long inquiryId, MultipartFile file, int sortOrder);
 
-    List<AttachmentResponseDto> uploadClaimAttachments(Long claimId, Long memberId, List<MultipartFile> files);
+    AttachmentResponseDto uploadClaimAttachment(Long claimId, MultipartFile file, int sortOrder);
+
+    List<AttachmentResponseDto> getByInquiryId(Long inquiryId);
+
+    List<AttachmentResponseDto> getByClaimId(Long claimId);
+
+    void deleteAttachment(Long attachmentId, Long memberId);
 }

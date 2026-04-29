@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
 
-    List<Attachment> findByInquiryIdOrderBySortOrderAsc(Long inquiryId);
+    List<Attachment> findByInquiryIdAndDeletedAtIsNull(Long inquiryId);
 
-    List<Attachment> findByClaimIdOrderBySortOrderAsc(Long claimId);
+    List<Attachment> findByClaimIdAndDeletedAtIsNull(Long claimId);
 }

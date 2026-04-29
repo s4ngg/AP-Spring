@@ -63,7 +63,7 @@ public class InquiryServiceImpl implements InquiryService {
                 .map(InquiryAnswerResponseDto::from)
                 .toList();
         List<AttachmentResponseDto> attachments = attachmentRepository
-                .findByInquiryIdOrderBySortOrderAsc(inquiryId)
+                .findByInquiryIdAndDeletedAtIsNull(inquiryId)
                 .stream()
                 .map(AttachmentResponseDto::from)
                 .toList();
