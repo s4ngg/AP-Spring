@@ -59,6 +59,10 @@ public enum ErrorCode {
     // FAQ
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
 
+    // Notice
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
+    NOTICE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NOTICE_ALREADY_DELETED", "이미 삭제된 공지사항입니다."),
+
     // Product
     PRODUCT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PRODUCT_ALREADY_EXISTS", "이미 존재하는 상품입니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "존재하지 않는 상품입니다."),
