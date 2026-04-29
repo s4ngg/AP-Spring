@@ -121,6 +121,33 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
     
+    @Override
+    @Transactional
+    public DeliveryAddressResponseDto updateDeliveryAddress(Long memberId, Long addressId, DeliveryAddressRequestDto request) {
+        logger.info("[OrderService] 배송지 수정 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        address.update(request.getRecipientName(), request.getPhone(), request.getZipCode(),
+                request.getAddress(), request.getAddressDetail(), request.isDefault());
+        return DeliveryAddressResponseDto.from(address);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDeliveryAddress(Long memberId, Long addressId) {
+        logger.info("[OrderService] 배송지 삭제 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        deliveryAddressRepository.delete(address);
+    }
+
+    private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
+        DeliveryAddress address = deliveryAddressRepository.findById(addressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        if (!address.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ADDRESS);
+        }
+        return address;
+    }
+
 //    주문 번호 생성
     private String generateUniqueOrderNumber() {
         String orderNumber;
