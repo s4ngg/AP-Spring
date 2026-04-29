@@ -107,7 +107,7 @@ class SellerAuthServiceImplTest {
         // given
         Long sellerId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
@@ -131,7 +131,7 @@ class SellerAuthServiceImplTest {
         // given
         Long sellerId = 999L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
 
