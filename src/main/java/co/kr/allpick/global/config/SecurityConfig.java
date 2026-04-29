@@ -28,6 +28,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/sms/**").permitAll()
                 .requestMatchers("/api/terms/**").permitAll()
                 .requestMatchers("/api/products/**").permitAll()
+                .requestMatchers("/api/attachments/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
