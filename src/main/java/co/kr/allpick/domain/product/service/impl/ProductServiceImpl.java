@@ -21,11 +21,7 @@ public class ProductServiceImpl implements ProductService{
 	
 	private final ProductRepository productRepository;
 	private final  ParentCategoryRepository parentCategoryRepository;
-	
-	
-	
-	    //public Product toEntity(ParentCategory parentCategory) <- 이게 상품 생성하는거
-	
+		
 	@Transactional
 	@Override
 	// 상품 생성 메서드
