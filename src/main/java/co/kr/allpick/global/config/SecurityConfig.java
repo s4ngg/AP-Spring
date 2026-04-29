@@ -34,7 +34,9 @@ public class SecurityConfig {
             )
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증이 필요합니다."))
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "로그인 후 사용 가능합니다."))
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다."))
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
