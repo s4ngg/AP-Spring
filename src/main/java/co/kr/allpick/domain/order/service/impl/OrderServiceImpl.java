@@ -17,6 +17,7 @@ import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.entity.Payment;

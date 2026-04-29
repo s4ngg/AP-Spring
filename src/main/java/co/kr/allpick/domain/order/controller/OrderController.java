@@ -3,7 +3,9 @@ package co.kr.allpick.domain.order.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -63,5 +65,23 @@ public class OrderController implements OrderControllerDocs {
     public ResponseEntity<ApiResponse<List<DeliveryAddressResponseDto>>> getDeliveryAddresses(
             @PathVariable("memberId") Long memberId) {
         return ApiResponse.success("배송지 목록 조회 성공.", orderService.getDeliveryAddresses(memberId));
+    }
+
+    @Override
+    @PatchMapping("/{memberId}/addresses/{addressId}")
+    public ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> updateDeliveryAddress(
+            @PathVariable("memberId") Long memberId,
+            @PathVariable("addressId") Long addressId,
+            @RequestBody @Valid DeliveryAddressRequestDto request) {
+        return ApiResponse.success("배송지 수정 성공", orderService.updateDeliveryAddress(memberId, addressId, request));
+    }
+
+    @Override
+    @DeleteMapping("/{memberId}/addresses/{addressId}")
+    public ResponseEntity<ApiResponse<Void>> deleteDeliveryAddress(
+            @PathVariable("memberId") Long memberId,
+            @PathVariable("addressId") Long addressId) {
+        orderService.deleteDeliveryAddress(memberId, addressId);
+        return ApiResponse.success("배송지 삭제 성공");
     }
 }
