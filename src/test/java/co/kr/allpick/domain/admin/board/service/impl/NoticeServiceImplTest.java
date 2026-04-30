@@ -4,6 +4,8 @@ import co.kr.allpick.domain.admin.board.dto.NoticeCreateRequestDto;
 import co.kr.allpick.domain.admin.board.dto.NoticeResponseDto;
 import co.kr.allpick.domain.admin.board.entity.Notice;
 import co.kr.allpick.domain.admin.board.repository.NoticeRepository;
+import co.kr.allpick.domain.admin.entity.Admin;
+import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +21,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,25 +31,34 @@ class NoticeServiceImplTest {
     @Mock
     NoticeRepository noticeRepository;
 
+    @Mock
+    AdminRepository adminRepository;
+
     @InjectMocks
     NoticeServiceImpl noticeService;
 
+    private Admin buildMockAdmin() {
+        Admin admin = mock(Admin.class);
+        lenient().when(admin.getAdminId()).thenReturn(1L);
+        return admin;
+    }
+
     private Notice buildMockNotice() {
         return Notice.builder()
-                .adminId(1L)
+                .admin(buildMockAdmin())
                 .title("서비스 점검 안내")
                 .content("4월 30일 오전 2시~4시 서비스 점검이 진행됩니다.")
-                .isFixed(false)
+                .fixed(false)
                 .imageUrl(null)
                 .build();
     }
 
     private Notice buildMockFixedNotice() {
         return Notice.builder()
-                .adminId(1L)
+                .admin(buildMockAdmin())
                 .title("공지사항 고정 테스트")
                 .content("고정 공지사항입니다.")
-                .isFixed(true)
+                .fixed(true)
                 .imageUrl(null)
                 .build();
     }
@@ -54,10 +67,12 @@ class NoticeServiceImplTest {
     @DisplayName("공지사항 등록 성공")
     void 공지사항_등록_성공() {
         // given
+        Admin mockAdmin = buildMockAdmin();
         NoticeCreateRequestDto request = new NoticeCreateRequestDto(
                 "서비스 점검 안내", "4월 30일 오전 2시~4시 서비스 점검이 진행됩니다.", false, null);
         Notice mockNotice = buildMockNotice();
 
+        when(adminRepository.findById(1L)).thenReturn(Optional.of(mockAdmin));
         when(noticeRepository.save(any(Notice.class))).thenReturn(mockNotice);
 
         // when
@@ -77,7 +92,7 @@ class NoticeServiceImplTest {
         Notice normal = buildMockNotice();
         Notice fixed = buildMockFixedNotice();
 
-        when(noticeRepository.findByDeletedAtIsNullOrderByIsFixedDescCreatedAtDesc())
+        when(noticeRepository.findByDeletedAtIsNullOrderByFixedDescCreatedAtDesc())
                 .thenReturn(List.of(fixed, normal));
 
         // when
@@ -104,7 +119,7 @@ class NoticeServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getViewCount()).isEqualTo(1);
+        assertThat(result.getViewCount()).isEqualTo(0); // @Modifying @Query로 DB에서 처리하므로 mock에서는 증가 안 함
         assertThat(result.getTitle()).isEqualTo("서비스 점검 안내");
     }
 

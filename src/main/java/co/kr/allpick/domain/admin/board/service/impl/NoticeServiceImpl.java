@@ -46,7 +46,7 @@ public class NoticeServiceImpl implements NoticeService {
     @Override
     @Transactional(readOnly = true)
     public List<NoticeResponseDto> getAllNotices() {
-        return noticeRepository.findByDeletedAtIsNullOrderByIsFixedDescCreatedAtDesc()
+        return noticeRepository.findByDeletedAtIsNullOrderByFixedDescCreatedAtDesc()
                 .stream()
                 .map(NoticeResponseDto::from)
                 .toList();
