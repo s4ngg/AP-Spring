@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.admin.board.entity;
 
+import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -17,8 +18,9 @@ public class Notice extends BaseEntity {
     @Column(name = "notice_id")
     private Long noticeId;
 
-    @Column(name = "admin_id", nullable = false)
-    private Long adminId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", nullable = false)
+    private Admin admin;
 
     @Column(name = "title", nullable = false, length = 255)
     private String title;
@@ -36,8 +38,8 @@ public class Notice extends BaseEntity {
     private int viewCount = 0;
 
     @Builder
-    public Notice(Long adminId, String title, String content, boolean fixed, String imageUrl) {
-        this.adminId = adminId;
+    public Notice(Admin admin, String title, String content, boolean fixed, String imageUrl) {
+        this.admin = admin;
         this.title = title;
         this.content = content;
         this.fixed = fixed;

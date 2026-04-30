@@ -5,6 +5,8 @@ import co.kr.allpick.domain.admin.board.dto.NoticeResponseDto;
 import co.kr.allpick.domain.admin.board.entity.Notice;
 import co.kr.allpick.domain.admin.board.repository.NoticeRepository;
 import co.kr.allpick.domain.admin.board.service.NoticeService;
+import co.kr.allpick.domain.admin.entity.Admin;
+import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +24,15 @@ public class NoticeServiceImpl implements NoticeService {
     private static final Logger logger = LogManager.getLogger(NoticeServiceImpl.class);
 
     private final NoticeRepository noticeRepository;
+    private final AdminRepository adminRepository;
 
     @Override
     @Transactional
     public NoticeResponseDto createNotice(Long adminId, NoticeCreateRequestDto request) {
+        Admin admin = adminRepository.findById(adminId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
         Notice notice = Notice.builder()
-                .adminId(adminId)
+                .admin(admin)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .fixed(request.isFixed())

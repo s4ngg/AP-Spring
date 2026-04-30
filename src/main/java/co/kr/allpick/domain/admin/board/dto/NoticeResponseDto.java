@@ -42,7 +42,7 @@ public class NoticeResponseDto {
     public static NoticeResponseDto from(Notice notice) {
         return NoticeResponseDto.builder()
                 .noticeId(notice.getNoticeId())
-                .adminId(notice.getAdminId())
+                .adminId(notice.getAdmin().getAdminId())
                 .title(notice.getTitle())
                 .content(notice.getContent())
                 .fixed(notice.isFixed())
