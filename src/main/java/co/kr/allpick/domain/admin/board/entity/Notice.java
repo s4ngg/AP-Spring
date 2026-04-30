@@ -48,7 +48,9 @@ public class Notice extends BaseEntity {
         this.title = title;
         this.content = content;
         this.fixed = fixed;
-        this.imageUrl = imageUrl;
+        if (imageUrl != null) {
+            this.imageUrl = imageUrl;
+        }
     }
 
     public void increaseViewCount() {
