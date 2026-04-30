@@ -6,10 +6,12 @@ import co.kr.allpick.domain.admin.dto.AdminLoginResponseDto;
 import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.controller.docs.AdminControllerDocs;
 import co.kr.allpick.domain.admin.service.AdminService;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,6 +37,7 @@ public class AdminController implements AdminControllerDocs {
     @PostMapping
     @Override
     public ResponseEntity<ApiResponse<Void>> createAdmin(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @RequestBody @Valid AdminCreateRequestDto request) {
         adminService.createAdmin(request);
         return ApiResponse.success("관리자 등록 성공");
@@ -43,6 +46,7 @@ public class AdminController implements AdminControllerDocs {
     @PatchMapping("/{adminId}/status")
     @Override
     public ResponseEntity<ApiResponse<Void>> updateStatus(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("adminId") Long adminId,
             @RequestParam("status") Admin.AdminStatus status) {
         adminService.updateStatus(adminId, status);

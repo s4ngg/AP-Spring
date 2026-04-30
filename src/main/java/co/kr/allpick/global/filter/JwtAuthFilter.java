@@ -64,7 +64,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String role = jwtProvider.getRoleFromToken(token);
 
         if (role != null) {
-            Admin.AdminRole adminRole = Admin.AdminRole.valueOf(role);
+            Admin.AdminRole adminRole;
+            try {
+                adminRole = Admin.AdminRole.valueOf(role);
+            } catch (IllegalArgumentException e) {
+                logger.warn("유효하지 않은 role 값 - role: {}", role);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+                return;
+            }
             AdminJwtUserInfoDto adminUserInfo = new AdminJwtUserInfoDto(memberId, email, adminRole);
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
