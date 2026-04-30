@@ -35,7 +35,6 @@ public class SellerAuthServiceImpl implements SellerAuthService {
     private final JwtProvider jwtProvider;
 
     @Override
-    @Transactional
     public void update(Long sellerId, SellerUpdateRequestDto dto) {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
@@ -49,7 +48,6 @@ public class SellerAuthServiceImpl implements SellerAuthService {
     }
 
     @Override
-    @Transactional
     public void deleteSeller(Long sellerId) {
         Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
@@ -57,7 +55,6 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         sellerRepository.save(seller);
     }
     @Override
-    @Transactional
     public void signup(SellerSignupRequestDto dto, Long memberId) {
         if (sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())) {
             logger.warn("[SellerAuthService] 사업자등록번호 중복 - businessNumber: {}", dto.getBusinessNumber());
@@ -69,7 +66,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
 
         if (sellerRepository.existsByMemberId(memberId)) {
             logger.warn("[SellerAuthService] 이미 판매자 등록된 회원 - memberId: {}", memberId);
-            throw new BusinessException(ErrorCode.NOT_SELLER);
+            throw new BusinessException(ErrorCode.SELLER_ALREADY_EXISTS);
         }
 
         Seller seller = dto.toEntity(member);

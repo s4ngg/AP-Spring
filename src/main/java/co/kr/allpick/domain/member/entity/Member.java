@@ -57,7 +57,7 @@ public class Member extends BaseEntity {
     private String socialId;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name ="grade", nullable = false)
     @Builder.Default
     private MemberGrade grade = MemberGrade.NORMAL;
 

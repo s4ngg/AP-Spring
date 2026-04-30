@@ -56,7 +56,7 @@ public class SellerAuthController implements SellerAuthControllerDocs {
     }
     
     @Override
-    @DeleteMapping
+    @DeleteMapping("/{sellerId}")
     public ResponseEntity<ApiResponse<Void>> deleteSeller(
             @RequestBody SellerDeleteRequestDto dto) {
         sellerAuthService.deleteSeller(dto.getSellerId());
