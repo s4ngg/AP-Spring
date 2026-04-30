@@ -75,12 +75,9 @@ public enum ErrorCode {
 
     // image
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_UPLOAD_FAILED", "이미지 업로드에 실패했습니다."),
-  
     INVALID_FILE(HttpStatus.BAD_REQUEST, "INVALID_FILE", "파일이 없거나 비어있습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일만 업로드 가능합니다.");
 
-    
-    
 	
     private final HttpStatus status;
     private final String code;
