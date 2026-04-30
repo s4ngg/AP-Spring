@@ -1,11 +1,8 @@
 
 package co.kr.allpick.domain.cart.dto;
 
-import com.sun.istack.NotNull;
-
 import co.kr.allpick.domain.cart.entity.CartItem;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,17 +16,23 @@ import lombok.NoArgsConstructor;
 @Schema(description = "장바구니 상품 응답 Dto")
 public class CartItemResponseDto {
 	
-	private Long cartItemId;
+	@Schema(description = "장바구니 아이템 ID", example = "1")
+    private Long cartItemId;
 	
-	private String brandName;
+    @Schema(description = "브랜드명", example = "올픽 오리지널")
+    private String brandName;
 	
-	private String productName;
+    @Schema(description = "상품명", example = "오버핏 코튼 티셔츠")
+    private String productName;
 	
-	private Integer price;
+    @Schema(description = "상품 가격", example = "29000")
+    private Integer price;
 	
-	private String option;
+    @Schema(description = "선택한 옵션 정보", example = "L / White")
+    private String option;
 	
-	private Integer quantity;
+    @Schema(description = "담은 수량", example = "2")
+    private Integer quantity;
 	
 	
 	

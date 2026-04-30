@@ -1,15 +1,30 @@
 package co.kr.allpick.domain.order.entity;
 
-import co.kr.allpick.global.common.BaseEntity;
-import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.global.common.BaseEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "orders")
@@ -22,14 +37,17 @@ public class Order extends BaseEntity {
     @Column(name = "order_id")
     private Long orderId;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_coupon_id", nullable = false)
+    private MemberCoupon memberCoupon;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
     @Column(name = "address_id", nullable = false)
-    private Long addressId;
-
-    @Column(name = "member_coupon_id")
-    private Long memberCouponId;
+    private DeliveryAddress deliveryAddress;
 
     @Column(name = "order_number", nullable = false, unique = true)
     private String orderNumber;
@@ -54,12 +72,14 @@ public class Order extends BaseEntity {
     private List<OrderItem> orderItems = new ArrayList<>();
 
     @Builder
-    public Order(Long memberId, Long addressId, Long memberCouponId,
+    public Order(Member member, MemberCoupon memberCoupon , DeliveryAddress deliveryAddress, 
+    			 Long addressId, 
                  String orderNumber, BigDecimal totalAmount, BigDecimal discountAmount,
                  int shippingFee, OrderStatus status, LocalDateTime orderedAt) {
-        this.memberId = memberId;
-        this.addressId = addressId;
-        this.memberCouponId = memberCouponId;
+    	
+        this.member = member;
+        this.memberCoupon =memberCoupon;
+        this.deliveryAddress = deliveryAddress;
         this.orderNumber = orderNumber;
         this.totalAmount = totalAmount;
         this.discountAmount = discountAmount;

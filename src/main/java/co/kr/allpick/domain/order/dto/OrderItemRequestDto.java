@@ -1,14 +1,15 @@
 package co.kr.allpick.domain.order.dto;
 
+import java.math.BigDecimal;
+
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
+import co.kr.allpick.domain.product.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
@@ -24,15 +25,15 @@ public class OrderItemRequestDto {
     @Schema(description = "수량", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer quantity;
 
-    public OrderItem toEntity(Order order) {
-        BigDecimal price = BigDecimal.valueOf(10000); // 추후 ProductService 연동
+    public OrderItem toEntity(Product product,Order order) {
+        BigDecimal price = product.getPrice();
+        
         return OrderItem.builder()
                 .order(order)
-                .productId(this.productId)
-                .productName("상품명") // 추후 ProductService 연동
+                .product(product)
                 .productPrice(price)
-                .quantity(this.quantity)
+                .quantity(this.quantity) 
                 .totalPrice(price.multiply(BigDecimal.valueOf(this.quantity)))
-                .build();
+                .build(); 
     }
 }

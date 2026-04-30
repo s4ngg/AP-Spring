@@ -30,7 +30,6 @@ public class Review extends BaseEntity{
     @Column(name = "review_id")
     private Long reviewId;
 
-    // ERD에 있는 유일한 외래키 (order_item_id)
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id", nullable = false)
     private OrderItem orderItem;
@@ -46,7 +45,7 @@ public class Review extends BaseEntity{
 
     
      
-    public Review createReview(OrderItem orderItem,ReviewRequestDto reqDto) {
+    public static Review createReview(OrderItem orderItem,ReviewRequestDto reqDto) {
     	return Review.builder()
     			.orderItem(orderItem)
     			.rating(reqDto.getRating())

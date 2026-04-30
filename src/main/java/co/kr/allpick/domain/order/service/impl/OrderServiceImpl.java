@@ -1,22 +1,24 @@
 package co.kr.allpick.domain.order.service.impl;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import co.kr.allpick.domain.member.repository.MemberRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.dto.DeliveryAddressRequestDto;
 import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.entity.Payment;
@@ -26,6 +28,8 @@ import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.domain.order.repository.PaymentRepository;
 import co.kr.allpick.domain.order.service.OrderService;
 import co.kr.allpick.domain.order.util.OrderNumberGenerator;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,29 +39,50 @@ import lombok.RequiredArgsConstructor;
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
+    
+    private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressRepository deliveryAddressRepository;
     private final MemberRepository memberRepository;
-
+    private final MemberCouponRepository memberCouponRepository;
     @Override
     @Transactional
-    public OrderResponseDto createOrder(Long memberId, OrderCreateRequestDto request) {
-        logger.info("주문 생성 요청 - memberId: {}", memberId);
-
-        // 1. 배송지 확인
-        deliveryAddressRepository.findById(request.getAddressId())
+    
+    // OrderCreateRequestDto 안에 memberId, addressId, memberCouponId 모두 있음. 
+    public OrderResponseDto createOrder(OrderCreateRequestDto request) {
+        logger.info("주문 생성 요청 - memberId: {}", request.getMemberId());
+        
+        
+        // 사용자 확인 
+        Member member = memberRepository.findById(request.getMemberId())
+        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        
+        // 배송지 확인
+        DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // 2. 주문 생성
+        // 쿠폰 확인
+        MemberCoupon memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
+        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+        		
+        // 주문번호 부여 
         String orderNumber = generateUniqueOrderNumber();
-        Order savedOrder = orderRepository.save(request.toEntity(memberId, orderNumber));
+        
+        // 모든 검증 통과 -> 주문 엔티티 생성
+        Order savedOrder = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
 
         // 3. 주문 상품 생성
         List<OrderItem> orderItems = request.getOrderItems().stream()
-                .map(item -> orderItemRepository.save(item.toEntity(savedOrder)))
+                .map(itemDto -> {
+                	// orderItem 엔티티의 행과 매칭될 상품 조회 후 orderItem 객체 생성 
+                	Product product = productRepository.findById(itemDto.getProductId())
+                			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+                	
+                	OrderItem orderItem = itemDto.toEntity(product, savedOrder);
+                	return orderItemRepository.save(orderItem);
+                })
                 .collect(Collectors.toList());
 
         // 4. 총 금액 업데이트
