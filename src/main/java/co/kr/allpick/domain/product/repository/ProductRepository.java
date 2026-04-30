@@ -2,6 +2,9 @@ package co.kr.allpick.domain.product.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,8 +20,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 		   "WHERE p.productId = :id " +
 		   "AND p.status = 'ON_SALE' " +
 		   "AND p.approvalStatus = 'APPROVED' ")
-	
-	Optional<Product> findValidProduct(@Param("id") Long productId);
-}
 
-  
+	Optional<Product> findValidProduct(@Param("id") Long productId);
+
+	// 판매 중이고 승인된 상품 목록 페이지 조회
+	@EntityGraph(attributePaths = {"parentCategory"})
+	Page<Product> findByStatusAndApprovalStatusAndDeletedAtIsNull(
+			Product.Status status,
+			Product.ApprovalStatus approvalStatus,
+			Pageable pageable
+	);
+
+
+}
