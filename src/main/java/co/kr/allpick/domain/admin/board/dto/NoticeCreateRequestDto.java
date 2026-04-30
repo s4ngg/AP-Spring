@@ -23,7 +23,7 @@ public class NoticeCreateRequestDto {
 
     @NotNull
     @Schema(description = "고정 공지 여부 (true: 고정, false: 일반)", example = "false", requiredMode = Schema.RequiredMode.REQUIRED)
-    private boolean isFixed;
+    private boolean fixed;
 
     @Schema(description = "공지사항 이미지 URL", example = "https://example.com/image.jpg")
     private String imageUrl;

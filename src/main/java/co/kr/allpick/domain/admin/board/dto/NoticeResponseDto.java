@@ -25,7 +25,7 @@ public class NoticeResponseDto {
     private String content;
 
     @Schema(description = "고정 공지 여부", example = "false")
-    private boolean isFixed;
+    private boolean fixed;
 
     @Schema(description = "공지사항 이미지 URL", example = "https://example.com/image.jpg")
     private String imageUrl;
@@ -45,7 +45,7 @@ public class NoticeResponseDto {
                 .adminId(notice.getAdminId())
                 .title(notice.getTitle())
                 .content(notice.getContent())
-                .isFixed(notice.isFixed())
+                .fixed(notice.isFixed())
                 .imageUrl(notice.getImageUrl())
                 .viewCount(notice.getViewCount())
                 .createdAt(notice.getCreatedAt())

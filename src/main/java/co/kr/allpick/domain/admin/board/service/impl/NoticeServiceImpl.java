@@ -30,7 +30,7 @@ public class NoticeServiceImpl implements NoticeService {
                 .adminId(adminId)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .isFixed(request.isFixed())
+                .fixed(request.isFixed())
                 .imageUrl(request.getImageUrl())
                 .build();
         noticeRepository.save(notice);
@@ -62,6 +62,7 @@ public class NoticeServiceImpl implements NoticeService {
         Notice notice = noticeRepository.findByNoticeIdAndDeletedAtIsNull(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
         notice.update(request.getTitle(), request.getContent(), request.isFixed(), request.getImageUrl());
+
         logger.info("[NoticeService] 공지사항 수정 완료 - noticeId: {}", noticeId);
         return NoticeResponseDto.from(notice);
     }

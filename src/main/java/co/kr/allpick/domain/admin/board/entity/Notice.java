@@ -27,28 +27,27 @@ public class Notice extends BaseEntity {
     private String content;
 
     @Column(name = "is_fixed", nullable = false)
-    private boolean isFixed;
+    private boolean fixed;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
     @Column(name = "view_count", nullable = false)
-    private int viewCount;
+    private int viewCount = 0;
 
     @Builder
-    public Notice(Long adminId, String title, String content, boolean isFixed, String imageUrl) {
+    public Notice(Long adminId, String title, String content, boolean fixed, String imageUrl) {
         this.adminId = adminId;
         this.title = title;
         this.content = content;
-        this.isFixed = isFixed;
+        this.fixed = fixed;
         this.imageUrl = imageUrl;
-        this.viewCount = 0;
     }
 
-    public void update(String title, String content, boolean isFixed, String imageUrl) {
+    public void update(String title, String content, boolean fixed, String imageUrl) {
         this.title = title;
         this.content = content;
-        this.isFixed = isFixed;
+        this.fixed = fixed;
         this.imageUrl = imageUrl;
     }
 
