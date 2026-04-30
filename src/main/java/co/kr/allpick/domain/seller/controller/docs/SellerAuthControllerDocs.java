@@ -1,6 +1,6 @@
 package co.kr.allpick.domain.seller.controller.docs;
 
-import co.kr.allpick.domain.seller.dto.SellerDeleteRequestDto;
+import org.springframework.web.bind.annotation.PathVariable;
 import co.kr.allpick.domain.seller.dto.SellerLoginRequestDto;
 import co.kr.allpick.domain.seller.dto.SellerLoginResponseDto;
 import co.kr.allpick.domain.seller.dto.SellerSignupRequestDto;
@@ -8,15 +8,14 @@ import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Tag(name = "SellerAuth", description = "판매자 인증 API")
 public interface SellerAuthControllerDocs {
@@ -42,7 +41,7 @@ public interface SellerAuthControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> signup(
             @RequestBody SellerSignupRequestDto dto,
-            @AuthenticationPrincipal JwtUserInfoDto userInfo);
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
     @Operation(summary = "판매자 로그인")
     @ApiResponses({
@@ -83,17 +82,49 @@ public interface SellerAuthControllerDocs {
                     "message": "판매자를 찾을 수 없습니다.",
                     "data": null
                 }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 아님",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": false,
+                    "message": "본인만 접근 가능합니다.",
+                    "data": null
+                }
             """)))
     })
     ResponseEntity<ApiResponse<Void>> update(
-    		@Parameter(description = "판매자 ID", required = true)
-            @RequestBody SellerUpdateRequestDto dto);
+            @RequestBody SellerUpdateRequestDto dto,
+            @Parameter(description = "판매자 ID", required = true) @PathVariable("sellerId") Long sellerId,
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
     @Operation(summary = "판매자 삭제")
     @ApiResponses({
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "삭제 성공"),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "판매자 없음")
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "삭제 성공",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "판매자 삭제가 완료되었습니다.",
+                    "data": null
+                }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "판매자 없음",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": false,
+                    "message": "판매자를 찾을 수 없습니다.",
+                    "data": null
+                }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 아님",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": false,
+                    "message": "본인만 접근 가능합니다.",
+                    "data": null
+                }
+            """)))
     })
     ResponseEntity<ApiResponse<Void>> deleteSeller(
-            @RequestBody SellerDeleteRequestDto dto);
+            @Parameter(description = "판매자 ID", required = true) @PathVariable("sellerId") Long sellerId,
+            @Parameter(hidden = true) @AuthenticationPrincipal JwtUserInfoDto userInfo);
 }

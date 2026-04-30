@@ -1,5 +1,7 @@
 package co.kr.allpick.domain.seller.apply.dto;
 
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.seller.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -33,11 +35,23 @@ public class SellerApplyRequestDto {
 
     @NotBlank
     @Schema(description = "은행명", example = "국민은행",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+     
+    requiredMode = Schema.RequiredMode.REQUIRED)
     private String bankName;
 
     @NotBlank
     @Schema(description = "계좌번호", example = "12345678901234",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String bankAccount;
+    
+    public Seller toEntity(Member member) {
+    	return Seller.builder()
+    	.member(member)
+    	.businessName(this.businessName)
+    	.businessNumber(this.businessNumber)
+    	.representativeName(this.representativeName)
+    	.bankName(this.bankName)
+    	.bankAccount(this.bankAccount)
+    	.build();
+    	}
 }

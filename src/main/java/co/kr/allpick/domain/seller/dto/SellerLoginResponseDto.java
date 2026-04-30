@@ -15,19 +15,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SellerLoginResponseDto {
 
-    @Schema(description = "판매자 ID")
+    @Schema(description = "판매자 ID", example = "1")
     private Long sellerId;
 
-    @Schema(description = "상호명")
+    @Schema(description = "상호명", example = "테스트상점")
     private String businessName;
 
-    @Schema(description = "대표자명")
+    @Schema(description = "대표자명", example = "홍길동")
     private String representativeName;
 
-    @Schema(description = "승인 상태")
+    @Schema(description = "승인 상태", example = "PENDING")
     private SellerStatus status;
 
-    @Schema(description = "JWT 토큰")
+    @Schema(description = "JWT 토큰", example = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
     private String token;
 
     public static SellerLoginResponseDto of(Seller seller, String token) {

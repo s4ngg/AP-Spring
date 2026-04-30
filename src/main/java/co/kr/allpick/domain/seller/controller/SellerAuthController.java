@@ -10,7 +10,6 @@ import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 import co.kr.allpick.domain.seller.service.SellerAuthService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -51,16 +50,19 @@ public class SellerAuthController implements SellerAuthControllerDocs {
     @Override
     @PatchMapping("/{sellerId}")
     public ResponseEntity<ApiResponse<Void>> update(
-            @RequestBody @Valid SellerUpdateRequestDto dto) {
-        sellerAuthService.update(dto.getSellerId(), dto);
+            @RequestBody @Valid SellerUpdateRequestDto dto,
+            @PathVariable("sellerId") Long sellerId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo){
+    	sellerAuthService.update(sellerId, dto, userInfo.getMemberId());
         return ApiResponse.success("판매자 정보가 수정되었습니다.");
     }
     
     @Override
     @DeleteMapping("/{sellerId}")
     public ResponseEntity<ApiResponse<Void>> deleteSeller(
-            @RequestBody SellerDeleteRequestDto dto) {
-        sellerAuthService.deleteSeller(dto.getSellerId());
+            @PathVariable("sellerId") Long sellerId, 
+    		@AuthenticationPrincipal JwtUserInfoDto userInfo) {
+    	sellerAuthService.deleteSeller(sellerId, userInfo.getMemberId());
         return ApiResponse.success("판매자 삭제가 완료되었습니다.");
     }
 }

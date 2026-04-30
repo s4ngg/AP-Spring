@@ -8,6 +8,8 @@ import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +23,7 @@ public interface SellerApplyControllerDocs {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 신청된 판매자")
     })
     ResponseEntity<ApiResponse<Void>> apply(
-            @RequestBody SellerApplyRequestDto dto,
+            @RequestBody @Valid SellerApplyRequestDto dto,
             @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
     @Operation(summary = "판매자 신청 상태 조회")

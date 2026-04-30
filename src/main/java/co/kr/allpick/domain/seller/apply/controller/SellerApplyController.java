@@ -5,6 +5,7 @@ import co.kr.allpick.domain.seller.apply.dto.SellerApplyStatusResponseDto;
 import co.kr.allpick.domain.seller.apply.service.SellerApplyService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +25,7 @@ public class SellerApplyController implements SellerApplyControllerDocs {
     @Override
     @PostMapping("/apply")
     public ResponseEntity<ApiResponse<Void>> apply(
-            @RequestBody SellerApplyRequestDto dto,
+            @RequestBody @Valid SellerApplyRequestDto dto,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
         sellerApplyService.apply(dto, userInfo.getMemberId());
         return ApiResponse.success("판매자 신청이 완료되었습니다.");

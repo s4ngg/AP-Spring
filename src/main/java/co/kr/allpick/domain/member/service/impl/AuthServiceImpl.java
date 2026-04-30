@@ -14,6 +14,7 @@ import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.global.config.JwtProvider;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +66,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
-        String token = jwtProvider.createToken(member.toJwtUserInfoDto());
+        String token = jwtProvider.createToken(JwtUserInfoDto.from(member));
         return AuthResponseDto.of(token, member);
     }
 }
