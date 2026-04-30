@@ -55,7 +55,4 @@ public class Notice extends BaseEntity {
         }
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
-    }
 }

@@ -57,7 +57,7 @@ public class NoticeServiceImpl implements NoticeService {
     public NoticeResponseDto getNoticeById(Long noticeId) {
         Notice notice = noticeRepository.findByNoticeIdAndDeletedAtIsNull(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
-        notice.increaseViewCount();
+        noticeRepository.increaseViewCount(notice.getNoticeId());
         return NoticeResponseDto.from(notice);
     }
 
