@@ -10,4 +10,12 @@ public class AdminJwtUserInfoDto {
     private Long adminId;
     private String email;
     private Admin.AdminRole role;
+
+    public static AdminJwtUserInfoDto from(Admin admin) {
+        return new AdminJwtUserInfoDto(
+                admin.getAdminId(),
+                admin.getEmail(),
+                admin.getRole()
+        );
+    }
 }

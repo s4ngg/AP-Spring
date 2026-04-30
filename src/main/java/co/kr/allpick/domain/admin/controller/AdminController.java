@@ -39,7 +39,7 @@ public class AdminController implements AdminControllerDocs {
     public ResponseEntity<ApiResponse<Void>> createAdmin(
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @RequestBody @Valid AdminCreateRequestDto request) {
-        adminService.createAdmin(adminInfo.getAdminId(), request);
+        adminService.createAdmin(adminInfo, request);
         return ApiResponse.success("관리자 등록 성공");
     }
 
@@ -49,7 +49,7 @@ public class AdminController implements AdminControllerDocs {
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("adminId") Long adminId,
             @RequestParam("status") Admin.AdminStatus status) {
-        adminService.updateStatus(adminInfo.getAdminId(), adminId, status);
+        adminService.updateStatus(adminInfo, adminId, status);
         return ApiResponse.success("관리자 상태 변경 성공");
     }
 }
