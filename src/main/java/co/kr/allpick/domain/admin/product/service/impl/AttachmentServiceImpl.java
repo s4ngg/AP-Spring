@@ -119,8 +119,8 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         validateOwnership(attachment, memberId);
 
-        s3Uploader.delete(attachment.getImageUrl());
         attachment.delete();
+        s3Uploader.delete(attachment.getImageUrl());
     }
 
     private void validateOwnership(Attachment attachment, Long memberId) {
