@@ -11,6 +11,7 @@ import co.kr.allpick.domain.seller.service.SellerAuthService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class SellerAuthController implements SellerAuthControllerDocs {
     @Override
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<Void>> signup(
-            @RequestBody SellerSignupRequestDto dto,
+            @RequestBody @Valid SellerSignupRequestDto dto,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
         sellerAuthService.signup(dto, userInfo.getMemberId());
         return ApiResponse.success("판매자 등록이 완료되었습니다.");
@@ -43,14 +44,14 @@ public class SellerAuthController implements SellerAuthControllerDocs {
     @Override
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<SellerLoginResponseDto>> login(
-            @RequestBody SellerLoginRequestDto dto) {
+            @RequestBody @Valid SellerLoginRequestDto dto) {
         return ApiResponse.success("로그인 성공", sellerAuthService.login(dto));
     }
     
     @Override
     @PatchMapping("/{sellerId}")
     public ResponseEntity<ApiResponse<Void>> update(
-            @RequestBody SellerUpdateRequestDto dto) {
+            @RequestBody @Valid SellerUpdateRequestDto dto) {
         sellerAuthService.update(dto.getSellerId(), dto);
         return ApiResponse.success("판매자 정보가 수정되었습니다.");
     }
