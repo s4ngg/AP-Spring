@@ -35,12 +35,12 @@ public class AdminServiceImpl implements AdminService {
         Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
 
-        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
-            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
-        }
-
         if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
+            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
         }
 
         AdminJwtUserInfoDto adminJwtUserInfoDto = new AdminJwtUserInfoDto(
@@ -58,7 +58,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void createAdmin(AdminCreateRequestDto request) {
+    public void createAdmin(Long actorAdminId, AdminCreateRequestDto request) {
         if (adminRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException(ErrorCode.ADMIN_EMAIL_DUPLICATED);
         }
@@ -68,17 +68,19 @@ public class AdminServiceImpl implements AdminService {
 
         adminRepository.save(admin);
 
-        logger.info("[AdminServiceImpl] 관리자 등록 완료 - adminId: {}", admin.getAdminId());
+        logger.info("[AdminServiceImpl] 관리자 등록 완료 - actorAdminId: {}, createdAdminId: {}",
+                actorAdminId, admin.getAdminId());
     }
 
     @Override
     @Transactional
-    public void updateStatus(Long adminId, Admin.AdminStatus status) {
+    public void updateStatus(Long actorAdminId, Long adminId, Admin.AdminStatus status) {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
 
         admin.updateStatus(status);
 
-        logger.info("[AdminServiceImpl] 관리자 상태 변경 - adminId: {}, status: {}", adminId, status);
+        logger.info("[AdminServiceImpl] 관리자 상태 변경 - actorAdminId: {}, targetAdminId: {}, status: {}",
+                actorAdminId, adminId, status);
     }
 }

@@ -30,13 +30,13 @@ public interface AdminControllerDocs {
                     "message": "관리자 로그인 성공",
                     "data": {
                         "token": "eyJhbGciOiJIUzI1NiJ9...",
-                        "adminId": 1,
-                        "email": "admin@allpick.kr",
+                        "adminName": "관리자",
                         "role": "SUPER_ADMIN"
                     }
                 }
             """))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "이메일 또는 비밀번호 불일치"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "차단된 관리자 계정"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "관리자 없음")
     })
     ResponseEntity<ApiResponse<AdminLoginResponseDto>> adminLogin(

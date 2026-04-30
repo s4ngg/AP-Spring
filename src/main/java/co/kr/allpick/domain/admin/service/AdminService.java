@@ -7,9 +7,9 @@ import co.kr.allpick.domain.admin.entity.Admin;
 
 public interface AdminService {
 
-    AdminLoginResponseDto adminLogin(AdminLoginRequestDto adminLoginRequestDto);
+    AdminLoginResponseDto adminLogin(AdminLoginRequestDto request);
 
-    void createAdmin(AdminCreateRequestDto adminCreateRequestDto);
+    void createAdmin(Long actorAdminId, AdminCreateRequestDto request);
 
-    void  updateStatus(Long adminId, Admin.AdminStatus status);
+    void updateStatus(Long actorAdminId, Long adminId, Admin.AdminStatus status);
 }
