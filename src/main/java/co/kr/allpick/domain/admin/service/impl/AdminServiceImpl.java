@@ -31,15 +31,15 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public AdminLoginResponseDto adminLogin(AdminLoginRequestDto adminLoginRequestDto) {
-        Admin admin = adminRepository.findByEmail(adminLoginRequestDto.getEmail())
+    public AdminLoginResponseDto adminLogin(AdminLoginRequestDto request) {
+        Admin admin = adminRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
 
         if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
             throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
         }
 
-        if (!passwordEncoder.matches(adminLoginRequestDto.getPassword(), admin.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
@@ -58,13 +58,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void createAdmin(AdminCreateRequestDto adminCreateRequestDto) {
-        if (adminRepository.existsByEmail(adminCreateRequestDto.getEmail())) {
+    public void createAdmin(AdminCreateRequestDto request) {
+        if (adminRepository.existsByEmail(request.getEmail())) {
             throw new BusinessException(ErrorCode.ADMIN_EMAIL_DUPLICATED);
         }
 
-        String encodedPassword = passwordEncoder.encode(adminCreateRequestDto.getPassword());
-        Admin admin = adminCreateRequestDto.toEntity(encodedPassword);
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        Admin admin = request.toEntity(encodedPassword);
 
         adminRepository.save(admin);
 
