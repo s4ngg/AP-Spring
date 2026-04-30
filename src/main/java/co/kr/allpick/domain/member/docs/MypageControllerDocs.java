@@ -54,7 +54,7 @@ public interface MypageControllerDocs {
     })
     ResponseEntity<ApiResponse<Void>> changePassword(JwtUserInfoDto userInfo, PasswordChangeRequestDto request);
 
-    @Operation(summary = "회원 탈퇴", description = "회원을 소프트 삭제(status=0)합니다.")
+    @Operation(summary = "회원 탈퇴", description = "회원을 소프트 삭제(deletedAt 설정)합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "탈퇴 성공",
                     content = @Content(examples = @ExampleObject(value = """
