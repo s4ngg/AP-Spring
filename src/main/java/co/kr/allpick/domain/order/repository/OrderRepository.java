@@ -13,6 +13,8 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByOrderNumber(String orderNumber);
 
+    boolean existsByAddressId(Long addressId);
+
     @EntityGraph(attributePaths = {"orderItems"})
     List<Order> findByMemberIdOrderByOrderedAtDesc(Long memberId);
     

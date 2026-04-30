@@ -56,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
         // 3. 주문 상품 생성
         List<OrderItem> orderItems = request.getOrderItems().stream()
                 .map(item -> orderItemRepository.save(item.toEntity(savedOrder)))
-                .collect(Collectors.toList());
+                .toList();
 
         // 4. 총 금액 업데이트
         BigDecimal totalAmount = orderItems.stream()
@@ -109,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<DeliveryAddressResponseDto> getDeliveryAddresses(Long memberId) {
         logger.info("배송지 목록 조회 - memberId: {}", memberId);
-        return deliveryAddressRepository.findByMemberId(memberId)
+        return deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .stream()
                 .map(DeliveryAddressResponseDto::from)
                 .toList();
@@ -120,6 +120,7 @@ public class OrderServiceImpl implements OrderService {
     public DeliveryAddressResponseDto updateDeliveryAddress(Long memberId, Long addressId, DeliveryAddressRequestDto request) {
         logger.info("[OrderService] 배송지 수정 - memberId: {}, addressId: {}", memberId, addressId);
         DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        validateAddressNotUsedInOrder(addressId);
         address.update(request.getRecipientName(), request.getPhone(), request.getZipCode(),
                 request.getAddress(), request.getAddressDetail(), request.isDefault());
         return DeliveryAddressResponseDto.from(address);
@@ -130,7 +131,8 @@ public class OrderServiceImpl implements OrderService {
     public void deleteDeliveryAddress(Long memberId, Long addressId) {
         logger.info("[OrderService] 배송지 삭제 - memberId: {}, addressId: {}", memberId, addressId);
         DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
-        deliveryAddressRepository.delete(address);
+        validateAddressNotUsedInOrder(addressId);
+        address.delete();
     }
 
     private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
@@ -140,6 +142,12 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED_ADDRESS);
         }
         return address;
+    }
+
+    private void validateAddressNotUsedInOrder(Long addressId) {
+        if (orderRepository.existsByAddressId(addressId)) {
+            throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
+        }
     }
 
 //    주문 번호 생성

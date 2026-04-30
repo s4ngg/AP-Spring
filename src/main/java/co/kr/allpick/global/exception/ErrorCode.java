@@ -15,6 +15,7 @@ public enum ErrorCode {
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "배송지를 찾을 수 없습니다."),
     DELIVERY_ADDRESS_DUPLICATE(HttpStatus.CONFLICT, "DELIVERY_ADDRESS_DUPLICATE", "이미 등록된 배송지입니다."),
     UNAUTHORIZED_ADDRESS(HttpStatus.FORBIDDEN, "UNAUTHORIZED_ADDRESS", "본인의 배송지만 수정/삭제할 수 있습니다."),
+    ADDRESS_CANNOT_MODIFY(HttpStatus.BAD_REQUEST, "ADDRESS_CANNOT_MODIFY", "주문에 사용된 배송지는 수정/삭제할 수 없습니다."),
 
     // Coupon
     COUPON_ALREADY_ISSUED(HttpStatus.BAD_REQUEST, "COUPON_ALREADY_ISSUED", "이미 보유한 쿠폰입니다."),
@@ -48,6 +49,7 @@ public enum ErrorCode {
     INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "INVALID_VERIFICATION_CODE", "인증번호가 일치하지 않습니다."),
     MEMBER_NOT_FOUND_BY_PHONE(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND_BY_PHONE", "해당 번호로 가입된 계정이 없습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "INVALID_PASSWORD", "이메일 또는 비밀번호가 틀렸습니다."),
+    CURRENT_PASSWORD_MISMATCH(HttpStatus.UNAUTHORIZED, "CURRENT_PASSWORD_MISMATCH", "현재 비밀번호가 일치하지 않습니다."),
     SAME_PASSWORD(HttpStatus.BAD_REQUEST, "SAME_PASSWORD", "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
 
     // Admin

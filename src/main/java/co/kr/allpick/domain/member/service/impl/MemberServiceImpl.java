@@ -81,7 +81,7 @@ public class MemberServiceImpl implements MemberService {
 
     private void validateCurrentPassword(String rawPassword, String encodedPassword) {
         if (!passwordEncoder.matches(rawPassword, encodedPassword)) {
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+            throw new BusinessException(ErrorCode.CURRENT_PASSWORD_MISMATCH);
         }
     }
 

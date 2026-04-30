@@ -9,6 +9,7 @@ import co.kr.allpick.domain.order.entity.DeliveryAddress;
 
 @Component("deliveryAddressRepositoryHandler")
 public interface DeliveryAddressRepository extends JpaRepository<DeliveryAddress, Long> {
-    List<DeliveryAddress> findByMemberId(Long memberId);
+    List<DeliveryAddress> findByMemberIdAndDeletedAtIsNull(Long memberId);
+
     boolean existsByMemberIdAndAddressAndAddressDetail(Long memberId, String address, String addressDetail);
 }
