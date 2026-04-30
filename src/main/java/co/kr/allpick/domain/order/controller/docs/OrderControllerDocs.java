@@ -5,6 +5,7 @@ import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -146,10 +148,10 @@ public interface OrderControllerDocs {
             ))
     })
     ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> addDeliveryAddress(
-            @PathVariable Long memberId,
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid DeliveryAddressRequestDto request);
 
-    @Operation(summary = "배송지 목록 조회", description = "회원의 배송지 목록을 조회합니다.")
+    @Operation(summary = "배송지 목록 조회", description = "로그인한 회원의 배송지 목록을 조회합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 목록 조회 성공",
             content = @Content(
@@ -161,7 +163,7 @@ public interface OrderControllerDocs {
                             {
                                 "addressId": 1,
                                 "recipientName": "홍길동",
-                                "phone": "010-1234-5678",
+                                "phone": "01012345678",
                                 "zipCode": "12345",
                                 "address": "서울시 강남구",
                                 "addressDetail": "101호",
@@ -173,5 +175,52 @@ public interface OrderControllerDocs {
             ))
     })
     ResponseEntity<ApiResponse<List<DeliveryAddressResponseDto>>> getDeliveryAddresses(
-            @PathVariable Long memberId);
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
+
+    @Operation(summary = "배송지 수정", description = "배송지를 수정합니다. 본인 배송지만 수정 가능합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 수정 성공",
+            content = @Content(
+                examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "message": "배송지 수정 성공",
+                        "data": {
+                            "addressId": 1,
+                            "recipientName": "홍길동",
+                            "phone": "01099998888",
+                            "zipCode": "12345",
+                            "address": "서울시 서초구",
+                            "addressDetail": "202호",
+                            "isDefault": true
+                        }
+                    }
+                """)
+            )),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 배송지가 아님"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "배송지 없음")
+    })
+    ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> updateDeliveryAddress(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable Long addressId,
+            @RequestBody @Valid DeliveryAddressRequestDto request);
+
+    @Operation(summary = "배송지 삭제", description = "배송지를 삭제합니다. 본인 배송지만 삭제 가능합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 삭제 성공",
+            content = @Content(
+                examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "message": "배송지 삭제 성공",
+                        "data": null
+                    }
+                """)
+            )),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 배송지가 아님"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "배송지 없음")
+    })
+    ResponseEntity<ApiResponse<Void>> deleteDeliveryAddress(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable Long addressId);
 }
