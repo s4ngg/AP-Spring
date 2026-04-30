@@ -3,6 +3,7 @@ package co.kr.allpick.domain.order.dto;
 import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,8 @@ public class DeliveryAddressRequestDto {
     private String recipientName;
 
     @NotBlank
-    @Schema(description = "연락처", example = "010-1234-5678", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Pattern(regexp = "^010\\d{8}$", message = "전화번호 형식이 올바르지 않습니다. (예: 01012345678)")
+    @Schema(description = "연락처", example = "01012345678", requiredMode = Schema.RequiredMode.REQUIRED)
     private String phone;
 
     @NotBlank

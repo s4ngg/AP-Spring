@@ -1,6 +1,7 @@
 package co.kr.allpick.global.config;
 
 import co.kr.allpick.global.filter.JwtAuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

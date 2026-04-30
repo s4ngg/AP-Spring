@@ -103,6 +103,11 @@ public class Member extends BaseEntity {
 
     }
     
+    // 비밀번호 변경
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
     public void updateGrade(MemberGrade grade) {
         this.grade = grade;
     }
