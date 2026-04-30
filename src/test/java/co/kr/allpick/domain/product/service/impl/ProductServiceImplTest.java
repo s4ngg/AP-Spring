@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -20,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
@@ -36,10 +34,53 @@ class ProductServiceImplTest {
     private ProductRepository productRepository;
 
     @Mock
-    private ParentCategoryRepository categoryRepository; // 카테고리 조회를 위해 추가
+    private ParentCategoryRepository parentCategoryRepository; // 서비스 필드명과 일치
 
     @InjectMocks
     private ProductServiceImpl productService;
+
+    @Test
+    @DisplayName("상품 상세 조회 성공 - 판매 중 및 승인된 상품")
+    void 상품_상세_조회_성공() {
+        // given
+        Long productId = 1L;
+        ParentCategory mockCategory = ParentCategory.builder().categoryName("전통주").build();
+        
+        Product mockProduct = Product.builder()
+                .productId(productId)
+                .parentCategory(mockCategory)
+                .productName("느린마을 막걸리")
+                .brand("배상면주가")
+                .price(new BigDecimal("10000"))
+                .optionList(new ArrayList<>())
+                .productImageList(new ArrayList<>())
+                .build();
+
+        // 서비스에서 사용하는 findValidProduct 메서드 모킹
+        when(productRepository.findValidProduct(productId)).thenReturn(Optional.of(mockProduct));
+
+        // when
+        ProductDetailResponseDto result = productService.getProductDetail(productId);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getProductName()).isEqualTo("느린마을 막걸리");
+        assertThat(result.getBrand()).isEqualTo("배상면주가");
+        verify(productRepository, times(1)).findValidProduct(productId);
+    }
+
+    @Test
+    @DisplayName("상품 상세 조회 실패 - 존재하지 않거나 유효하지 않은 상품")
+    void 상품_상세_조회_실패() {
+        // given
+        Long productId = 999L;
+        when(productRepository.findValidProduct(productId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> productService.getProductDetail(productId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    }
 
     @Test
     @DisplayName("상품 등록 성공")
@@ -63,7 +104,7 @@ class ProductServiceImplTest {
         Product mockProduct = reqDto.toEntity(mockCategory);
 
         // 레포지토리 동작 정의
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
+        when(parentCategoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
         when(productRepository.existsByProductName(reqDto.getProductName())).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(mockProduct);
 
@@ -73,7 +114,7 @@ class ProductServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getMessage()).contains("성공");
-        verify(productRepository, times(1)).save(any());
+        verify(productRepository, times(1)).save(any(Product.class));
     }
 
     @Test
@@ -85,8 +126,7 @@ class ProductServiceImplTest {
                 .productName("이미있는상품")
                 .build();
 
-        when(categoryRepository.findById(anyLong())).thenReturn(Optional.of(mock(ParentCategory.class)));
-        // 상품명이 이미 존재한다고 설정
+        when(parentCategoryRepository.findById(anyLong())).thenReturn(Optional.of(mock(ParentCategory.class)));
         when(productRepository.existsByProductName("이미있는상품")).thenReturn(true);
 
         // when & then
@@ -104,7 +144,7 @@ class ProductServiceImplTest {
                 .build();
 
         // 카테고리가 없다고 설정
-        when(categoryRepository.findById(999L)).thenReturn(Optional.empty());
+        when(parentCategoryRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> productService.createProduct(reqDto))
