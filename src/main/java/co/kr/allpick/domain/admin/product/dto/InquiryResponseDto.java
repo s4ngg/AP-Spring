@@ -43,8 +43,12 @@ public class InquiryResponseDto {
     @Schema(description = "답변 목록")
     private List<InquiryAnswerResponseDto> answers;
 
+    @Schema(description = "첨부파일 목록")
+    private List<AttachmentResponseDto> attachments;
+
     public static InquiryResponseDto from(Inquiry inquiry,
-                                         List<InquiryAnswerResponseDto> answers) {
+                                         List<InquiryAnswerResponseDto> answers,
+                                         List<AttachmentResponseDto> attachments) {
         return InquiryResponseDto.builder()
                 .inquiryId(inquiry.getInquiryId())
                 .memberId(inquiry.getMemberId())
@@ -56,8 +60,7 @@ public class InquiryResponseDto {
                 .status(inquiry.getStatus())
                 .createdAt(inquiry.getCreatedAt())
                 .answers(answers)
+                .attachments(attachments)
                 .build();
     }
-
-
 }

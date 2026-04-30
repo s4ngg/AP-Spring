@@ -42,6 +42,11 @@ public enum ErrorCode {
     CLAIM_REASON_MISMATCH(HttpStatus.BAD_REQUEST, "CLAIM_REASON_MISMATCH", "클레임 유형과 사유 코드가 일치하지 않습니다."),
     CLAIM_UNAUTHORIZED(HttpStatus.FORBIDDEN, "CLAIM_UNAUTHORIZED", "본인의 클레임만 취소할 수 있습니다."),
 
+    // Attachment
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTACHMENT_NOT_FOUND", "첨부파일을 찾을 수 없습니다."),
+    ATTACHMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "ATTACHMENT_ALREADY_DELETED", "이미 삭제된 첨부파일입니다."),
+    ATTACHMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "ATTACHMENT_UNAUTHORIZED", "본인의 첨부파일만 삭제할 수 있습니다."),
+
     // Seller
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
