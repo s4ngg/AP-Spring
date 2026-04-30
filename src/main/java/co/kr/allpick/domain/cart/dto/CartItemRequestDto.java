@@ -1,11 +1,7 @@
 package co.kr.allpick.domain.cart.dto;
 
-import com.sun.istack.NotNull;
-
-import co.kr.allpick.domain.cart.entity.Cart;
-import co.kr.allpick.domain.cart.entity.CartItem;
-import co.kr.allpick.domain.product.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

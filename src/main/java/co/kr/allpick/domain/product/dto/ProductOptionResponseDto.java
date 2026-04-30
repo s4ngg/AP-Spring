@@ -1,8 +1,6 @@
 package co.kr.allpick.domain.product.dto;
 
 import co.kr.allpick.domain.product.entity.ProductOption;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,22 +11,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 
-@Schema(description = "상품옵션 응답 DTO")
+
 public class ProductOptionResponseDto {
-	
-	@Schema(description = "옵션Id", example = "1", requiredMode = RequiredMode.REQUIRED)
+		
 	private Long optionId;
 	
-	@Schema(description = "옵션명", example = "사이즈", requiredMode = RequiredMode.REQUIRED)
 	private String optionName;
 	
-	@Schema(description = "옵션값", example = "250", requiredMode = RequiredMode.REQUIRED)
 	private String optionValue;
 
-	@Schema(description= "옵션 선택시의 추가금", example = "20000", requiredMode = RequiredMode.REQUIRED)
 	private Integer additionalPrice;
 	
-	@Schema(description = "재고수량", example = "50", requiredMode = RequiredMode.REQUIRED)
 	private Integer stockQuantity;
 	
 	// 옵션 응답객체 변환 메서드

@@ -6,8 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import co.kr.allpick.domain.cart.dto.CartItemResponseDto;
 import co.kr.allpick.domain.cart.entity.CartItem;
 
 @Repository
