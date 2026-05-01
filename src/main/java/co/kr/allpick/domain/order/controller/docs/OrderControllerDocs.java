@@ -9,7 +9,6 @@ import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -54,7 +53,7 @@ public interface OrderControllerDocs {
             ))
     })
     ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-            @PathVariable Long memberId,
+            // [수정] 서비스 및 컨트롤러 로직 변경에 따라 @PathVariable memberId 제거
             @RequestBody @Valid OrderCreateRequestDto request);
 
     @Operation(summary = "주문 단건 조회", description = "주문 ID로 주문을 조회합니다.")
@@ -107,16 +106,6 @@ public interface OrderControllerDocs {
                             "status": "DONE",
                             "paidAt": "2026-04-16T00:00:00"
                         }
-                    }
-                """)
-            )),
-        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "결제 정보를 찾을 수 없습니다.",
-            content = @Content(
-                examples = @ExampleObject(value = """
-                    {
-                        "success": false,
-                        "message": "결제 정보를 찾을 수 없습니다.",
-                        "data": null
                     }
                 """)
             ))

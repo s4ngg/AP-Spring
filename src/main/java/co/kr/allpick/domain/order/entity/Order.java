@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 import co.kr.allpick.domain.coupon.entity.MemberCoupon;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.global.common.BaseEntity;
@@ -46,7 +45,7 @@ public class Order extends BaseEntity {
     private MemberCoupon memberCoupon;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "address_id", nullable = false)
+    @JoinColumn(name = "address_id", nullable = false)
     private DeliveryAddress deliveryAddress;
 
     @Column(name = "order_number", nullable = false, unique = true)
@@ -70,6 +69,12 @@ public class Order extends BaseEntity {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems = new ArrayList<>();
+    
+    // 편의 메서드 : order의 부모지정 메서드를 호출해서 연결.
+    public void addOrderItem(OrderItem orderItem) {
+    	this.orderItems.add(orderItem);
+    	orderItem.assignOrder(this);
+    }
 
     @Builder
     public Order(Member member, MemberCoupon memberCoupon , DeliveryAddress deliveryAddress, 

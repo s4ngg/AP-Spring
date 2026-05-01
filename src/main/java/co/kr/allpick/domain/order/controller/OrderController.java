@@ -29,11 +29,10 @@ public class OrderController implements OrderControllerDocs {
     private final OrderService orderService;
 
     @Override
-    @PostMapping("/{memberId}")
+    @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-            @PathVariable("memberId") Long memberId,
-            @RequestBody @Valid OrderCreateRequestDto request) {
-        return ApiResponse.success("주문이 생성되었습니다.", orderService.createOrder(memberId, request));
+                        @RequestBody @Valid OrderCreateRequestDto request) {
+        return ApiResponse.success("주문이 생성되었습니다.", orderService.createOrder(request));
     }
 
     @Override

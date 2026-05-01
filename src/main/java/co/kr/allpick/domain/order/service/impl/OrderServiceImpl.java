@@ -16,6 +16,7 @@ import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.dto.DeliveryAddressRequestDto;
 import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
+import co.kr.allpick.domain.order.dto.OrderItemRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
 import co.kr.allpick.domain.order.entity.DeliveryAddress;
@@ -71,29 +72,38 @@ public class OrderServiceImpl implements OrderService {
         String orderNumber = generateUniqueOrderNumber();
         
         // 모든 검증 통과 -> 주문 엔티티 생성
-        Order savedOrder = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
+        Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
 
-        // 3. 주문 상품 생성
-        List<OrderItem> orderItems = request.getOrderItems().stream()
-                .map(itemDto -> {
-                	// orderItem 엔티티의 행과 매칭될 상품 조회 후 orderItem 객체 생성 
-                	Product product = productRepository.findById(itemDto.getProductId())
-                			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-                	
-                	OrderItem orderItem = itemDto.toEntity(product, savedOrder);
-                	return orderItemRepository.save(orderItem);
-                })
-                .collect(Collectors.toList());
+        
+        // 생성된 Order 객체 기반으로 OrderItemRequestDto (request)를 통해 받은 내용으로 OrderItem 객체 만들기
+        
+        // 	- itemDto : 요청객체 담겨있는 리스트의 인덱스 1개, request.getOrderItems : 요청객체의 전체 인덱스
+        //	- 인덱스 각각으로 orderItem 객체를 만든다..
+        //	- 요청객체 리스트에 담긴 내용인 productId, quantity로..
+        //	- 상품 특정, 수량 변동 후에 -> orderItem 객체 생성 후 저장.
+        for( OrderItemRequestDto itemDto : request.getOrderItems() ) {  
+        	Product product = productRepository.findById(itemDto.getProductId())
+        			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        	// 재고 차감 추가 필요..
+        	
+        	OrderItem orderItem = itemDto.toEntity(product, order);
+        	// 부모쪽에도 저장된 내용 전달해주기
+        	order.addOrderItem(orderItem);
+        	
+        }
+        
 
         // 4. 총 금액 업데이트
-        BigDecimal totalAmount = orderItems.stream()
+        BigDecimal totalAmount = order.getOrderItems().stream()
                 .map(OrderItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        savedOrder.updateTotalAmount(totalAmount);
-        orderRepository.save(savedOrder);
-
+       
+        order.updateTotalAmount(totalAmount);
+ 
+        Order savedOrder = orderRepository.save(order);
+        
         logger.info("주문 생성 완료 - orderNumber: {}", orderNumber);
-        return OrderResponseDto.from(savedOrder, orderItems);
+        return OrderResponseDto.from(savedOrder, savedOrder.getOrderItems());
     }
 
     @Override

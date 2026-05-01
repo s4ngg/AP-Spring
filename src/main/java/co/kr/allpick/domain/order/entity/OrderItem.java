@@ -44,7 +44,12 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
-
+    
+    // 편의 메서드 (부모를 매개변수로 전달해주면 자식과 연결해줌.)
+    public void assignOrder(Order order) {
+    	this.order = order;
+    }
+    
     @Builder
     public OrderItem(Order order, Product product,
                      BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
