@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
+import co.kr.allpick.domain.admin.product.dto.AttachmentResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerResponseDto;
 import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.entity.InquiryAnswer;
+import co.kr.allpick.domain.admin.product.repository.AttachmentRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
@@ -28,6 +30,7 @@ public class InquiryServiceImpl implements InquiryService {
 
     private final InquiryRepository inquiryRepository;
     private final InquiryAnswerRepository inquiryAnswerRepository;
+    private final AttachmentRepository attachmentRepository;
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
 
@@ -45,7 +48,7 @@ public class InquiryServiceImpl implements InquiryService {
         }
 
         Inquiry inquiry = inquiryRepository.save(request.toEntity(memberId));
-        return InquiryResponseDto.from(inquiry, List.of());
+        return InquiryResponseDto.from(inquiry, List.of(), List.of());
     }
 
     // 2. 문의 상세 조회
@@ -59,7 +62,12 @@ public class InquiryServiceImpl implements InquiryService {
                 .stream()
                 .map(InquiryAnswerResponseDto::from)
                 .toList();
-        return InquiryResponseDto.from(inquiry, answers);
+        List<AttachmentResponseDto> attachments = attachmentRepository
+                .findByInquiryIdAndDeletedAtIsNull(inquiryId)
+                .stream()
+                .map(AttachmentResponseDto::from)
+                .toList();
+        return InquiryResponseDto.from(inquiry, answers, attachments);
     }
 
     // 3. 내 문의 목록 조회
@@ -68,7 +76,7 @@ public class InquiryServiceImpl implements InquiryService {
     public List<InquiryResponseDto> getMyInquiries(Long memberId) {
         return inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .stream()
-                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of()))
+                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
                 .toList();
     }
 
@@ -78,7 +86,7 @@ public class InquiryServiceImpl implements InquiryService {
     public List<InquiryResponseDto> getAllInquiries() {
         return inquiryRepository.findAllByDeletedAtIsNull()
                 .stream()
-                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of()))
+                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
                 .toList();
     }
 

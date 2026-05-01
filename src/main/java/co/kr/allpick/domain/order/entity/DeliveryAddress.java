@@ -50,4 +50,14 @@ public class DeliveryAddress extends BaseEntity {
         this.addressDetail = addressDetail;
         this.isDefault = isDefault;
     }
+
+    public void update(String recipientName, String phone, String zipCode,
+                       String address, String addressDetail, boolean isDefault) {
+        this.recipientName = recipientName;
+        this.phone = phone;
+        this.zipCode = zipCode;
+        this.address = address;
+        this.addressDetail = addressDetail;
+        this.isDefault = isDefault;
+    }
 }
