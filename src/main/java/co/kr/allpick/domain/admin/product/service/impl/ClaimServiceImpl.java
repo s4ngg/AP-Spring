@@ -73,7 +73,7 @@ public class ClaimServiceImpl implements ClaimService {
         // OrderItem 소유권까지 확인
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
-        if (!orderItem.getOrder().getMemberId().equals(memberId)) {
+        if (!orderItem.getOrder().getMember().getId().equals(memberId)) {
             throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
         }
         if (claimRepository.existsByOrderItemIdAndStatusNotIn(
