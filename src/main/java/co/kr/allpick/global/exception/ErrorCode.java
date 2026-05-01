@@ -14,6 +14,8 @@ public enum ErrorCode {
     PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_NOT_FOUND", "결제 정보를 찾을 수 없습니다."),
     ADDRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "ADDRESS_NOT_FOUND", "배송지를 찾을 수 없습니다."),
     DELIVERY_ADDRESS_DUPLICATE(HttpStatus.CONFLICT, "DELIVERY_ADDRESS_DUPLICATE", "이미 등록된 배송지입니다."),
+    UNAUTHORIZED_ADDRESS(HttpStatus.FORBIDDEN, "UNAUTHORIZED_ADDRESS", "본인의 배송지만 수정/삭제할 수 있습니다."),
+    ADDRESS_CANNOT_MODIFY(HttpStatus.BAD_REQUEST, "ADDRESS_CANNOT_MODIFY", "주문에 사용된 배송지는 수정/삭제할 수 없습니다."),
 
     // Coupon
     COUPON_ALREADY_ISSUED(HttpStatus.BAD_REQUEST, "COUPON_ALREADY_ISSUED", "이미 보유한 쿠폰입니다."),
@@ -36,9 +38,19 @@ public enum ErrorCode {
     CLAIM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_DELETED", "이미 삭제된 클레임입니다."),
     CLAIM_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CLAIM_INVALID_STATUS", "유효하지 않은 클레임 상태입니다."),
     CLAIM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_COMPLETED", "이미 처리 완료된 클레임입니다."),
-    
-   
-    // Seller, Member
+
+    CLAIM_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "CLAIM_ALREADY_CANCELLED", "이미 취소된 클레임입니다."),
+    CLAIM_ALREADY_EXISTS(HttpStatus.CONFLICT, "CLAIM_ALREADY_EXISTS", "이미 처리 중인 클레임이 존재합니다."),
+    CLAIM_REASON_MISMATCH(HttpStatus.BAD_REQUEST, "CLAIM_REASON_MISMATCH", "클레임 유형과 사유 코드가 일치하지 않습니다."),
+    CLAIM_UNAUTHORIZED(HttpStatus.FORBIDDEN, "CLAIM_UNAUTHORIZED", "본인의 클레임만 취소할 수 있습니다."),
+
+    // Attachment
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ATTACHMENT_NOT_FOUND", "첨부파일을 찾을 수 없습니다."),
+    ATTACHMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "ATTACHMENT_ALREADY_DELETED", "이미 삭제된 첨부파일입니다."),
+    ATTACHMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "ATTACHMENT_UNAUTHORIZED", "본인의 첨부파일만 삭제할 수 있습니다."),
+
+    // Seller
+
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
@@ -49,6 +61,8 @@ public enum ErrorCode {
     INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "INVALID_VERIFICATION_CODE", "인증번호가 일치하지 않습니다."),
     MEMBER_NOT_FOUND_BY_PHONE(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND_BY_PHONE", "해당 번호로 가입된 계정이 없습니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "INVALID_PASSWORD", "이메일 또는 비밀번호가 틀렸습니다."),
+    CURRENT_PASSWORD_MISMATCH(HttpStatus.UNAUTHORIZED, "CURRENT_PASSWORD_MISMATCH", "현재 비밀번호가 일치하지 않습니다."),
+    SAME_PASSWORD(HttpStatus.BAD_REQUEST, "SAME_PASSWORD", "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
 
     // Admin
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_NOT_FOUND", "관리자를 찾을 수 없습니다."),
@@ -56,6 +70,10 @@ public enum ErrorCode {
 
     // FAQ
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
+
+    // Notice
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
+    NOTICE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NOTICE_ALREADY_DELETED", "이미 삭제된 공지사항입니다."),
 
     // Product
     PRODUCT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PRODUCT_ALREADY_EXISTS", "이미 존재하는 상품입니다."),
@@ -73,9 +91,9 @@ public enum ErrorCode {
 
     // image
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_UPLOAD_FAILED", "이미지 업로드에 실패했습니다."),
-  
     INVALID_FILE(HttpStatus.BAD_REQUEST, "INVALID_FILE", "파일이 없거나 비어있습니다."),
     INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "INVALID_FILE_TYPE", "이미지 파일만 업로드 가능합니다."),
+
 
     // Review
     REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다."),
@@ -84,7 +102,7 @@ public enum ErrorCode {
     INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다.");
 
 	
-
+    
     private final HttpStatus status;
     private final String code;
     private final String message;

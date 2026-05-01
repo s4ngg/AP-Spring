@@ -66,8 +66,7 @@ class OrderServiceImplTest {
         DeliveryAddress mockAddress = DeliveryAddress.builder().build();
         MemberCoupon mockCoupon = MemberCoupon.builder().build();
         Product mockProduct = Product.builder().price(BigDecimal.valueOf(10000)).build();
-        
-        // ✅ mockOrder에 orderItems 초기화된 상태로 직접 생성
+
         Order mockOrder = Order.builder()
             .member(mockMember)
             .memberCoupon(mockCoupon)
@@ -118,8 +117,6 @@ class OrderServiceImplTest {
             .recipientName("홍길동")
             .build();
 
-        when(memberRepository.findById(any()))
-            .thenReturn(Optional.of(Member.builder().build()));
         when(deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(any(), any(), any()))
             .thenReturn(false);
         when(deliveryAddressRepository.save(any()))
@@ -133,7 +130,7 @@ class OrderServiceImplTest {
     @DisplayName("배송지 목록 조회 성공")
     void 배송지_목록_조회_성공() {
         Long memberId = 1L;
-        when(deliveryAddressRepository.findByMemberId(any()))
+        when(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(any()))
             .thenReturn(List.of(DeliveryAddress.builder().recipientName("홍길동").build()));
 
         List<DeliveryAddressResponseDto> result = orderService.getDeliveryAddresses(memberId);

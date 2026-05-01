@@ -8,8 +8,10 @@ import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
+import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,14 @@ import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
+<<<<<<< HEAD
+=======
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageImpl;
+>>>>>>> 1532f82d6cdb563338ec42de8dbbcb835477de7d
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
@@ -83,6 +93,7 @@ class ProductServiceImplTest {
     }
 
     @Test
+<<<<<<< HEAD
     @DisplayName("상품 등록 성공")
     void 상품_등록_성공() {
         // given
@@ -97,10 +108,27 @@ class ProductServiceImplTest {
                 .productName("새로운 막걸리")
                 .brand("올픽양조장")
                 .price(new BigDecimal("15000"))
+=======
+    @DisplayName("상품 목록 조회 성공")
+    void 상품_목록_조회_성공() {
+        // given
+        ParentCategory mockCategory = ParentCategory.builder()
+                .categoryName("뷰티")
+                .build();
+
+        Product mockProduct = Product.builder()
+                .productId(1L)
+                .productName("갈색병 세럼 50ml")
+                .brand("에스티로더")
+                .price(new BigDecimal("89000"))
+                .parentCategory(mockCategory)
+                .thumbnailUrl("https://allpick.com")
+>>>>>>> 1532f82d6cdb563338ec42de8dbbcb835477de7d
                 .optionList(new ArrayList<>())
                 .productImageList(new ArrayList<>())
                 .build();
 
+<<<<<<< HEAD
         Product mockProduct = reqDto.toEntity(mockCategory);
 
         // 레포지토리 동작 정의
@@ -152,3 +180,42 @@ class ProductServiceImplTest {
                 .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
     }
 }
+=======
+        Pageable pageable = PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Product> mockPage = new PageImpl<>(List.of(mockProduct), pageable, 1);
+
+        when(productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
+                Product.Status.ON_SALE, Product.ApprovalStatus.APPROVED, pageable))
+                .thenReturn(mockPage);
+
+        // when
+        Page<ProductListResponseDto> result = productService.getProductList(pageable);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getProductName()).isEqualTo("갈색병 세럼 50ml");
+        assertThat(result.getContent().get(0).getParentCategoryName()).isEqualTo("뷰티");
+    }
+
+    @Test
+    @DisplayName("상품 목록 조회 성공 - 조회된 상품 없음")
+    void 상품_목록_조회_결과_없음() {
+        // given
+        Pageable pageable = PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Product> emptyPage = new PageImpl<>(List.of(), pageable, 0);
+
+        when(productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
+                Product.Status.ON_SALE, Product.ApprovalStatus.APPROVED, pageable))
+                .thenReturn(emptyPage);
+
+        // when
+        Page<ProductListResponseDto> result = productService.getProductList(pageable);
+
+        // then
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+    }
+
+}
+>>>>>>> 1532f82d6cdb563338ec42de8dbbcb835477de7d

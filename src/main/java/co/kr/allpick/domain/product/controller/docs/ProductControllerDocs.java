@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.product.controller.docs;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
+import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.global.response.ApiResponse;
@@ -10,7 +11,13 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -41,6 +48,42 @@ public interface ProductControllerDocs {
     })
     ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(
         @RequestBody @Valid ProductSaveRequestDto productSaveRequestDto);
+
+    @Operation(summary = "상품 목록 조회", description = "판매 중이고 승인된 상품 목록을 페이징으로 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "조회 성공",
+            content = @Content(
+                examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "message": "상품 목록을 조회합니다.",
+                        "data": {
+                            "content": [
+                                {
+                                    "productId": 1,
+                                    "parentCategoryName": "뷰티",
+                                    "brand": "에스티로더",
+                                    "productName": "갈색병 세럼 50ml",
+                                    "thumbnailUrl": "https://allpick.com",
+                                    "price": 89000
+                                }
+                            ],
+                            "totalElements": 100,
+                            "totalPages": 13,
+                            "size": 8,
+                            "number": 0
+                        }
+                    }
+                """)
+            )
+        )
+    })
+    @GetMapping
+    ResponseEntity<ApiResponse<Page<ProductListResponseDto>>> getProductList(
+            @ParameterObject @PageableDefault(size = 8, sort = "createdAt",
+                                                direction = Sort.Direction.DESC) Pageable pageable);
 
     @Operation(summary = "상품 상세 조회", description = "상품 ID로 유효한 상품(판매중 & 승인완료)의 상세 정보를 조회합니다.")
     @ApiResponses({
@@ -88,6 +131,7 @@ public interface ProductControllerDocs {
                 }
             """)))
     })
+    @GetMapping("/{productId}")
     ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail(
         @PathVariable("productId") Long productId);
 }

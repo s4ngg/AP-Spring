@@ -2,7 +2,6 @@ package co.kr.allpick.domain.order.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,8 +45,10 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressRepository deliveryAddressRepository;
+
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
+
     @Override
     @Transactional
     
@@ -93,6 +94,7 @@ public class OrderServiceImpl implements OrderService {
         }
         
 
+
         // 4. 총 금액 업데이트
         BigDecimal totalAmount = order.getOrderItems().stream()
                 .map(OrderItem::getTotalPrice)
@@ -130,11 +132,7 @@ public class OrderServiceImpl implements OrderService {
     public DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request) {
         logger.info("배송지 추가 - memberId: {}", memberId);
 
-        // #26 회원 존재 검증
-        memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // #26 중복 배송지 검증
+        // 중복 배송지 검증
         if (deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(
                 memberId, request.getAddress(), request.getAddressDetail())) {
             throw new BusinessException(ErrorCode.DELIVERY_ADDRESS_DUPLICATE);
@@ -150,12 +148,47 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<DeliveryAddressResponseDto> getDeliveryAddresses(Long memberId) {
         logger.info("배송지 목록 조회 - memberId: {}", memberId);
-        return deliveryAddressRepository.findByMemberId(memberId)
+        return deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .stream()
                 .map(DeliveryAddressResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
     
+    @Override
+    @Transactional
+    public DeliveryAddressResponseDto updateDeliveryAddress(Long memberId, Long addressId, DeliveryAddressRequestDto request) {
+        logger.info("[OrderService] 배송지 수정 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        validateAddressNotUsedInOrder(addressId);
+        address.update(request.getRecipientName(), request.getPhone(), request.getZipCode(),
+                request.getAddress(), request.getAddressDetail(), request.isDefault());
+        return DeliveryAddressResponseDto.from(address);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDeliveryAddress(Long memberId, Long addressId) {
+        logger.info("[OrderService] 배송지 삭제 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        validateAddressNotUsedInOrder(addressId);
+        address.delete();
+    }
+
+    private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
+        DeliveryAddress address = deliveryAddressRepository.findById(addressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        if (!address.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ADDRESS);
+        }
+        return address;
+    }
+
+    private void validateAddressNotUsedInOrder(Long addressId) {
+        if (orderRepository.existsByAddressId(addressId)) {
+            throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
+        }
+    }
+
 //    주문 번호 생성
     private String generateUniqueOrderNumber() {
         String orderNumber;

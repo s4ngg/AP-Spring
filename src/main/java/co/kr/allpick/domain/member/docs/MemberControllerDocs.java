@@ -9,12 +9,11 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @Tag(name = "Member", description = "회원 API")
 public interface MemberControllerDocs {
 
-    @Operation(summary = "회원 정보 조회", description = "회원 ID로 회원 정보를 조회합니다.")
+    @Operation(summary = "내 정보 조회", description = "로그인한 회원의 정보를 조회합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(examples = @ExampleObject(value = """
@@ -24,9 +23,9 @@ public interface MemberControllerDocs {
                     "data": {
                         "id": 1,
                         "email": "test@test.com",
-                        "name": "김상우",
+                        "name": "홍길동",
                         "phone": "01012345678",
-                        "address": "인천광역시 미추홀구",
+                        "address": "서울시 강남구 테헤란로 123",
                         "grade": "NORMAL"
                     }
                 }
@@ -40,6 +39,5 @@ public interface MemberControllerDocs {
                 }
             """)))
     })
-        // 수정
     ResponseEntity<ApiResponse<MemberResponseDto>> getMember(JwtUserInfoDto userInfo);
 }
