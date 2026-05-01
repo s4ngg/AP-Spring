@@ -35,8 +35,8 @@ public class OrderItemResponseDto {
     public static OrderItemResponseDto from(OrderItem item) {
         return OrderItemResponseDto.builder()
                 .orderItemId(item.getOrderItemId())
-                .productId(item.getProductId())
-                .productName(item.getProductName())
+                .productId(item.getProduct().getProductId())
+                .productName(item.getProduct().getProductName())
                 .productPrice(item.getProductPrice())
                 .quantity(item.getQuantity())
                 .totalPrice(item.getTotalPrice())
