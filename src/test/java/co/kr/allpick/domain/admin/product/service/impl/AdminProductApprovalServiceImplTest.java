@@ -25,9 +25,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AdminProductApprovalServiceImplTest {
@@ -52,10 +52,10 @@ class AdminProductApprovalServiceImplTest {
         Admin admin = superAdmin();
         Product product = product(Product.ApprovalStatus.PENDING);
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
-        when(productRepository.findByProductIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
-        when(productApprovalRepository.save(any(ProductApproval.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(product));
+        given(productApprovalRepository.save(any(ProductApproval.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         ProductApprovalResponseDto result = adminProductApprovalService.approveProduct(adminInfo, 1L);
@@ -82,10 +82,10 @@ class AdminProductApprovalServiceImplTest {
         Product product = product(Product.ApprovalStatus.PENDING);
         ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
-        when(productRepository.findByProductIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
-        when(productApprovalRepository.save(any(ProductApproval.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(product));
+        given(productApprovalRepository.save(any(ProductApproval.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         ProductApprovalResponseDto result = adminProductApprovalService.rejectProduct(adminInfo, 1L, request);
@@ -113,7 +113,7 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADMIN_FORBIDDEN.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
         verify(productRepository, never()).findByProductIdAndDeletedAtIsNull(any());
         verify(productApprovalRepository, never()).save(any());
     }
@@ -132,12 +132,12 @@ class AdminProductApprovalServiceImplTest {
                 .status(Admin.AdminStatus.ACTIVE)
                 .build();
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADMIN_FORBIDDEN.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
         verify(productRepository, never()).findByProductIdAndDeletedAtIsNull(any());
         verify(productApprovalRepository, never()).save(any());
     }
@@ -147,13 +147,13 @@ class AdminProductApprovalServiceImplTest {
     void 상품_승인_실패_상품없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(productRepository.findByProductIdAndDeletedAtIsNull(999L)).thenReturn(Optional.empty());
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 999L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
         verify(productApprovalRepository, never()).save(any());
     }
 
@@ -162,14 +162,92 @@ class AdminProductApprovalServiceImplTest {
     void 상품_승인_실패_상태전이불가() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(productRepository.findByProductIdAndDeletedAtIsNull(1L))
-                .thenReturn(Optional.of(product(Product.ApprovalStatus.APPROVED)));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.APPROVED)));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - SUPER_ADMIN 권한 없음")
+    void 상품_승인_거절_실패_권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = AdminJwtUserInfoDto.builder()
+                .adminId(1L)
+                .role(Admin.AdminRole.CS_ADMIN)
+                .build();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(productRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - DB 기준 관리자 권한 없음")
+    void 상품_승인_거절_실패_DB관리자권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Admin admin = Admin.builder()
+                .email("admin@example.com")
+                .password("encodedPassword")
+                .adminName("관리자")
+                .adminPhone("010-0000-0000")
+                .role(Admin.AdminRole.CS_ADMIN)
+                .status(Admin.AdminStatus.ACTIVE)
+                .build();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(productRepository, never()).findByProductIdAndDeletedAtIsNull(any());
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - 상품 없음")
+    void 상품_승인_거절_실패_상품없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 999L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - PENDING 상태가 아님")
+    void 상품_승인_거절_실패_상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.APPROVED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
         verify(productApprovalRepository, never()).save(any());
     }
 
@@ -181,13 +259,13 @@ class AdminProductApprovalServiceImplTest {
         Product product = product(Product.ApprovalStatus.PENDING);
         ProductRejectRequestDto request = new ProductRejectRequestDto(" ");
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(productRepository.findByProductIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(product));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(product));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
         assertThat(product.getApprovalStatus()).isEqualTo(Product.ApprovalStatus.PENDING);
         verify(productApprovalRepository, never()).save(any());
     }
