@@ -26,16 +26,16 @@ public class Admin extends BaseEntity {
     @Column(name = "admin_id")
     private Long adminId;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @Column(name = "admin_name", nullable = false)
+    @Column(name = "admin_name", nullable = false, length = 50)
     private String adminName;
 
-    @Column(name = "admin_phone", nullable = false)
+    @Column(name = "admin_phone", nullable = false, length = 20)
     private String adminPhone;
 
     @Enumerated(EnumType.STRING)
