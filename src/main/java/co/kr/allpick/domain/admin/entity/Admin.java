@@ -39,11 +39,11 @@ public class Admin extends BaseEntity {
     private String adminPhone;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, length = 20)
     private AdminRole role;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private AdminStatus status;
 
     @Column(name = "last_login_at")
