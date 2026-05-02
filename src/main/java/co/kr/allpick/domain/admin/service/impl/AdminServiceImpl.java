@@ -73,6 +73,10 @@ public class AdminServiceImpl implements AdminService {
     public void updateStatus(AdminJwtUserInfoDto adminInfo, Long adminId, Admin.AdminStatus status) {
         validateSuperAdmin(adminInfo);
 
+        if (adminInfo.getAdminId().equals(adminId)) {
+            throw new BusinessException(ErrorCode.ADMIN_CANNOT_BLOCK_SELF);
+        }
+
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
 

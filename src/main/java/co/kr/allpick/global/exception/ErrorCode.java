@@ -53,6 +53,7 @@ public enum ErrorCode {
     ADMIN_EMAIL_DUPLICATED(HttpStatus.CONFLICT, "ADMIN_DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     ADMIN_BLOCKED(HttpStatus.FORBIDDEN, "ADMIN_BLOCKED", "차단된 관리자 계정입니다."),
     ADMIN_FORBIDDEN(HttpStatus.FORBIDDEN, "ADMIN_FORBIDDEN", "SUPER_ADMIN 권한이 필요합니다."),
+    ADMIN_CANNOT_BLOCK_SELF(HttpStatus.BAD_REQUEST, "ADMIN_CANNOT_BLOCK_SELF", "본인 계정의 상태는 변경할 수 없습니다."),
 
     // FAQ
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
