@@ -28,6 +28,7 @@ import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class AdminServiceImplTest {
@@ -94,6 +95,8 @@ class AdminServiceImplTest {
             AdminLoginResponseDto response = adminService.adminLogin(request);
 
             assertThat(response).isNotNull();
+            assertThat(response.getToken()).isEqualTo("mock-token");
+            assertThat(response.getRole()).isEqualTo(Admin.AdminRole.SUPER_ADMIN);
             verify(admin).updateLastLoginAt(any());
         }
 
@@ -162,7 +165,11 @@ class AdminServiceImplTest {
             adminService.createAdmin(superAdminInfo(1L), request);
 
             verify(passwordEncoder).encode(request.getPassword());
-            then(adminRepository).should().save(any(Admin.class));
+            ArgumentCaptor<Admin> captor = ArgumentCaptor.forClass(Admin.class);
+            then(adminRepository).should().save(captor.capture());
+            Admin saved = captor.getValue();
+            assertThat(saved.getEmail()).isEqualTo("new@allpick.com");
+            assertThat(saved.getRole()).isEqualTo(Admin.AdminRole.CS_ADMIN);
         }
 
         @Test
