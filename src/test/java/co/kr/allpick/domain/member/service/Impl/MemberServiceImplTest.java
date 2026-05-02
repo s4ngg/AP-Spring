@@ -7,6 +7,7 @@ import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.entity.MemberGrade;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.impl.MemberServiceImpl;
+import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -18,8 +19,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -27,47 +28,54 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class MemberServiceImplTest {
 
     @Mock
-    MemberRepository memberRepository;
+    private MemberRepository memberRepository;
 
     @Mock
-    OrderRepository orderRepository;
+    private OrderRepository orderRepository;
 
     @Mock
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    MemberServiceImpl memberService;
+    private MemberServiceImpl memberService;
 
-    // ───────────────────────────────────────────────
-    // getMember
-    // ───────────────────────────────────────────────
-    @Test
-    @DisplayName("회원 정보 조회 성공")
-    void 회원_정보_조회_성공() {
-        // given
-        Long memberId = 1L;
-        Member mockMember = Member.builder()
+    // ─── 픽스처 ───
+
+    private Member createMember() {
+        return Member.builder()
                 .email("test@test.com")
                 .name("김상우")
                 .phone("01012345678")
                 .address("인천광역시 미추홀구")
                 .grade(MemberGrade.NORMAL)
                 .build();
+    }
 
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
+    private Member createMemberWithPassword(String encodedPassword) {
+        return Member.createLocal("test@test.com", encodedPassword, "김상우", "01012345678", "인천광역시 미추홀구");
+    }
 
-        // when
+    // ─────────────────────────────────────────
+    // getMember
+    // ─────────────────────────────────────────
+
+    @Test
+    @DisplayName("회원 정보 조회 성공")
+    void 회원_정보_조회_성공() {
+        Long memberId = 1L;
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(createMember()));
+
         MemberResponseDto result = memberService.getMember(memberId);
 
-        // then
         assertThat(result).isNotNull();
         assertThat(result.getEmail()).isEqualTo("test@test.com");
         assertThat(result.getName()).isEqualTo("김상우");
@@ -77,47 +85,30 @@ class MemberServiceImplTest {
     @Test
     @DisplayName("회원 정보 조회 실패 - 존재하지 않는 회원")
     void 회원_정보_조회_실패_존재하지않는회원() {
-        // given
-        when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+        given(memberRepository.findById(999L)).willReturn(Optional.empty());
 
-        // when & then
         assertThatThrownBy(() -> memberService.getMember(999L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_NOT_FOUND);
     }
 
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
     // updateMember
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
+
     @Nested
-    @DisplayName("updateMember")
+    @DisplayName("회원 정보 수정")
     class UpdateMember {
 
         @Test
-        @DisplayName("회원 정보 수정 성공 - 수정된 MemberResponseDto 반환")
+        @DisplayName("회원 정보 수정 성공")
         void 회원_정보_수정_성공() {
-            // given
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .grade(MemberGrade.NORMAL)
-                    .build();
+            MemberUpdateRequestDto request = new MemberUpdateRequestDto("이영훈", "01098765432", "서울시 강남구");
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(createMember()));
 
-            MemberUpdateRequestDto request = new MemberUpdateRequestDto();
-            ReflectionTestUtils.setField(request, "name", "이영훈");
-            ReflectionTestUtils.setField(request, "phone", "01098765432");
-            ReflectionTestUtils.setField(request, "address", "서울시 강남구");
-
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-
-            // when
             MemberResponseDto result = memberService.updateMember(memberId, request);
 
-            // then
-            assertThat(result).isNotNull();
             assertThat(result.getName()).isEqualTo("이영훈");
             assertThat(result.getPhone()).isEqualTo("01098765432");
             assertThat(result.getAddress()).isEqualTo("서울시 강남구");
@@ -126,79 +117,61 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("회원 정보 수정 실패 - 존재하지 않는 회원")
         void 회원_정보_수정_실패_존재하지않는회원() {
-            // given
-            Long memberId = 999L;
-            MemberUpdateRequestDto request = new MemberUpdateRequestDto();
-            ReflectionTestUtils.setField(request, "name", "이름");
-            ReflectionTestUtils.setField(request, "phone", "01012345678");
-            ReflectionTestUtils.setField(request, "address", "주소");
+            MemberUpdateRequestDto request = new MemberUpdateRequestDto("이름", "01012345678", "주소");
+            given(memberRepository.findById(999L)).willReturn(Optional.empty());
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
-
-            // when & then
-            assertThatThrownBy(() -> memberService.updateMember(memberId, request))
+            assertThatThrownBy(() -> memberService.updateMember(999L, request))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
     // changePassword
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
+
     @Nested
-    @DisplayName("changePassword")
+    @DisplayName("비밀번호 변경")
     class ChangePassword {
 
         @Test
-        @DisplayName("비밀번호 변경 성공 - passwordEncoder.encode() 호출 검증")
+        @DisplayName("비밀번호 변경 성공 - encode() 호출 검증")
         void 비밀번호_변경_성공() {
-            // given
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .build();
-            ReflectionTestUtils.setField(member, "password", "encodedOldPassword");
+            Member member = createMemberWithPassword("encodedOldPassword");
+            PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "NewPass1!");
 
-            PasswordChangeRequestDto request = new PasswordChangeRequestDto();
-            ReflectionTestUtils.setField(request, "currentPassword", "OldPass1!");
-            ReflectionTestUtils.setField(request, "newPassword", "NewPass1!");
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches("OldPass1!", "encodedOldPassword")).willReturn(true);
+            given(passwordEncoder.matches("NewPass1!", "encodedOldPassword")).willReturn(false);
+            given(passwordEncoder.encode("NewPass1!")).willReturn("encodedNewPassword");
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-            when(passwordEncoder.matches("OldPass1!", "encodedOldPassword")).thenReturn(true);
-            when(passwordEncoder.matches("NewPass1!", "encodedOldPassword")).thenReturn(false);
-            when(passwordEncoder.encode("NewPass1!")).thenReturn("encodedNewPassword");
-
-            // when
             memberService.changePassword(memberId, request);
 
-            // then
             verify(passwordEncoder).encode("NewPass1!");
+        }
+
+        @Test
+        @DisplayName("비밀번호 변경 실패 - 회원 없음")
+        void 비밀번호_변경_실패_회원없음() {
+            PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "NewPass1!");
+            given(memberRepository.findById(999L)).willReturn(Optional.empty());
+
+            assertThatThrownBy(() -> memberService.changePassword(999L, request))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_NOT_FOUND);
         }
 
         @Test
         @DisplayName("비밀번호 변경 실패 - 현재 비밀번호 불일치")
         void 비밀번호_변경_실패_현재비밀번호_불일치() {
-            // given
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .build();
-            ReflectionTestUtils.setField(member, "password", "encodedOldPassword");
+            Member member = createMemberWithPassword("encodedOldPassword");
+            PasswordChangeRequestDto request = new PasswordChangeRequestDto("WrongPass1!", "NewPass1!");
 
-            PasswordChangeRequestDto request = new PasswordChangeRequestDto();
-            ReflectionTestUtils.setField(request, "currentPassword", "WrongPass1!");
-            ReflectionTestUtils.setField(request, "newPassword", "NewPass1!");
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches("WrongPass1!", "encodedOldPassword")).willReturn(false);
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-            when(passwordEncoder.matches("WrongPass1!", "encodedOldPassword")).thenReturn(false);
-
-            // when & then
             assertThatThrownBy(() -> memberService.changePassword(memberId, request))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CURRENT_PASSWORD_MISMATCH);
@@ -207,124 +180,102 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("비밀번호 변경 실패 - 새 비밀번호가 기존과 동일")
         void 비밀번호_변경_실패_새비밀번호_기존과_동일() {
-            // given
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .build();
-            ReflectionTestUtils.setField(member, "password", "encodedOldPassword");
+            Member member = createMemberWithPassword("encodedOldPassword");
+            PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "OldPass1!");
 
-            PasswordChangeRequestDto request = new PasswordChangeRequestDto();
-            ReflectionTestUtils.setField(request, "currentPassword", "OldPass1!");
-            ReflectionTestUtils.setField(request, "newPassword", "OldPass1!");
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches("OldPass1!", "encodedOldPassword")).willReturn(true);
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-            when(passwordEncoder.matches("OldPass1!", "encodedOldPassword")).thenReturn(true);
-
-            // when & then
             assertThatThrownBy(() -> memberService.changePassword(memberId, request))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SAME_PASSWORD);
         }
 
         @Test
-        @DisplayName("비밀번호 변경 실패 - 현재 비밀번호 틀리면 동일 비밀번호 검증 전에 예외 발생")
-        void 비밀번호_변경_실패_현재비밀번호_틀리면_동일비밀번호_검증전_예외() {
-            // given
+        @DisplayName("현재 비밀번호 틀리면 동일 비밀번호 검증 전에 예외 발생")
+        void 현재비밀번호_틀리면_동일비밀번호_검증전_예외() {
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .build();
-            ReflectionTestUtils.setField(member, "password", "encodedOldPassword");
+            Member member = createMemberWithPassword("encodedOldPassword");
+            PasswordChangeRequestDto request = new PasswordChangeRequestDto("WrongPass1!", "WrongPass1!");
 
-            PasswordChangeRequestDto request = new PasswordChangeRequestDto();
-            ReflectionTestUtils.setField(request, "currentPassword", "WrongPass1!");
-            ReflectionTestUtils.setField(request, "newPassword", "WrongPass1!");
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
+            given(passwordEncoder.matches("WrongPass1!", "encodedOldPassword")).willReturn(false);
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-            when(passwordEncoder.matches("WrongPass1!", "encodedOldPassword")).thenReturn(false);
-
-            // when & then
-            // CURRENT_PASSWORD_MISMATCH 예외 발생 후 SAME_PASSWORD 검증은 도달하지 않음
             assertThatThrownBy(() -> memberService.changePassword(memberId, request))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CURRENT_PASSWORD_MISMATCH);
 
-            // passwordEncoder.matches()는 currentPassword 검증 시 1회만 호출됨
-            verify(passwordEncoder).matches("WrongPass1!", "encodedOldPassword");
             verify(passwordEncoder, never()).encode(anyString());
         }
     }
 
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
     // deleteMember
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
+
     @Nested
-    @DisplayName("deleteMember")
+    @DisplayName("회원 탈퇴")
     class DeleteMember {
 
         @Test
-        @DisplayName("회원 탈퇴 성공 - member.delete() 호출 검증")
+        @DisplayName("회원 탈퇴 성공 - status 0 확인")
         void 회원_탈퇴_성공() {
-            // given
             Long memberId = 1L;
-            Member member = Member.builder()
-                    .email("test@test.com")
-                    .name("김상우")
-                    .phone("01012345678")
-                    .address("인천광역시 미추홀구")
-                    .build();
+            Member member = createMember();
+            given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
-            when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
-
-            // when
             memberService.deleteMember(memberId);
 
-            // then: member.delete() 호출 시 status가 0으로 변경됨
             assertThat(member.getStatus()).isEqualTo(0);
         }
 
         @Test
         @DisplayName("회원 탈퇴 실패 - 존재하지 않는 회원")
         void 회원_탈퇴_실패_존재하지않는회원() {
-            // given
-            Long memberId = 999L;
-            when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+            given(memberRepository.findById(999L)).willReturn(Optional.empty());
 
-            // when & then
-            assertThatThrownBy(() -> memberService.deleteMember(memberId))
+            assertThatThrownBy(() -> memberService.deleteMember(999L))
                     .isInstanceOf(BusinessException.class)
                     .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_NOT_FOUND);
         }
     }
 
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
     // getMyOrders
-    // ───────────────────────────────────────────────
+    // ─────────────────────────────────────────
+
     @Nested
-    @DisplayName("getMyOrders")
+    @DisplayName("내 주문 목록 조회")
     class GetMyOrders {
 
         @Test
-        @DisplayName("주문 목록 조회 - 주문 없을 때 빈 리스트 반환")
+        @DisplayName("주문 없을 때 빈 리스트 반환")
         void 주문_목록_조회_주문없으면_빈리스트_반환() {
-            // given
             Long memberId = 1L;
-            when(orderRepository.findByMemberIdOrderByOrderedAtDesc(memberId))
-                    .thenReturn(Collections.emptyList());
+            given(orderRepository.findByMemberIdOrderByOrderedAtDesc(memberId))
+                    .willReturn(Collections.emptyList());
 
-            // when
             List<?> result = memberService.getMyOrders(memberId);
 
-            // then
             assertThat(result).isNotNull();
             assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("주문 있을 때 목록 반환")
+        void 주문_목록_조회_주문있으면_목록반환() {
+            Long memberId = 1L;
+            Order order = mock(Order.class);
+            given(order.getOrderItems()).willReturn(Collections.emptyList());
+            given(order.getTotalAmount()).willReturn(BigDecimal.ZERO);
+            given(order.getDiscountAmount()).willReturn(BigDecimal.ZERO);
+            given(orderRepository.findByMemberIdOrderByOrderedAtDesc(memberId))
+                    .willReturn(List.of(order));
+
+            List<?> result = memberService.getMyOrders(memberId);
+
+            assertThat(result).hasSize(1);
         }
     }
 }
