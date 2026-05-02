@@ -14,6 +14,8 @@ import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -21,6 +23,8 @@ import org.springframework.util.StringUtils;
 @Service
 @RequiredArgsConstructor
 public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalService {
+
+    private static final Logger logger = LogManager.getLogger(AdminSellerApprovalServiceImpl.class);
 
     private final SellerRepository sellerRepository;
     private final AdminRepository adminRepository;
@@ -37,6 +41,8 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
                 SellerApproval.approved(seller, admin, SellerApproval.RequestType.REGISTER)
         );
 
+        logger.info("[AdminSellerApprovalServiceImpl] 판매자 승인 완료 - actorAdminId: {}, sellerId: {}",
+                admin.getAdminId(), sellerId);
         return SellerApprovalResponseDto.from(sellerApproval);
     }
 
@@ -52,6 +58,8 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
                 SellerApproval.rejected(seller, admin, SellerApproval.RequestType.REGISTER, request.getRejectReason())
         );
 
+        logger.info("[AdminSellerApprovalServiceImpl] 판매자 승인 거절 완료 - actorAdminId: {}, sellerId: {}",
+                admin.getAdminId(), sellerId);
         return SellerApprovalResponseDto.from(sellerApproval);
     }
 

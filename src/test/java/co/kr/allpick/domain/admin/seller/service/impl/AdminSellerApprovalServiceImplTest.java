@@ -25,9 +25,9 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AdminSellerApprovalServiceImplTest {
@@ -52,10 +52,10 @@ class AdminSellerApprovalServiceImplTest {
         Admin admin = superAdmin();
         Seller seller = seller(SellerStatus.PENDING);
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
-        when(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(seller));
-        when(sellerApprovalRepository.save(any(SellerApproval.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerApprovalRepository.save(any(SellerApproval.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         SellerApprovalResponseDto result = adminSellerApprovalService.approveSeller(adminInfo, 1L);
@@ -82,10 +82,10 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.PENDING);
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
-        when(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(seller));
-        when(sellerApprovalRepository.save(any(SellerApproval.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerApprovalRepository.save(any(SellerApproval.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         SellerApprovalResponseDto result = adminSellerApprovalService.rejectSeller(adminInfo, 1L, request);
@@ -113,7 +113,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADMIN_FORBIDDEN.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
         verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
@@ -123,13 +123,13 @@ class AdminSellerApprovalServiceImplTest {
     void 판매자_승인_실패_판매자없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).thenReturn(Optional.empty());
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 999L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_FOUND);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -147,12 +147,12 @@ class AdminSellerApprovalServiceImplTest {
                 .status(Admin.AdminStatus.ACTIVE)
                 .build();
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(admin));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADMIN_FORBIDDEN.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
         verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
@@ -162,13 +162,90 @@ class AdminSellerApprovalServiceImplTest {
     void 판매자_승인_실패_상태전이불가() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(seller(SellerStatus.APPROVED)));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - SUPER_ADMIN 권한 없음")
+    void 판매자_승인_거절_실패_권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = AdminJwtUserInfoDto.builder()
+                .adminId(1L)
+                .role(Admin.AdminRole.CS_ADMIN)
+                .build();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - DB 기준 관리자 권한 없음")
+    void 판매자_승인_거절_실패_DB관리자권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Admin admin = Admin.builder()
+                .email("admin@example.com")
+                .password("encodedPassword")
+                .adminName("관리자")
+                .adminPhone("010-0000-0000")
+                .role(Admin.AdminRole.CS_ADMIN)
+                .status(Admin.AdminStatus.ACTIVE)
+                .build();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - 판매자 없음")
+    void 판매자_승인_거절_실패_판매자없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 999L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_FOUND);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - PENDING 상태가 아님")
+    void 판매자_승인_거절_실패_상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -180,13 +257,13 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.PENDING);
         SellerRejectRequestDto request = new SellerRejectRequestDto(" ");
 
-        when(adminRepository.findById(adminInfo.getAdminId())).thenReturn(Optional.of(superAdmin()));
-        when(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).thenReturn(Optional.of(seller));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.INVALID_INPUT.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
         assertThat(seller.getStatus()).isEqualTo(SellerStatus.PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
