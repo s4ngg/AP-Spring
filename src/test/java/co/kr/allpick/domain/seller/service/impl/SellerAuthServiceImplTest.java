@@ -26,8 +26,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -49,6 +49,7 @@ class SellerAuthServiceImplTest {
     void signup_validRequest_success() {
         // given
         Long memberId = 1L;
+
         SellerSignupRequestDto dto = new SellerSignupRequestDto(
                 "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
 
@@ -106,20 +107,25 @@ class SellerAuthServiceImplTest {
     void update_validRequest_success() {
         // given
         Long sellerId = 1L;
+        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
                 .representativeName("홍길동")
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
+                .member(mockMember)
                 .build();
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.of(mockSeller));
 
         // when
-        sellerAuthService.update(sellerId, dto);
+        sellerAuthService.update(sellerId, dto, memberId);
 
         // then
         verify(sellerRepository, times(1)).findById(sellerId);
@@ -130,13 +136,14 @@ class SellerAuthServiceImplTest {
     void update_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;
+        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto))
+        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto, memberId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
@@ -163,7 +170,7 @@ class SellerAuthServiceImplTest {
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberId(mockMember.getId())).willReturn(Optional.of(mockSeller));
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.of(mockSeller));
         given(jwtProvider.createToken(any(JwtUserInfoDto.class))).willReturn("mockToken");
 
         // when
@@ -221,33 +228,39 @@ class SellerAuthServiceImplTest {
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberId(mockMember.getId())).willReturn(Optional.empty());
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerAuthService.login(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.NOT_SELLER.getMessage());
     }
- // ==================== 판매자 삭제 ====================
+
+    // ==================== 판매자 삭제 ====================
 
     @Test
     @DisplayName("판매자 삭제 성공")
     void deleteSeller_validRequest_success() {
         // given
         Long sellerId = 1L;
+        Long memberId = 1L;
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
                 .representativeName("홍길동")
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
+                .member(mockMember)
                 .build();
 
         given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
                 .willReturn(Optional.of(mockSeller));
 
         // when
-        sellerAuthService.deleteSeller(sellerId);
+        sellerAuthService.deleteSeller(sellerId, memberId);
 
         // then
         verify(sellerRepository, times(1)).save(any(Seller.class));
@@ -258,14 +271,14 @@ class SellerAuthServiceImplTest {
     void deleteSeller_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;
+        Long memberId = 1L;
 
         given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
                 .willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> sellerAuthService.deleteSeller(sellerId))
+        assertThatThrownBy(() -> sellerAuthService.deleteSeller(sellerId, memberId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
-    
 }
