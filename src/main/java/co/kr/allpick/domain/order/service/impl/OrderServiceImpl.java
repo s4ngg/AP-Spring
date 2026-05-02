@@ -1,22 +1,24 @@
 package co.kr.allpick.domain.order.service.impl;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import co.kr.allpick.domain.member.repository.MemberRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.dto.DeliveryAddressRequestDto;
 import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
+import co.kr.allpick.domain.order.dto.OrderItemRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.entity.Payment;
@@ -26,6 +28,8 @@ import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.domain.order.repository.PaymentRepository;
 import co.kr.allpick.domain.order.service.OrderService;
 import co.kr.allpick.domain.order.util.OrderNumberGenerator;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,40 +39,73 @@ import lombok.RequiredArgsConstructor;
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger logger = LogManager.getLogger(OrderServiceImpl.class);
-
+    
+    private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final PaymentRepository paymentRepository;
     private final DeliveryAddressRepository deliveryAddressRepository;
+
     private final MemberRepository memberRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Override
     @Transactional
-    public OrderResponseDto createOrder(Long memberId, OrderCreateRequestDto request) {
-        logger.info("주문 생성 요청 - memberId: {}", memberId);
-
-        // 1. 배송지 확인
-        deliveryAddressRepository.findById(request.getAddressId())
+    
+    // OrderCreateRequestDto 안에 memberId, addressId, memberCouponId 모두 있음. 
+    public OrderResponseDto createOrder(OrderCreateRequestDto request) {
+        logger.info("주문 생성 요청 - memberId: {}", request.getMemberId());
+        
+        
+        // 사용자 확인 
+        Member member = memberRepository.findById(request.getMemberId())
+        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        
+        // 배송지 확인
+        DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // 2. 주문 생성
+        // 쿠폰 확인
+        MemberCoupon memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
+        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+        		
+        // 주문번호 부여 
         String orderNumber = generateUniqueOrderNumber();
-        Order savedOrder = orderRepository.save(request.toEntity(memberId, orderNumber));
+        
+        // 모든 검증 통과 -> 주문 엔티티 생성
+        Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
 
-        // 3. 주문 상품 생성
-        List<OrderItem> orderItems = request.getOrderItems().stream()
-                .map(item -> orderItemRepository.save(item.toEntity(savedOrder)))
-                .collect(Collectors.toList());
+        
+        // 생성된 Order 객체 기반으로 OrderItemRequestDto (request)를 통해 받은 내용으로 OrderItem 객체 만들기
+        
+        // 	- itemDto : 요청객체 담겨있는 리스트의 인덱스 1개, request.getOrderItems : 요청객체의 전체 인덱스
+        //	- 인덱스 각각으로 orderItem 객체를 만든다..
+        //	- 요청객체 리스트에 담긴 내용인 productId, quantity로..
+        //	- 상품 특정, 수량 변동 후에 -> orderItem 객체 생성 후 저장.
+        for( OrderItemRequestDto itemDto : request.getOrderItems() ) {  
+        	Product product = productRepository.findById(itemDto.getProductId())
+        			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        	// 재고 차감 추가 필요..
+        	
+        	OrderItem orderItem = itemDto.toEntity(product, order);
+        	// 부모쪽에도 저장된 내용 전달해주기
+        	order.addOrderItem(orderItem);
+        	
+        }
+        
+
 
         // 4. 총 금액 업데이트
-        BigDecimal totalAmount = orderItems.stream()
+        BigDecimal totalAmount = order.getOrderItems().stream()
                 .map(OrderItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        savedOrder.updateTotalAmount(totalAmount);
-        orderRepository.save(savedOrder);
-
+       
+        order.updateTotalAmount(totalAmount);
+ 
+        Order savedOrder = orderRepository.save(order);
+        
         logger.info("주문 생성 완료 - orderNumber: {}", orderNumber);
-        return OrderResponseDto.from(savedOrder, orderItems);
+        return OrderResponseDto.from(savedOrder, savedOrder.getOrderItems());
     }
 
     @Override
@@ -95,11 +132,7 @@ public class OrderServiceImpl implements OrderService {
     public DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request) {
         logger.info("배송지 추가 - memberId: {}", memberId);
 
-        // #26 회원 존재 검증
-        memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // #26 중복 배송지 검증
+        // 중복 배송지 검증
         if (deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(
                 memberId, request.getAddress(), request.getAddressDetail())) {
             throw new BusinessException(ErrorCode.DELIVERY_ADDRESS_DUPLICATE);
@@ -115,12 +148,47 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<DeliveryAddressResponseDto> getDeliveryAddresses(Long memberId) {
         logger.info("배송지 목록 조회 - memberId: {}", memberId);
-        return deliveryAddressRepository.findByMemberId(memberId)
+        return deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .stream()
                 .map(DeliveryAddressResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
     
+    @Override
+    @Transactional
+    public DeliveryAddressResponseDto updateDeliveryAddress(Long memberId, Long addressId, DeliveryAddressRequestDto request) {
+        logger.info("[OrderService] 배송지 수정 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        validateAddressNotUsedInOrder(addressId);
+        address.update(request.getRecipientName(), request.getPhone(), request.getZipCode(),
+                request.getAddress(), request.getAddressDetail(), request.isDefault());
+        return DeliveryAddressResponseDto.from(address);
+    }
+
+    @Override
+    @Transactional
+    public void deleteDeliveryAddress(Long memberId, Long addressId) {
+        logger.info("[OrderService] 배송지 삭제 - memberId: {}, addressId: {}", memberId, addressId);
+        DeliveryAddress address = findAddressAndValidateOwner(memberId, addressId);
+        validateAddressNotUsedInOrder(addressId);
+        address.delete();
+    }
+
+    private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
+        DeliveryAddress address = deliveryAddressRepository.findById(addressId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
+        if (!address.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ADDRESS);
+        }
+        return address;
+    }
+
+    private void validateAddressNotUsedInOrder(Long addressId) {
+        if (orderRepository.existsByAddressId(addressId)) {
+            throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
+        }
+    }
+
 //    주문 번호 생성
     private String generateUniqueOrderNumber() {
         String orderNumber;

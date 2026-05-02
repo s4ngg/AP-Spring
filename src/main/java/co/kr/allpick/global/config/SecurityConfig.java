@@ -1,6 +1,7 @@
 package co.kr.allpick.global.config;
 
 import co.kr.allpick.global.filter.JwtAuthFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/admins/login").permitAll()
+                .requestMatchers("/api/seller/auth/login").permitAll()
                 .requestMatchers("/api/sms/**").permitAll()
                 .requestMatchers("/api/terms/**").permitAll()
                 .requestMatchers("/api/products/**").permitAll()

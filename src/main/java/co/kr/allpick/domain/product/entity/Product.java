@@ -3,6 +3,7 @@ package co.kr.allpick.domain.product.entity;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import co.kr.allpick.domain.seller.entity.Seller;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -37,13 +38,14 @@ import lombok.NoArgsConstructor;
 public class Product extends BaseEntity {
 
     @Id 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy
+    		= GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long productId;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "seller_id", nullable = false)
-//    private Seller seller;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    private Seller seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_category_id", nullable = false)

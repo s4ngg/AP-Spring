@@ -53,7 +53,7 @@ public class OrderResponseDto {
                 .orderNumber(order.getOrderNumber())
                 .totalAmount(order.getTotalAmount())
                 .discountAmount(order.getDiscountAmount())
-                .memberCouponId(order.getMemberCouponId())
+                .memberCouponId(order.getMemberCoupon().getMemberCouponId())
                 .shippingFee(order.getShippingFee())
                 .status(order.getStatus())
                 .orderedAt(order.getOrderedAt())
