@@ -13,7 +13,7 @@ import co.kr.allpick.domain.review.entity.Review;
 public interface ReviewRepository extends JpaRepository<Review , Long>{
 	
 	
-	// 상품하나에 대한 전체사용자의 리뷰 조회	
+	// 1. 상품하나에 대한 전체사용자의 리뷰 조회	
 	@Query("SELECT r FROM Review r " +
 	           "JOIN FETCH r.orderItem oi " +
 	           "JOIN FETCH oi.product p " +
@@ -23,7 +23,7 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 	           "ORDER BY r.reviewId DESC") 	
 	List<Review> findByProductId(@Param("productId") Long productId);
 	
-	// 리뷰 작성을 위한 기존리뷰 작성 내역 확인 
+	// 2. 리뷰 작성을 위한 기존리뷰 작성 내역 확인 
 	boolean existsByOrderItem(Long orderItemId);
 }
  
