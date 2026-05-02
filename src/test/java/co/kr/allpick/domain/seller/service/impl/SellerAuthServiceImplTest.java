@@ -107,20 +107,25 @@ class SellerAuthServiceImplTest {
     void update_validRequest_success() {
         // given
         Long sellerId = 1L;
+        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
                 "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
                 .representativeName("홍길동")
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
+                .member(mockMember)
                 .build();
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.of(mockSeller));
 
         // when
-        sellerAuthService.update(sellerId, dto);
+        sellerAuthService.update(sellerId, dto, memberId);
 
         // then
         verify(sellerRepository, times(1)).findById(sellerId);
@@ -131,13 +136,14 @@ class SellerAuthServiceImplTest {
     void update_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;
+        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
                 "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto))
+        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto, memberId))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
