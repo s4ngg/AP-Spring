@@ -1,6 +1,5 @@
 package co.kr.allpick.domain.product.controller;
 
-import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.kr.allpick.domain.product.controller.docs.ProductControllerDocs;
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
+import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.service.ProductService;
@@ -46,8 +46,10 @@ public class ProductController implements ProductControllerDocs{
 
 	@Override
 	@GetMapping("/{productId}")
-	public ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail(@PathVariable("productId") Long productId) {
-		return ApiResponse.success("상품을 조회합니다.", productService.getProductDetail(productId));
-
+	public ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail (
+			@PathVariable("productId") Long productId,
+			@PageableDefault(size = 5, sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable) {
+		return ApiResponse.success("상품을 조회합니다.", productService.getProductDetail(productId, pageable));
+ 
 	}
 }

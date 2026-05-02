@@ -32,7 +32,7 @@ public class ReviewResponseDto {
 	    @Schema(description = "리뷰 내용", example = "재질이 너무 부드럽고 핏이 예뻐요!")
 	    private String content;
     
-    public static ReviewResponseDto from(Review review) {
+    public static ReviewResponseDto from(Review review) { 
     	return ReviewResponseDto.builder()
     			.reviewId(review.getReviewId())
     			.writerName(review.getOrderItem().getOrder().getMember().getName())

@@ -85,7 +85,7 @@ public interface ProductControllerDocs {
             @ParameterObject @PageableDefault(size = 8, sort = "createdAt",
                                                 direction = Sort.Direction.DESC) Pageable pageable);
 
-    @Operation(summary = "상품 상세 조회", description = "상품 ID로 유효한 상품(판매중 & 승인완료)의 상세 정보를 조회합니다.")
+    @Operation(summary = "상품 상세 조회", description = "상품 ID로 상세 정보와 리뷰 목록(페이징)을 조회합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 조회 성공",
             content = @Content(examples = @ExampleObject(value = """
@@ -99,26 +99,13 @@ public interface ProductControllerDocs {
                         "productName": "에어맥스 97 화이트",
                         "thumbnailUrl": "https://allpick.com",
                         "price": 25000,
-                        "description": "나이키 에어맥스 97의 클래식 화이트 컬러입니다...",
-                        "manufacturer": "나이키 코리아",
-                        "origin": "베트남",
-                        "precaution": "직사광선을 피해 보관하세요",
-                        "optionList": [
-                            {
-                                "optionId": 1,
-                                "optionName": "사이즈",
-                                "optionValue": "270",
-                                "additionalPrice": 0,
-                                "stockQuantity": 50
-                            }
-                        ],
-                        "productImagesList": [
-                            {
-                                "productImageId": 1,
-                                "imageUrl": "https://allpick.com",
-                                "sortOrder": 1
-                            }
-                        ]
+                        "optionList": [],
+                        "productImagesList": [],
+                        "reviewList": {
+                            "content": [],
+                            "totalPages": 1,
+                            "totalElements": 0
+                        }
                     }
                 }
             """))),
@@ -133,5 +120,8 @@ public interface ProductControllerDocs {
     })
     @GetMapping("/{productId}")
     ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail(
-        @PathVariable("productId") Long productId);
+        @PathVariable("productId") Long productId,
+        @ParameterObject @PageableDefault(size = 5, sort = "createdAt", 
+                                            direction = Sort.Direction.DESC) Pageable pageable
+    );
 }

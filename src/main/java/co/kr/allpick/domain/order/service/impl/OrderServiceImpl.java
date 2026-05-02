@@ -49,63 +49,54 @@ public class OrderServiceImpl implements OrderService {
     private final MemberRepository memberRepository;
     private final MemberCouponRepository memberCouponRepository;
 
-    @Override
-    @Transactional
+    
     
     // OrderCreateRequestDto 안에 memberId, addressId, memberCouponId 모두 있음. 
+    @Override
+    @Transactional
     public OrderResponseDto createOrder(OrderCreateRequestDto request) {
         logger.info("주문 생성 요청 - memberId: {}", request.getMemberId());
-        
-        
-        // 사용자 확인 
+
+        // 1. 사용자 및 배송지 확인
         Member member = memberRepository.findById(request.getMemberId())
-        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        
-        // 배송지 확인
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
         DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // 쿠폰 확인
-        MemberCoupon memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
-        		.orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
-        		
-        // 주문번호 부여 
+        // 2. 쿠폰 확인 (Optional 활용으로 간결하게 처리)
+        MemberCoupon memberCoupon = null;
+        if (request.getMemberCouponId() != null) {
+            memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+        }
+
+        // 3. 주문 엔티티 생성 및 초기 저장 (ID와 연관관계를 위해 먼저 생성)
         String orderNumber = generateUniqueOrderNumber();
-        
-        // 모든 검증 통과 -> 주문 엔티티 생성
         Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
 
-        
-        // 생성된 Order 객체 기반으로 OrderItemRequestDto (request)를 통해 받은 내용으로 OrderItem 객체 만들기
-        
-        // 	- itemDto : 요청객체 담겨있는 리스트의 인덱스 1개, request.getOrderItems : 요청객체의 전체 인덱스
-        //	- 인덱스 각각으로 orderItem 객체를 만든다..
-        //	- 요청객체 리스트에 담긴 내용인 productId, quantity로..
-        //	- 상품 특정, 수량 변동 후에 -> orderItem 객체 생성 후 저장.
-        for( OrderItemRequestDto itemDto : request.getOrderItems() ) {  
-        	Product product = productRepository.findById(itemDto.getProductId())
-        			.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-        	// 재고 차감 추가 필요..
-        	
-        	OrderItem orderItem = itemDto.toEntity(product, order);
-        	// 부모쪽에도 저장된 내용 전달해주기
-        	order.addOrderItem(orderItem);
-        	
+        // 4. 주문 항목 생성 및 상품 처리
+        for (OrderItemRequestDto itemDto : request.getOrderItems()) {
+            Product product = productRepository.findById(itemDto.getProductId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+
+            // TODO: 재고 차감 로직 (예: product.decreaseStock(itemDto.getQuantity()))
+            
+            OrderItem orderItem = itemDto.toEntity(product, order);
+            order.addOrderItem(orderItem); // Order 내부 리스트에 추가
         }
-        
 
-
-        // 4. 총 금액 업데이트
+        // 5. 총 금액 업데이트 (기존 로직 유지)
         BigDecimal totalAmount = order.getOrderItems().stream()
                 .map(OrderItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
        
         order.updateTotalAmount(totalAmount);
- 
-        Order savedOrder = orderRepository.save(order);
-        
+
+        // 6. 결과 반환 
+        // @Transactional이 걸려있으므로, 별도의 save 호출 없이도 변경 사항(totalAmount)이 DB에 반영됩니다.
         logger.info("주문 생성 완료 - orderNumber: {}", orderNumber);
-        return OrderResponseDto.from(savedOrder, savedOrder.getOrderItems());
+        return OrderResponseDto.from(order, order.getOrderItems());
     }
 
     @Override
