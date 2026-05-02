@@ -18,7 +18,7 @@ import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
-import co.kr.allpick.domain.review.entity.Review;
+import co.kr.allpick.domain.review.dto.ReviewResponseDto;
 import co.kr.allpick.domain.review.repository.ReviewRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -60,14 +60,16 @@ public class ProductServiceImpl implements ProductService{
 	@Override
 	
 	// Id로 상품상세 페이지 조회
- 	public ProductDetailResponseDto getProductDetail(Long productId) {
+ 	public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
 		// findValidProduct 메서드가 판매상태와, 승인상태 검증해줌.
 		Product product = productRepository.findValidProduct(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-		List<Review> review = reviewRepository.findByProductId(productId);
+		// 해당 상품에 대한 리뷰 조회
+		Page<ReviewResponseDto> reviewPage = reviewRepository.findByProductId(productId,pageable)
+				.map(ReviewResponseDto::from);
 		
-		return ProductDetailResponseDto.from(product);
+		return ProductDetailResponseDto.from(product, reviewPage);
 	} 
 
 	@Override

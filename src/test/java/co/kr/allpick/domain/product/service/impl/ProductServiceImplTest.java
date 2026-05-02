@@ -34,6 +34,8 @@ import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.domain.review.entity.Review;
+import co.kr.allpick.domain.review.repository.ReviewRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 
@@ -45,19 +47,22 @@ class ProductServiceImplTest {
 
     @Mock
     private ParentCategoryRepository parentCategoryRepository;
-    
-    
-    
+
+    @Mock
+    private ReviewRepository reviewRepository; // 리뷰 레포지토리 추가
+
     @InjectMocks
     private ProductServiceImpl productService;
 
     // --- 상품 상세 조회 테스트 ---
 
     @Test
-    @DisplayName("상품 상세 조회 성공 - 판매 중 및 승인된 상품")
+    @DisplayName("상품 상세 조회 성공 - 판매 중 및 승인된 상품과 리뷰 페이징 확인")
     void 상품_상세_조회_성공() {
         // given
         Long productId = 1L;
+        Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
+        
         ParentCategory mockCategory = ParentCategory.builder().categoryName("전통주").build();
         
         Product mockProduct = Product.builder()
@@ -70,16 +75,23 @@ class ProductServiceImplTest {
                 .productImageList(new ArrayList<>())
                 .build();
 
+        // 빈 리뷰 페이지 생성
+        Page<Review> mockReviewPage = new PageImpl<>(List.of(), pageable, 0);
+
         when(productRepository.findValidProduct(productId)).thenReturn(Optional.of(mockProduct));
+        when(reviewRepository.findByProductId(productId, pageable)).thenReturn(mockReviewPage);
 
         // when
-        ProductDetailResponseDto result = productService.getProductDetail(productId);
+        ProductDetailResponseDto result = productService.getProductDetail(productId, pageable);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getProductName()).isEqualTo("느린마을 막걸리");
-        assertThat(result.getBrand()).isEqualTo("배상면주가");
+        assertThat(result.getParentCategoryName()).isEqualTo("전통주");
+        assertThat(result.getReviewList()).isNotNull();
+        
         verify(productRepository, times(1)).findValidProduct(productId);
+        verify(reviewRepository, times(1)).findByProductId(productId, pageable);
     }
 
     @Test
@@ -87,10 +99,11 @@ class ProductServiceImplTest {
     void 상품_상세_조회_실패() {
         // given
         Long productId = 999L;
+        Pageable pageable = PageRequest.of(0, 5);
         when(productRepository.findValidProduct(productId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> productService.getProductDetail(productId))
+        assertThatThrownBy(() -> productService.getProductDetail(productId, pageable))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }
@@ -114,7 +127,10 @@ class ProductServiceImplTest {
                 .price(new BigDecimal("15000"))
                 .build();
 
-        Product mockProduct = reqDto.toEntity(mockCategory);
+        Product mockProduct = Product.builder() // reqDto.toEntity 대체 직접 빌더 생성 권장
+                .productName(reqDto.getProductName())
+                .parentCategory(mockCategory)
+                .build();
 
         when(parentCategoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
         when(productRepository.existsByProductName(reqDto.getProductName())).thenReturn(false);

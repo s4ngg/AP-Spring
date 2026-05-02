@@ -1,7 +1,6 @@
 package co.kr.allpick.domain.review.repository;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -19,11 +18,11 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 	           "JOIN FETCH r.orderItem oi " +
 	           "JOIN FETCH oi.order o " +
 	           "JOIN FETCH o.member m " +
-	           "WHERE p.productId = :productId " ) 	
-	List<Review> findByProductId(@Param("productId") Long productId, Pageable pageable);
+	           "WHERE oi.product.productId = :productId " ) 	
+	Page<Review> findByProductId(@Param("productId") Long productId, Pageable pageable);
 	
-	// 2. 리뷰 작성을 위한 기존리뷰 작성 내역 확인 
-	boolean existsByOrderItem(Long orderItemId);
+	// 2. 기존리뷰 작성 내역 확인 
+	boolean existsByOrderItemId(Long orderItemId);
 	
 	
 }

@@ -3,6 +3,8 @@ package co.kr.allpick.domain.product.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.review.dto.ReviewResponseDto;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,12 +38,7 @@ public class ProductDetailResponseDto {
 	@Schema(description = "대표이미지url", example ="\"https://allpick.com\"", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String thumbnailUrl;					
 	
-	@Schema(description = "상품옵션 리스트")
-	private List<ProductOptionResponseDto> optionList;
-	@Schema(description = "상품이미지 리스트")
-	private List<ProductImageResponseDto> productImagesList;				
-	@Schema(description = "상품 리뷰 리스트")
-	private List<ReviewResponseDto> reviewList;
+	
 	
 	@NotNull
 	@PositiveOrZero
@@ -62,10 +59,18 @@ public class ProductDetailResponseDto {
 	@Schema(description = "주의사항", example ="직사광선을 피해 보관하세요", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String precaution;						
 	
-	public static ProductDetailResponseDto from(Product product, List<ReviewResponseDto> reviewList) {
+	@Schema(description = "상품옵션 리스트")
+	private List<ProductOptionResponseDto> optionList;
+	@Schema(description = "상품이미지 리스트")
+	private List<ProductImageResponseDto> productImagesList;				
+	@Schema(description = "상품 리뷰 리스트")
+	private Page<ReviewResponseDto> reviewList;
+	
+	public static ProductDetailResponseDto from(Product product, Page<ReviewResponseDto> reviewList) {
 		return ProductDetailResponseDto.builder()
 				.productId(product.getProductId())
-				.parentCategoryName(product.getParentCategory().getCategoryName())
+				.parentCategoryName(product.getParentCategory() != null ?
+						product.getParentCategory().getCategoryName() : "미분류")
 				.brand(product.getBrand())
 				.productName(product.getProductName())
 				.thumbnailUrl(product.getThumbnailUrl())
@@ -79,8 +84,8 @@ public class ProductDetailResponseDto {
 						.toList())
 				.productImagesList(product.getProductImageList().stream()
 						.map(ProductImageResponseDto::from)
-						.toList())
+						.toList()) 
 				.reviewList(reviewList)  
- 				.build(); 
+ 				.build();    
 	}
 } 

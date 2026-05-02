@@ -1,7 +1,7 @@
 package co.kr.allpick.domain.review.service.impl;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,14 +27,13 @@ public class ReviewServiceImpl implements ReviewService{
 	// 전체사용자의 리뷰 조회 ( GetMapping )
 	@Transactional(readOnly = true)
 	@Override
-	public List<ReviewResponseDto> getReviewAll(Long productId) {
+	public Page<ReviewResponseDto> getReviewAll(Long productId, Pageable pageable) {
 		
 		// 상품에 대해 작성된 모든 리뷰를 조회
-		List<Review> productReviewAll = reviewRepository.findByProductId(productId);
 		
-		return productReviewAll.stream()
-				.map(productReview -> ReviewResponseDto.from(productReview))
-				.toList();
+		
+		return reviewRepository.findByProductId(productId ,pageable)
+				.map(productReview -> ReviewResponseDto.from(productReview));
 	}
 
 	// 리뷰 작성 ( PostMapping )
@@ -48,7 +47,7 @@ public class ReviewServiceImpl implements ReviewService{
 				.orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
 		
 		// 해당 상품에 대해 리뷰를 작성한 이력이 있는지 확인
-		boolean reviewExist = reviewRepository.existsByOrderItem(reqDto.getOrderItemId());
+		boolean reviewExist = reviewRepository.existsByOrderItemId(reqDto.getOrderItemId());
 		
 		if(reviewExist) {
 			throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
@@ -60,7 +59,7 @@ public class ReviewServiceImpl implements ReviewService{
 		reviewRepository.save(review);
 		// 응답객체 형태로 반환
 		return ReviewResponseDto.from(review);
-	}
+	} 
 
 }
 
