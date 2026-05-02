@@ -3,11 +3,13 @@ package co.kr.allpick.domain.member.dto.mypage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "비밀번호 변경 요청 DTO")
 public class PasswordChangeRequestDto {
 
