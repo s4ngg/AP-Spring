@@ -87,7 +87,7 @@ class AdminServiceImplTest {
 
         given(adminRepository.findByEmail(request.getEmail())).willReturn(Optional.of(admin));
         given(passwordEncoder.matches(request.getPassword(), admin.getPassword())).willReturn(true);
-        when(jwtProvider.createToken(any())).thenReturn("mock-token");
+        when(jwtProvider.createToken(any(AdminJwtUserInfoDto.class))).thenReturn("mock-token");
 
         // when
         AdminLoginResponseDto response = adminService.adminLogin(request);
