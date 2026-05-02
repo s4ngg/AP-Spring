@@ -78,14 +78,14 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.getApprovalStatus() != Product.ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
         }
         return product;
     }
 
     private void validateRejectReason(String rejectReason) {
         if (!StringUtils.hasText(rejectReason)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.REJECT_REASON_REQUIRED);
         }
     }
 }

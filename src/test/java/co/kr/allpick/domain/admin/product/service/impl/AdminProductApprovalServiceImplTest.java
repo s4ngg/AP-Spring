@@ -169,7 +169,39 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 실패 - 이미 거절된 상품")
+    void 상품_승인_실패_이미거절됨() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.REJECTED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 실패 - 정지된 상품")
+    void 상품_승인_실패_정지됨() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(productApprovalRepository, never()).save(any());
     }
 
@@ -247,7 +279,43 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - 이미 거절된 상품")
+    void 상품_승인_거절_실패_이미거절됨() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.REJECTED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - 정지된 상품")
+    void 상품_승인_거절_실패_정지됨() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(productApprovalRepository, never()).save(any());
     }
 
@@ -265,8 +333,26 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REJECT_REASON_REQUIRED);
         assertThat(product.getApprovalStatus()).isEqualTo(Product.ApprovalStatus.PENDING);
+        verify(productApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - 처리된 상품은 거절 사유보다 상태를 먼저 검증")
+    void 상품_승인_거절_실패_처리된상품_상태검증우선() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto(" ");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.APPROVED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(productApprovalRepository, never()).save(any());
     }
 
