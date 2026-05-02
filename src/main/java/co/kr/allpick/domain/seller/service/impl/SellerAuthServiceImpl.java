@@ -39,7 +39,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
-        validateSellerOwner(seller, memberId);  // ← 헬퍼 메서드로 교체
+        validateSellerOwner(seller, memberId);
 
         seller.updateInfo(
                 dto.getBusinessName(),
