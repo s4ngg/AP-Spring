@@ -1,6 +1,7 @@
    package co.kr.allpick.domain.product.service.impl;
 
-import co.kr.allpick.domain.product.dto.ProductListResponseDto;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
+import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
@@ -16,6 +18,8 @@ import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
+import co.kr.allpick.domain.review.entity.Review;
+import co.kr.allpick.domain.review.repository.ReviewRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ public class ProductServiceImpl implements ProductService{
 
 	private final ProductRepository productRepository;
 	private final  ParentCategoryRepository parentCategoryRepository;
+	private final ReviewRepository reviewRepository;
 		
 	@Transactional
 	@Override
@@ -60,9 +65,10 @@ public class ProductServiceImpl implements ProductService{
 		Product product = productRepository.findValidProduct(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
+		List<Review> review = reviewRepository.findByProductId(productId);
 		
 		return ProductDetailResponseDto.from(product);
-	}
+	} 
 
 	@Override
 	@Transactional(readOnly = true)
