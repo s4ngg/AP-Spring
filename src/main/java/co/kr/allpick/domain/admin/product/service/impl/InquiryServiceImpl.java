@@ -17,6 +17,8 @@ import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.exception.BusinessException;
@@ -36,6 +38,7 @@ public class InquiryServiceImpl implements InquiryService {
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
     private final SellerRepository sellerRepository;
+    private final ProductRepository productRepository;
 
     // 1. 문의 등록
     @Override
@@ -112,6 +115,13 @@ public class InquiryServiceImpl implements InquiryService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+        if (inquiry.getProductId() != null) {
+            Product product = productRepository.findById(inquiry.getProductId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
+                throw new BusinessException(ErrorCode.INQUIRY_UNAUTHORIZED);
+            }
+        }
         inquiry.updateStatus(Inquiry.InquiryStatus.PROCESSING);
         InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId, null, seller.getSellerId()));
         return InquiryAnswerResponseDto.from(answer);
