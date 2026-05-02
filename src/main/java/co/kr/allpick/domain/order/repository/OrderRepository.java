@@ -13,18 +13,18 @@ import java.util.List;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     boolean existsByOrderNumber(String orderNumber);
 
-    boolean existsByAddressId(Long addressId);
+    boolean existsByDeliveryAddress_AddressId(Long addressId);
 
     @EntityGraph(attributePaths = {"orderItems"})
     List<Order> findByMemberIdOrderByOrderedAtDesc(Long memberId);
     
     @Query("""
-    	    SELECT o.memberId, SUM(o.totalAmount)
+    	    SELECT o.member.id, SUM(o.totalAmount)
     	    FROM Order o
     	    WHERE o.orderedAt >= :start
     	      AND o.orderedAt < :end
     	      AND o.status = co.kr.allpick.domain.order.entity.Order.OrderStatus.DELIVERED
-    	    GROUP BY o.memberId
+    	    GROUP BY o.member.id
     	    """)
     	List<Object[]> sumDeliveredAmountByMemberBetween(
     	        @Param("start") LocalDateTime start,

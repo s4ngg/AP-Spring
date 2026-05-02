@@ -17,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final ClaimRepository claimRepository;
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
+    private final SellerRepository sellerRepository;
 
     // 1. 클레임 등록
     @Override
@@ -164,5 +166,64 @@ public class ClaimServiceImpl implements ClaimService {
 
         claim.reject(request.getRejectReason());
         return ClaimResponseDto.from(claim);
+    }
+ // ✅ 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
+    @Override
+    @Transactional
+    public ClaimResponseDto approveClaim(Long claimId, Long memberId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
+
+        validateSellerClaimOwnership(claim, memberId);
+
+        if (claim.getStatus() != Claim.ClaimStatus.SUBMITTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+
+        claim.updateStatus(Claim.ClaimStatus.IN_PROGRESS);
+        logger.info("[ClaimService] 판매자 클레임 승인 - claimId: {}, memberId: {}", claimId, memberId);
+        return ClaimResponseDto.from(claim);
+    }
+
+    // ✅ 9. 클레임 거부 (판매자)
+    @Override
+    @Transactional
+    public ClaimResponseDto rejectClaimBySeller(Long claimId, ClaimRejectRequestDto request, Long memberId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
+
+        validateSellerClaimOwnership(claim, memberId);
+        validateRejectableStatus(claim);
+
+        claim.reject(request.getRejectReason());
+        logger.info("[ClaimService] 판매자 클레임 거부 - claimId: {}, memberId: {}", claimId, memberId);
+        return ClaimResponseDto.from(claim);
+    }
+
+    // ✅ 판매자 소유권 검증: Claim → OrderItem → Product → Seller → Member.id
+    private void validateSellerClaimOwnership(Claim claim, Long memberId) {
+        sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
+
+        OrderItem orderItem = orderItemRepository.findById(claim.getOrderItemId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+
+        Long productOwnerMemberId = orderItem.getProduct().getSeller().getMember().getId();
+        if (!productOwnerMemberId.equals(memberId)) {
+            throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
+        }
+    }
+
+    // ✅ 거부 가능 상태 검증 공통 메서드 (관리자/판매자 공통 사용)
+    private void validateRejectableStatus(Claim claim) {
+        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
     }
 }

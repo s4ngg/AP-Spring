@@ -79,4 +79,21 @@ public class ClaimController implements ClaimControllerDocs {
         claimService.cancelClaim(claimId, userInfo.getMemberId());
         return ApiResponse.success("클레임이 취소되었습니다.", null);
     }
+    @Override
+    @PatchMapping("/{claimId}/approve")
+    public ResponseEntity<ApiResponse<ClaimResponseDto>> approveClaim(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("claimId") Long claimId) {
+        return ApiResponse.success("클레임이 승인되었습니다.", claimService.approveClaim(claimId, userInfo.getMemberId()));
+    }
+
+    @Override
+    @PatchMapping("/{claimId}/seller-reject")
+    public ResponseEntity<ApiResponse<ClaimResponseDto>> rejectClaimBySeller(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("claimId") Long claimId,
+            @RequestBody @Valid ClaimRejectRequestDto request) {
+        return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaimBySeller(claimId, request, userInfo.getMemberId()));
+    }
 }
+

@@ -184,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void validateAddressNotUsedInOrder(Long addressId) {
-        if (orderRepository.existsByAddressId(addressId)) {
+        if (orderRepository.existsByDeliveryAddress_AddressId(addressId)) {
             throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
         }
     }

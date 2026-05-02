@@ -80,4 +80,27 @@ public interface ClaimControllerDocs {
     ResponseEntity<ApiResponse<Void>> cancelClaim(
             @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId,
             @AuthenticationPrincipal JwtUserInfoDto userInfo);
+    
+    @Operation(summary = "클레임 승인 (판매자)", description = "판매자가 자신의 상품 클레임을 승인합니다. SUBMITTED → IN_PROGRESS")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 승인 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "접수 상태가 아닌 클레임"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 클레임에 대한 권한 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 클레임 또는 판매자")
+    })
+    ResponseEntity<ApiResponse<ClaimResponseDto>> approveClaim(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId);
+
+    @Operation(summary = "클레임 거부 (판매자)", description = "판매자가 자신의 상품 클레임을 거부합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 거부 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 완료/거부/취소된 클레임"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 클레임에 대한 권한 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 클레임 또는 판매자")
+    })
+    ResponseEntity<ApiResponse<ClaimResponseDto>> rejectClaimBySeller(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId,
+            @RequestBody @Valid ClaimRejectRequestDto request);
 }
