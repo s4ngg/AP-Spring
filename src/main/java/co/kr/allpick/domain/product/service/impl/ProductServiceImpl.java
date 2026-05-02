@@ -59,7 +59,7 @@ public class ProductServiceImpl implements ProductService{
 	@Transactional(readOnly = true)
 	@Override
 	
-	// Id로 상품상세 페이지 조회
+	// Id로 상품상세 페이지 조회 (리뷰 포함)
  	public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
 		// findValidProduct 메서드가 판매상태와, 승인상태 검증해줌.
 		Product product = productRepository.findValidProduct(productId)
