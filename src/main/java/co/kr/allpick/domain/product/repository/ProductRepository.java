@@ -27,6 +27,8 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 	// 상품명 존재 여부 확인 메서드
 	boolean existsByProductName(String productName);
 
+	Optional<Product> findByProductIdAndDeletedAtIsNull(Long productId);
+
 
 	
 

@@ -99,12 +99,20 @@ public class Product extends BaseEntity {
     @Column(name = "approval_status", nullable = false)
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
+    public void approve() {
+        this.approvalStatus = ApprovalStatus.APPROVED;
+    }
+
+    public void reject() {
+        this.approvalStatus = ApprovalStatus.REJECTED;
+    }
+
     public enum Status {
         ON_SALE, SOLD_OUT, HIDDEN
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, SUSPENDED
+        PENDING, APPROVED, REJECTED, SUSPENDED
 
     }
 }
