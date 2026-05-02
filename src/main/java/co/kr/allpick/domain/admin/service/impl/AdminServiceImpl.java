@@ -32,22 +32,28 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public AdminLoginResponseDto adminLogin(AdminLoginRequestDto request) {
-        Admin admin = adminRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
-
-        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
-            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
-        }
-
-        if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
-        }
+        Admin admin = findAdminByEmail(request.getEmail());
+        validateLoginConditions(admin, request.getPassword());
 
         String token = jwtProvider.createToken(AdminJwtUserInfoDto.from(admin));
         admin.updateLastLoginAt(LocalDateTime.now());
 
         logger.info("[AdminServiceImpl] 관리자 로그인 성공 - adminId: {}", admin.getAdminId());
         return AdminLoginResponseDto.from(admin, token);
+    }
+
+    private Admin findAdminByEmail(String email) {
+        return adminRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
+    }
+
+    private void validateLoginConditions(Admin admin, String rawPassword) {
+        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
+            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
+        }
+        if (!passwordEncoder.matches(rawPassword, admin.getPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+        }
     }
 
     @Override
