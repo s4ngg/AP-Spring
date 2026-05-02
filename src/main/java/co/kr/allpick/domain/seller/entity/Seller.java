@@ -54,6 +54,18 @@ public class Seller extends BaseEntity {
         this.status = status;
     }
 
+    public void approve() {
+        this.status = SellerStatus.APPROVED;
+    }
+
+    public void reject() {
+        this.status = SellerStatus.REJECTED;
+    }
+
+    public void suspend() {
+        this.status = SellerStatus.SUSPENDED;
+    }
+
     /**
      * 은행 정보 업데이트 메서드
      */
@@ -64,7 +76,7 @@ public class Seller extends BaseEntity {
         this.bankAccount = bankAccount;
     }
     public void delete() {
-        this.status = SellerStatus.SUSPENDED;
+        suspend();
         super.delete();
     }
 
