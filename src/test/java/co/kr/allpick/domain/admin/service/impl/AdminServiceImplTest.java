@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,10 +26,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class AdminServiceImplTest {
@@ -85,9 +86,15 @@ class AdminServiceImplTest {
         @Test
         @DisplayName("로그인 성공 - 토큰 반환 및 마지막 로그인 시각 갱신")
         void 로그인_성공() {
-            Admin admin = spy(buildAdmin(Admin.AdminStatus.ACTIVE));
+            Admin admin = mock(Admin.class);
             AdminLoginRequestDto request = new AdminLoginRequestDto("super@allpick.com", "rawPassword");
 
+            given(admin.getAdminId()).willReturn(1L);
+            given(admin.getEmail()).willReturn("super@allpick.com");
+            given(admin.getPassword()).willReturn("encodedPassword");
+            given(admin.getAdminName()).willReturn("test admin");
+            given(admin.getRole()).willReturn(Admin.AdminRole.SUPER_ADMIN);
+            given(admin.getStatus()).willReturn(Admin.AdminStatus.ACTIVE);
             given(adminRepository.findByEmail(request.getEmail())).willReturn(Optional.of(admin));
             given(passwordEncoder.matches(request.getPassword(), admin.getPassword())).willReturn(true);
             given(jwtProvider.createToken(any(AdminJwtUserInfoDto.class))).willReturn("mock-token");
@@ -97,6 +104,12 @@ class AdminServiceImplTest {
             assertThat(response).isNotNull();
             assertThat(response.getToken()).isEqualTo("mock-token");
             assertThat(response.getRole()).isEqualTo(Admin.AdminRole.SUPER_ADMIN);
+            ArgumentCaptor<AdminJwtUserInfoDto> tokenCaptor = ArgumentCaptor.forClass(AdminJwtUserInfoDto.class);
+            then(jwtProvider).should().createToken(tokenCaptor.capture());
+            AdminJwtUserInfoDto tokenInfo = tokenCaptor.getValue();
+            assertThat(tokenInfo.getAdminId()).isEqualTo(1L);
+            assertThat(tokenInfo.getEmail()).isEqualTo("super@allpick.com");
+            assertThat(tokenInfo.getRole()).isEqualTo(Admin.AdminRole.SUPER_ADMIN);
             verify(admin).updateLastLoginAt(any());
         }
 
@@ -149,7 +162,7 @@ class AdminServiceImplTest {
             return AdminCreateRequestDto.builder()
                     .email("new@allpick.com")
                     .password("NewAdmin1!")
-                    .adminName("신규관리자")
+                    .adminName("new admin")
                     .adminPhone("01099998888")
                     .role(Admin.AdminRole.CS_ADMIN)
                     .build();
@@ -169,7 +182,11 @@ class AdminServiceImplTest {
             then(adminRepository).should().save(captor.capture());
             Admin saved = captor.getValue();
             assertThat(saved.getEmail()).isEqualTo("new@allpick.com");
+            assertThat(saved.getPassword()).isEqualTo("encodedNew");
+            assertThat(saved.getAdminName()).isEqualTo("new admin");
+            assertThat(saved.getAdminPhone()).isEqualTo("01099998888");
             assertThat(saved.getRole()).isEqualTo(Admin.AdminRole.CS_ADMIN);
+            assertThat(saved.getStatus()).isEqualTo(Admin.AdminStatus.ACTIVE);
         }
 
         @Test
