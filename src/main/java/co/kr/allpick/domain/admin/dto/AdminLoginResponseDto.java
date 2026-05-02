@@ -1,11 +1,15 @@
 package co.kr.allpick.domain.admin.dto;
 
 import co.kr.allpick.domain.admin.entity.Admin;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class AdminLoginResponseDto {
 
     private String adminName;
