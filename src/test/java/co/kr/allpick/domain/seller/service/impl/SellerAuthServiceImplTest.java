@@ -26,8 +26,8 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -49,7 +49,7 @@ class SellerAuthServiceImplTest {
     void signup_validRequest_success() {
         // given
         Long memberId = 1L;
-        
+
         SellerSignupRequestDto dto = new SellerSignupRequestDto(
                 "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
 
@@ -111,11 +111,15 @@ class SellerAuthServiceImplTest {
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
                 1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId); // ✅ getId()가 memberId를 반환하도록 설정
+
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
                 .representativeName("홍길동")
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
+                .member(mockMember) // ✅ member 설정
                 .build();
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.of(mockSeller));
@@ -166,7 +170,7 @@ class SellerAuthServiceImplTest {
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberId(mockMember.getId())).willReturn(Optional.of(mockSeller));
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.of(mockSeller));
         given(jwtProvider.createToken(any(JwtUserInfoDto.class))).willReturn("mockToken");
 
         // when
@@ -224,14 +228,15 @@ class SellerAuthServiceImplTest {
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberId(mockMember.getId())).willReturn(Optional.empty());
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerAuthService.login(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.NOT_SELLER.getMessage());
     }
- // ==================== 판매자 삭제 ====================
+
+    // ==================== 판매자 삭제 ====================
 
     @Test
     @DisplayName("판매자 삭제 성공")
@@ -239,8 +244,9 @@ class SellerAuthServiceImplTest {
         // given
         Long sellerId = 1L;
         Long memberId = 1L;
-        
-        Member mockMember = Member.builder().build();
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId); // ✅ getId()가 memberId를 반환하도록 설정
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
@@ -275,5 +281,4 @@ class SellerAuthServiceImplTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
-    
 }
