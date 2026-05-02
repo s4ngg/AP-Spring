@@ -123,14 +123,7 @@ class AdminProductApprovalServiceImplTest {
     void 상품_승인_실패_DB관리자권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Admin admin = Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
-                .adminName("관리자")
-                .adminPhone("010-0000-0000")
-                .role(Admin.AdminRole.CS_ADMIN)
-                .status(Admin.AdminStatus.ACTIVE)
-                .build();
+        Admin admin = csAdmin();
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
 
@@ -228,14 +221,7 @@ class AdminProductApprovalServiceImplTest {
     void 상품_승인_거절_실패_DB관리자권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Admin admin = Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
-                .adminName("관리자")
-                .adminPhone("010-0000-0000")
-                .role(Admin.AdminRole.CS_ADMIN)
-                .status(Admin.AdminStatus.ACTIVE)
-                .build();
+        Admin admin = csAdmin();
         ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
@@ -370,6 +356,17 @@ class AdminProductApprovalServiceImplTest {
                 .adminName("관리자")
                 .adminPhone("010-0000-0000")
                 .role(Admin.AdminRole.SUPER_ADMIN)
+                .status(Admin.AdminStatus.ACTIVE)
+                .build();
+    }
+
+    private Admin csAdmin() {
+        return Admin.builder()
+                .email("admin@example.com")
+                .password("encodedPassword")
+                .adminName("관리자")
+                .adminPhone("010-0000-0000")
+                .role(Admin.AdminRole.CS_ADMIN)
                 .status(Admin.AdminStatus.ACTIVE)
                 .build();
     }
