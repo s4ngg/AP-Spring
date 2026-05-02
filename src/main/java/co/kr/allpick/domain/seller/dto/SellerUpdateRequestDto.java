@@ -2,6 +2,7 @@ package co.kr.allpick.domain.seller.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SellerUpdateRequestDto {
+
+	@Schema(description = "판매자 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "판매자 ID는 필수입니다.")
+    private Long sellerId;
 
     @NotBlank
     @Schema(description = "상호명", example = "나이키 코리아",

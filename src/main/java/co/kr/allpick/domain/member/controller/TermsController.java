@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.member.controller;
 
+import co.kr.allpick.domain.member.docs.TermsControllerDocs;
 import co.kr.allpick.domain.member.entity.Terms;
 import co.kr.allpick.domain.member.service.TermsService;
 import co.kr.allpick.global.response.ApiResponse;
@@ -11,12 +12,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/terms")
 @RequiredArgsConstructor
-public class TermsController {
+public class TermsController implements TermsControllerDocs {
 
     private final TermsService termsService; // ✅ Repository → Service로 변경
 
+    @Override
     @GetMapping
     public ResponseEntity<ApiResponse<List<Terms>>> getTerms() {
         return ApiResponse.success("약관 조회 성공", termsService.getActiveTerms());
     }
+
 }

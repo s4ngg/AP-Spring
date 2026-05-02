@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.seller.entity;
 
 import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.seller.apply.dto.SellerApplyRequestDto;
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,8 +46,6 @@ public class Seller extends BaseEntity {
     @Builder.Default
     private SellerStatus status = SellerStatus.PENDING;
 
-    @Column(name = "deleted_at")
-    private java.time.LocalDateTime deletedAt;
 
     /**
      * 판매자 승인 상태 변경 메서드
@@ -58,15 +57,25 @@ public class Seller extends BaseEntity {
     /**
      * 은행 정보 업데이트 메서드
      */
-    public void updateBankInfo(String bankName, String bankAccount) {
-        this.bankName = bankName;
-        this.bankAccount = bankAccount;
-    }
-    
     public void updateInfo(String businessName, String representativeName, String bankName, String bankAccount) {
         this.businessName = businessName;
         this.representativeName = representativeName;
         this.bankName = bankName;
         this.bankAccount = bankAccount;
     }
+    public void delete() {
+        this.status = SellerStatus.SUSPENDED;
+        super.delete();
+    }
+
+	public static Seller of(Member member, SellerApplyRequestDto dto) {
+		return Seller.builder()
+	            .member(member)
+	            .businessName(dto.getBusinessName())
+	            .businessNumber(dto.getBusinessNumber())
+	            .representativeName(dto.getRepresentativeName())
+	            .bankName(dto.getBankName())
+	            .bankAccount(dto.getBankAccount())
+	            .build();
+	}
 }

@@ -15,12 +15,12 @@ public class SellerLoginRequestDto {
 
     @NotBlank
     @Email
-    @Schema(description = "이메일", example = "seller@test.com",
+    @Schema(description = "이메일", example = "test@test.com",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
 
     @NotBlank
-    @Schema(description = "비밀번호", example = "password123!",
+    @Schema(description = "비밀번호", example = "Password1234!",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private String password;
 }
