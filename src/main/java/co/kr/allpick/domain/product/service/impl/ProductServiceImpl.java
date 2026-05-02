@@ -1,6 +1,7 @@
    package co.kr.allpick.domain.product.service.impl;
 
-import co.kr.allpick.domain.product.dto.ProductListResponseDto;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
+import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
@@ -16,6 +18,8 @@ import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
+import co.kr.allpick.domain.review.dto.ReviewResponseDto;
+import co.kr.allpick.domain.review.repository.ReviewRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ public class ProductServiceImpl implements ProductService{
 
 	private final ProductRepository productRepository;
 	private final  ParentCategoryRepository parentCategoryRepository;
+	private final ReviewRepository reviewRepository;
 		
 	@Transactional
 	@Override
@@ -55,14 +60,17 @@ public class ProductServiceImpl implements ProductService{
 	@Override
 	
 	// Id로 상품상세 페이지 조회
- 	public ProductDetailResponseDto getProductDetail(Long productId) {
+ 	public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
 		// findValidProduct 메서드가 판매상태와, 승인상태 검증해줌.
 		Product product = productRepository.findValidProduct(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
+		// 해당 상품에 대한 리뷰 조회
+		Page<ReviewResponseDto> reviewPage = reviewRepository.findByProductId(productId,pageable)
+				.map(ReviewResponseDto::from);
 		
-		return ProductDetailResponseDto.from(product);
-	}
+		return ProductDetailResponseDto.from(product, reviewPage);
+	} 
 
 	@Override
 	@Transactional(readOnly = true)

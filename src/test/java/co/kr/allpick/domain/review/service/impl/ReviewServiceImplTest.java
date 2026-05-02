@@ -17,7 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
@@ -28,7 +33,6 @@ import co.kr.allpick.domain.review.entity.Review;
 import co.kr.allpick.domain.review.repository.ReviewRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
-import co.kr.allpick.domain.member.entity.Member;
 
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceImplTest {
@@ -43,12 +47,12 @@ class ReviewServiceImplTest {
     private ReviewServiceImpl reviewService;
 
     @Test
-    @DisplayName("전체 리뷰 조회 성공 - 데이터가 있는 경우")
+    @DisplayName("전체 리뷰 조회 성공 - 페이징 적용")
     void 전체_리뷰_조회_성공() {
         // given
         Long productId = 1L;
+        Pageable pageable = PageRequest.of(0, 5); // 페이징 객체 생성
         
-        // DTO의 from 메서드 내부 객체 그래프 탐색을 위한 모킹
         Review mockReview = mock(Review.class);
         OrderItem mockOrderItem = mock(OrderItem.class);
         Order mockOrder = mock(Order.class);
@@ -65,15 +69,18 @@ class ReviewServiceImplTest {
         when(mockReview.getRating()).thenReturn(5);
         when(mockReview.getContent()).thenReturn("좋아요");
 
-        when(reviewRepository.findByProductId(productId)).thenReturn(List.of(mockReview));
+        // List 대신 Page 객체로 래핑
+        Page<Review> mockPage = new PageImpl<>(List.of(mockReview), pageable, 1);
+        when(reviewRepository.findByProductId(productId, pageable)).thenReturn(mockPage);
 
         // when
-        List<ReviewResponseDto> result = reviewService.getReviewAll(productId);
+        Page<ReviewResponseDto> result = reviewService.getReviewAll(productId, pageable);
 
         // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getWriterName()).isEqualTo("홍길동");
-        verify(reviewRepository, times(1)).findByProductId(productId);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getWriterName()).isEqualTo("홍길동");
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        verify(reviewRepository, times(1)).findByProductId(productId, pageable);
     }
 
     @Test
@@ -87,16 +94,14 @@ class ReviewServiceImplTest {
                 .selectedOption("Black / L")
                 .build();
 
-        // 연관관계 객체 모킹
         OrderItem mockOrderItem = mock(OrderItem.class);
         Order mockOrder = mock(Order.class);
         Member mockMember = mock(Member.class);
         Product mockProduct = mock(Product.class);
 
         when(orderItemRepository.findById(request.getOrderItemId())).thenReturn(Optional.of(mockOrderItem));
-        when(reviewRepository.existsByOrderItem(request.getOrderItemId())).thenReturn(false);
+        when(reviewRepository.existsByOrderItemId(request.getOrderItemId())).thenReturn(false); // 메서드명 수정 반영 확인 필요
         
-        // 응답 DTO 생성을 위한 내부 객체 모킹
         when(mockOrderItem.getOrder()).thenReturn(mockOrder);
         when(mockOrder.getMember()).thenReturn(mockMember);
         when(mockMember.getName()).thenReturn("홍길동");
@@ -133,7 +138,7 @@ class ReviewServiceImplTest {
         OrderItem mockOrderItem = mock(OrderItem.class);
 
         when(orderItemRepository.findById(1L)).thenReturn(Optional.of(mockOrderItem));
-        when(reviewRepository.existsByOrderItem(1L)).thenReturn(true);
+        when(reviewRepository.existsByOrderItemId(1L)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> reviewService.createReview(request))
