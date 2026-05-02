@@ -58,9 +58,6 @@ public class Seller extends BaseEntity {
         this.status = SellerStatus.SUSPENDED;
     }
 
-    /**
-     * 은행 정보 업데이트 메서드
-     */
     public void updateInfo(String businessName, String representativeName, String bankName, String bankAccount) {
         this.businessName = businessName;
         this.representativeName = representativeName;
