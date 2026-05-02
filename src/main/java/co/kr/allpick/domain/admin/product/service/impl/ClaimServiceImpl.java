@@ -200,12 +200,11 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // ✅ 판매자 소유권 검증: Claim → OrderItem → Product → Seller → Member.id
     private void validateSellerClaimOwnership(Claim claim, Long memberId) {
         sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
-        OrderItem orderItem = orderItemRepository.findById(claim.getOrderItemId())
+        OrderItem orderItem = orderItemRepository.findByIdWithSellerMember(claim.getOrderItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
 
         Long productOwnerMemberId = orderItem.getProduct().getSeller().getMember().getId();
@@ -214,7 +213,6 @@ public class ClaimServiceImpl implements ClaimService {
         }
     }
 
-    // ✅ 거부 가능 상태 검증 공통 메서드 (관리자/판매자 공통 사용)
     private void validateRejectableStatus(Claim claim) {
         if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
