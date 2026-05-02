@@ -54,7 +54,7 @@ public enum ErrorCode {
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
-
+    UNAUTHORIZED(HttpStatus.FORBIDDEN, "UNAUTHORIZED", "본인만 접근 가능합니다."),
     // SMS
     SMS_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SMS_SEND_FAILED", "SMS 발송에 실패했습니다."),
     PHONE_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "PHONE_NOT_VERIFIED", "핸드폰 인증이 필요합니다."),
@@ -71,6 +71,13 @@ public enum ErrorCode {
     // FAQ
     FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "FAQ_NOT_FOUND", "FAQ를 찾을 수 없습니다."),
 
+
+	//Seller
+	DUPLICATE_BUSINESS_NUMBER(HttpStatus.CONFLICT, "DUPLICATE_BUSINESS_NUMBER", "이미 등록된 사업자등록번호입니다."),
+    INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다."),
+    SELLER_NOT_FOUND(HttpStatus.NOT_FOUND, "SELLER_NOT_FOUND", "판매자를 찾을 수 없습니다."),
+    SELLER_ALREADY_EXISTS(HttpStatus.CONFLICT, "SELLER_ALREADY_EXISTS", "이미 판매자로 등록된 회원입니다."),
+    
     // Notice
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
     NOTICE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NOTICE_ALREADY_DELETED", "이미 삭제된 공지사항입니다."),
@@ -96,10 +103,8 @@ public enum ErrorCode {
 
 
     // Review
-    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다."),
-    
-    // External Api
-    INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다.");
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다.");
+
 
 	
     
