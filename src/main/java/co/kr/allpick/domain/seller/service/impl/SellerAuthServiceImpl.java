@@ -35,11 +35,9 @@ public class SellerAuthServiceImpl implements SellerAuthService {
     private final JwtProvider jwtProvider;
 
     @Override
-    public void update(Long sellerId, SellerUpdateRequestDto dto, Long memberId) {
+    public void update(Long sellerId, SellerUpdateRequestDto dto) {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
-
-        validateSellerOwner(seller, memberId);  // ← 헬퍼 메서드로 교체
 
         seller.updateInfo(
                 dto.getBusinessName(),

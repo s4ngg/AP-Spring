@@ -107,25 +107,20 @@ class SellerAuthServiceImplTest {
     void update_validRequest_success() {
         // given
         Long sellerId = 1L;
-        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
-
-        Member mockMember = mock(Member.class);
-        given(mockMember.getId()).willReturn(memberId); // ✅ getId()가 memberId를 반환하도록 설정
+                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")
                 .representativeName("홍길동")
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
-                .member(mockMember) // ✅ member 설정
                 .build();
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.of(mockSeller));
 
         // when
-        sellerAuthService.update(sellerId, dto, memberId);
+        sellerAuthService.update(sellerId, dto);
 
         // then
         verify(sellerRepository, times(1)).findById(sellerId);
@@ -136,14 +131,13 @@ class SellerAuthServiceImplTest {
     void update_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;
-        Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                1L, "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto, memberId))
+        assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
@@ -246,7 +240,7 @@ class SellerAuthServiceImplTest {
         Long memberId = 1L;
 
         Member mockMember = mock(Member.class);
-        given(mockMember.getId()).willReturn(memberId); // ✅ getId()가 memberId를 반환하도록 설정
+        given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
                 .businessName("나이키 코리아")

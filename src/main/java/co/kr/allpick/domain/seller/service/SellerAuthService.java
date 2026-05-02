@@ -8,6 +8,6 @@ import co.kr.allpick.domain.seller.dto.SellerUpdateRequestDto;
 public interface SellerAuthService {
     void signup(SellerSignupRequestDto dto, Long memberId);
     SellerLoginResponseDto login(SellerLoginRequestDto dto);
-    void update(Long sellerId, SellerUpdateRequestDto dto, Long memberId);
+    void update(Long sellerId, SellerUpdateRequestDto dto);
     void deleteSeller(Long sellerId, Long memberId);
 }
