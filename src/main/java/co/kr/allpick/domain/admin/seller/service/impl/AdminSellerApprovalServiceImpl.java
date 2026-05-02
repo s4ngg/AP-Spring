@@ -79,14 +79,14 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
         Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         if (seller.getStatus() != SellerStatus.PENDING) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
         }
         return seller;
     }
 
     private void validateRejectReason(String rejectReason) {
         if (!StringUtils.hasText(rejectReason)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.REJECT_REASON_REQUIRED);
         }
     }
 }

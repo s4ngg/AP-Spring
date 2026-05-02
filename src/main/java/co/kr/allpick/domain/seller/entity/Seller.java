@@ -46,14 +46,6 @@ public class Seller extends BaseEntity {
     @Builder.Default
     private SellerStatus status = SellerStatus.PENDING;
 
-
-    /**
-     * 판매자 승인 상태 변경 메서드
-     */
-    public void updateStatus(SellerStatus status) {
-        this.status = status;
-    }
-
     public void approve() {
         this.status = SellerStatus.APPROVED;
     }

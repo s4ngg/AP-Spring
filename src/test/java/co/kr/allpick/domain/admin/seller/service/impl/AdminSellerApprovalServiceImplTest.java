@@ -138,14 +138,7 @@ class AdminSellerApprovalServiceImplTest {
     void 판매자_승인_실패_DB관리자권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Admin admin = Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
-                .adminName("관리자")
-                .adminPhone("010-0000-0000")
-                .role(Admin.AdminRole.CS_ADMIN)
-                .status(Admin.AdminStatus.ACTIVE)
-                .build();
+        Admin admin = csAdmin();
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
 
@@ -168,7 +161,37 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 실패 - REJECTED 상태는 처리 불가")
+    void 판매자_승인_실패_REJECTED상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 실패 - SUSPENDED 상태는 처리 불가")
+    void 판매자_승인_실패_SUSPENDED상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -195,14 +218,7 @@ class AdminSellerApprovalServiceImplTest {
     void 판매자_승인_거절_실패_DB관리자권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Admin admin = Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
-                .adminName("관리자")
-                .adminPhone("010-0000-0000")
-                .role(Admin.AdminRole.CS_ADMIN)
-                .status(Admin.AdminStatus.ACTIVE)
-                .build();
+        Admin admin = csAdmin();
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
@@ -245,7 +261,41 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - REJECTED 상태는 처리 불가")
+    void 판매자_승인_거절_실패_REJECTED상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - SUSPENDED 상태는 처리 불가")
+    void 판매자_승인_거절_실패_SUSPENDED상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -263,8 +313,25 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REJECT_REASON_REQUIRED);
         assertThat(seller.getStatus()).isEqualTo(SellerStatus.PENDING);
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 거절 실패 - 처리 완료 상태가 거절 사유보다 우선")
+    void 판매자_승인_거절_실패_처리완료상태가거절사유보다우선() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        SellerRejectRequestDto request = new SellerRejectRequestDto(" ");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -282,6 +349,17 @@ class AdminSellerApprovalServiceImplTest {
                 .adminName("관리자")
                 .adminPhone("010-0000-0000")
                 .role(Admin.AdminRole.SUPER_ADMIN)
+                .status(Admin.AdminStatus.ACTIVE)
+                .build();
+    }
+
+    private Admin csAdmin() {
+        return Admin.builder()
+                .email("admin@example.com")
+                .password("encodedPassword")
+                .adminName("관리자")
+                .adminPhone("010-0000-0000")
+                .role(Admin.AdminRole.CS_ADMIN)
                 .status(Admin.AdminStatus.ACTIVE)
                 .build();
     }
