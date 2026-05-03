@@ -17,8 +17,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 @Service
 @RequiredArgsConstructor
 public class AdminProductApprovalServiceImpl implements AdminProductApprovalService {
@@ -50,7 +48,6 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
     public ProductApprovalResponseDto rejectProduct(AdminJwtUserInfoDto adminInfo, Long productId, ProductRejectRequestDto request) {
         Admin admin = getSuperAdmin(adminInfo);
         Product product = getPendingProduct(productId);
-        validateRejectReason(request.getRejectReason());
 
         product.reject();
         ProductApproval productApproval = productApprovalRepository.save(
@@ -78,14 +75,9 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
         Product product = productRepository.findByProductIdAndDeletedAtIsNull(productId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
         if (product.getApprovalStatus() != Product.ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
+            throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
         }
         return product;
     }
 
-    private void validateRejectReason(String rejectReason) {
-        if (!StringUtils.hasText(rejectReason)) {
-            throw new BusinessException(ErrorCode.REJECT_REASON_REQUIRED);
-        }
-    }
 }
