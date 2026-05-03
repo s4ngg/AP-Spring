@@ -9,6 +9,7 @@ import co.kr.allpick.domain.admin.product.service.AdminProductApprovalService;
 import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -32,6 +33,7 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
     public ProductApprovalResponseDto approveProduct(AdminJwtUserInfoDto adminInfo, Long productId) {
         Admin admin = getSuperAdmin(adminInfo);
         Product product = getPendingProduct(productId);
+        validateSellerApproved(product);
 
         product.approve();
         ProductApproval productApproval = productApprovalRepository.save(
@@ -78,6 +80,12 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
             throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
         }
         return product;
+    }
+
+    private void validateSellerApproved(Product product) {
+        if (product.getSeller().getStatus() != SellerStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.SELLER_NOT_APPROVED);
+        }
     }
 
 }

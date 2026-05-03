@@ -8,6 +8,8 @@ import co.kr.allpick.domain.admin.product.repository.ProductApprovalRepository;
 import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -55,7 +57,7 @@ class AdminProductApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         Admin admin = mockSuperAdmin();
-        Product product = product(Product.ApprovalStatus.PENDING);
+        Product product = product(Product.ApprovalStatus.PENDING, SellerStatus.APPROVED);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
         given(productRepository.findByProductIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(product));
@@ -86,7 +88,7 @@ class AdminProductApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         Admin admin = mockSuperAdmin();
-        Product product = product(Product.ApprovalStatus.PENDING);
+        Product product = product(Product.ApprovalStatus.PENDING, SellerStatus.APPROVED);
         ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
@@ -221,18 +223,18 @@ class AdminProductApprovalServiceImplTest {
     }
 
     @Test
-    @DisplayName("상품 승인 실패 - 정지된 상품")
-    void 상품_승인_실패_정지됨() {
+    @DisplayName("상품 승인 실패 - 판매자 미승인")
+    void 상품_승인_실패_판매자미승인() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
-                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
+                .willReturn(Optional.of(product(Product.ApprovalStatus.PENDING, SellerStatus.PENDING)));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -362,24 +364,6 @@ class AdminProductApprovalServiceImplTest {
         then(productApprovalRepository).should(never()).save(any());
     }
 
-    @Test
-    @DisplayName("상품 승인 거절 실패 - 정지된 상품")
-    void 상품_승인_거절_실패_정지됨() {
-        // given
-        AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
-
-        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
-                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
-
-        // when & then
-        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
-        then(productApprovalRepository).should(never()).save(any());
-    }
-
     // ─────────────────────────────────────────
     // 픽스처
     // ─────────────────────────────────────────
@@ -432,9 +416,16 @@ class AdminProductApprovalServiceImplTest {
                 .build();
     }
 
-    private Product product(Product.ApprovalStatus approvalStatus) {
+    private Product product(Product.ApprovalStatus approvalStatus, SellerStatus sellerStatus) {
+        Seller seller = Seller.builder()
+                .businessName("테스트 판매자")
+                .businessNumber("123-45-67890")
+                .representativeName("홍길동")
+                .status(sellerStatus)
+                .build();
         return Product.builder()
                 .productId(1L)
+                .seller(seller)
                 .productName("테스트 상품")
                 .brand("브랜드")
                 .thumbnailUrl("https://example.com/image.jpg")
@@ -446,5 +437,9 @@ class AdminProductApprovalServiceImplTest {
                 .status(Product.Status.ON_SALE)
                 .approvalStatus(approvalStatus)
                 .build();
+    }
+
+    private Product product(Product.ApprovalStatus approvalStatus) {
+        return product(approvalStatus, SellerStatus.APPROVED);
     }
 }
