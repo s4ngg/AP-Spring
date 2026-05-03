@@ -107,5 +107,15 @@ public class Product extends BaseEntity {
         PENDING, APPROVED, SUSPENDED
 
     }
+    
+    
+    
+    public void updatePrice(BigDecimal price) { 
+    	this.price = price;
+    }
 }
+
+
+
+
 

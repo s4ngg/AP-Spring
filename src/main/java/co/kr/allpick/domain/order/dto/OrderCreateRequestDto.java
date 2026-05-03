@@ -20,10 +20,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "주문 생성 요청 DTO")
 public class OrderCreateRequestDto {
 
-	@NotNull
-	@Schema(description = "회원 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-    private Long memberId;
-	
     @NotNull
     @Schema(description = "배송지 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long addressId;

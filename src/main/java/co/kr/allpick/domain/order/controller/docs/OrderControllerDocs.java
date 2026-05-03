@@ -23,7 +23,7 @@ import java.util.List;
 @Tag(name = "Order", description = "주문 API")
 public interface OrderControllerDocs {
 
-    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
+    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다. 토큰을 통해 회원 정보를 확인합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 생성 성공",
             content = @Content(
@@ -55,7 +55,7 @@ public interface OrderControllerDocs {
             ))
     })
     ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-            // [수정] 서비스 및 컨트롤러 로직 변경에 따라 @PathVariable memberId 제거
+    		@AuthenticationPrincipal JwtUserInfoDto userInfo,
             @RequestBody @Valid OrderCreateRequestDto request);
 
     @Operation(summary = "주문 단건 조회", description = "주문 ID로 주문을 조회합니다.")

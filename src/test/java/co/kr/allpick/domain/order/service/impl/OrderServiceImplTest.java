@@ -3,13 +3,15 @@ package co.kr.allpick.domain.order.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +22,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import co.kr.allpick.domain.coupon.entity.MemberCoupon;
 import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
@@ -63,15 +64,19 @@ class OrderServiceImplTest {
         Long productId = 100L;
         
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(productId, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(memberId, addressId, null, List.of(itemRequest));
+        // [수정] DTO 생성자에서 memberId 제거
+        OrderCreateRequestDto request = new OrderCreateRequestDto(addressId, null, List.of(itemRequest));
 
-        Member mockMember = Member.builder().build();
-        DeliveryAddress mockAddress = DeliveryAddress.builder().build();
+        // [추가] 배송지 소유권 검증을 위해 Member 정보가 포함된 배송지 객체 생성
+        Member mockMember = Member.builder().id(memberId).build();
+        DeliveryAddress mockAddress = DeliveryAddress.builder()
+                .memberId(memberId) // 소유주 설정
+                .build();
+        
         Product mockProduct = Product.builder()
                 .price(BigDecimal.valueOf(10000))
                 .build();
 
-        // 초기 save 시 반환될 Order (아이템 리스트가 초기화되어 있어야 함)
         Order mockOrder = Order.builder()
             .orderNumber("ORD-GENERATED-001")
             .build();
@@ -83,7 +88,8 @@ class OrderServiceImplTest {
         when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
 
         // when
-        OrderResponseDto result = orderService.createOrder(request);
+        // [수정] 파라미터에 memberId 추가 전달
+        OrderResponseDto result = orderService.createOrder(memberId, request);
 
         // then
         assertThat(result).isNotNull();
@@ -95,17 +101,23 @@ class OrderServiceImplTest {
     @Test
     @DisplayName("주문 생성 실패 - 상품이 존재하지 않음")
     void 주문_생성_실패_상품없음() {
-        // given
+        // given 
+        Long memberId = 1L;
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 1);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, 1L, null, List.of(itemRequest));
+        // [수정] DTO 생성자에서 memberId 제거
+        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest));
 
-        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(Member.builder().build()));
-        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(DeliveryAddress.builder().build()));
+        Member mockMember = Member.builder().id(memberId).build();
+        DeliveryAddress mockAddress = DeliveryAddress.builder().memberId(memberId).build();
+
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(mockAddress));
         when(orderRepository.save(any())).thenReturn(Order.builder().build());
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrder(request))
+        // [수정] 파라미터에 memberId 추가 전달
+        assertThatThrownBy(() -> orderService.createOrder(memberId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }

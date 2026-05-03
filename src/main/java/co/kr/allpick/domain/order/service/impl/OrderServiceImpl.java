@@ -54,11 +54,11 @@ public class OrderServiceImpl implements OrderService {
     // OrderCreateRequestDto 안에 memberId, addressId, memberCouponId 모두 있음. 
     @Override
     @Transactional
-    public OrderResponseDto createOrder(OrderCreateRequestDto request) {
-        logger.info("주문 생성 요청 - memberId: {}", request.getMemberId());
+    public OrderResponseDto createOrder(Long memberId ,OrderCreateRequestDto request) {
+        logger.info("주문 생성 요청 - memberId: {}", memberId);
 
         // 1. 사용자 및 배송지 확인
-        Member member = memberRepository.findById(request.getMemberId())
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())

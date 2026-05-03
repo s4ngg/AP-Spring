@@ -1,10 +1,12 @@
 package co.kr.allpick.domain.seller.repository;
 
-import co.kr.allpick.domain.seller.entity.Seller;
-import co.kr.allpick.domain.seller.entity.SellerStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import co.kr.allpick.domain.seller.entity.Seller;
 
 public interface SellerRepository extends JpaRepository<Seller, Long> {
 
@@ -19,4 +21,10 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
     boolean existsByMemberId(Long memberId);
 
     Optional<Seller> findByMemberIdAndDeletedAtIsNull(Long memberId);
+    
+ // 판매자인지 검증 (새 상품 등록용)
+  	@Query("SELECT s FROM Seller s " +
+  		   "JOIN FETCH s.member m " + 
+  		   " WHERE m.id = :memberId") 
+  	Optional<Seller> findWithMemberByMemberId(@Param("memberId") Long memberId);
 }
