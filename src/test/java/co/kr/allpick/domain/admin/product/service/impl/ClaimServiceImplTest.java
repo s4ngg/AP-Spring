@@ -21,6 +21,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -45,6 +49,9 @@ class ClaimServiceImplTest {
     @Mock
     OrderItemRepository orderItemRepository;
 
+    @Mock
+    SellerRepository sellerRepository;
+    
     @InjectMocks
     ClaimServiceImpl claimService;
 
@@ -322,5 +329,50 @@ class ClaimServiceImplTest {
         assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
+    }
+    
+    @Test
+    @DisplayName("클레임 승인 실패 - 판매자가 아닌 회원")
+    void approveClaim_notSeller_throwException() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+
+        Claim mockClaim = buildMockClaim();
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> claimService.approveClaim(claimId, memberId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.NOT_SELLER.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 승인 성공 - 판매자 본인")
+    void approveClaim_validSeller_success() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+        Long orderItemId = 10L;
+
+        Claim mockClaim = buildMockClaim();
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
+
+        Seller mockSeller = Seller.builder().member(mockMember).build();
+        OrderItem mockOrderItem = mock(OrderItem.class);
+        Product mockProduct = mock(Product.class);
+        given(mockProduct.getSeller()).willReturn(mockSeller);
+        given(mockOrderItem.getProduct()).willReturn(mockProduct);
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(true);
+        given(orderItemRepository.findByIdWithSellerMember(orderItemId)).willReturn(Optional.of(mockOrderItem));
+
+        // when & then
+        claimService.approveClaim(claimId, memberId);
     }
 }

@@ -22,9 +22,12 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
 
     Optional<Seller> findByMemberIdAndDeletedAtIsNull(Long memberId);
     
+
  // 판매자인지 검증 (새 상품 등록용)
   	@Query("SELECT s FROM Seller s " +
   		   "JOIN FETCH s.member m " + 
   		   " WHERE m.id = :memberId") 
   	Optional<Seller> findWithMemberByMemberId(@Param("memberId") Long memberId);
+
+    boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);
 }
