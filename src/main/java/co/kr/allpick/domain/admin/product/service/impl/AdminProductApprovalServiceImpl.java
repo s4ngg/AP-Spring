@@ -50,6 +50,7 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
     public ProductApprovalResponseDto rejectProduct(AdminJwtUserInfoDto adminInfo, Long productId, ProductRejectRequestDto request) {
         Admin admin = getSuperAdmin(adminInfo);
         Product product = getPendingProduct(productId);
+        validateSellerApproved(product);
 
         product.reject();
         ProductApproval productApproval = productApprovalRepository.save(

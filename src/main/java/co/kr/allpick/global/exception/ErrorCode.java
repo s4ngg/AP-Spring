@@ -80,6 +80,7 @@ public enum ErrorCode {
 	DUPLICATE_BUSINESS_NUMBER(HttpStatus.CONFLICT, "DUPLICATE_BUSINESS_NUMBER", "이미 등록된 사업자등록번호입니다."),
     INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다."),
     SELLER_NOT_FOUND(HttpStatus.NOT_FOUND, "SELLER_NOT_FOUND", "판매자를 찾을 수 없습니다."),
+    SELLER_NOT_APPROVED(HttpStatus.BAD_REQUEST, "SELLER_NOT_APPROVED", "승인된 판매자의 상품만 처리할 수 있습니다."),
     SELLER_ALREADY_EXISTS(HttpStatus.CONFLICT, "SELLER_ALREADY_EXISTS", "이미 판매자로 등록된 회원입니다."),
     
     // Notice

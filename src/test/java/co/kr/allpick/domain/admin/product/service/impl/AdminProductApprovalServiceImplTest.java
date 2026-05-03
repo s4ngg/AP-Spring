@@ -364,6 +364,24 @@ class AdminProductApprovalServiceImplTest {
         then(productApprovalRepository).should(never()).save(any());
     }
 
+    @Test
+    @DisplayName("상품 승인 거절 실패 - 판매자 미승인")
+    void 상품_승인_거절_실패_판매자미승인() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(product(Product.ApprovalStatus.PENDING, SellerStatus.PENDING)));
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
+        then(productApprovalRepository).should(never()).save(any());
+    }
+
     // ─────────────────────────────────────────
     // 픽스처
     // ─────────────────────────────────────────

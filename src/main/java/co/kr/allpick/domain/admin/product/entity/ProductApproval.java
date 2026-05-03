@@ -87,7 +87,7 @@ public class ProductApproval extends BaseEntity {
     }
 
     public enum RequestType {
-        REGISTER, UPDATE, DELETE
+        REGISTER
     }
 
     public enum ApprovalStatus {
