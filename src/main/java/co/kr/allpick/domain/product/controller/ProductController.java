@@ -67,16 +67,18 @@ public class ProductController implements ProductControllerDocs{
 			@RequestBody ProductUpdateRequestDto productUpdateRequestDto) {
 		return ApiResponse.success("상품을 수정했습니다.", productService.updateProduct(userInfo.getMemberId(),productId, productUpdateRequestDto));
 	}
-	@Override
+	@Override 
 	@DeleteMapping("/{productId}")
 	public ResponseEntity<ApiResponse<Void>> deleteProduct (
 			@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@PathVariable("productId") Long productId) {
+		
+		productService.deleteProduct(userInfo.getMemberId(), productId);
 		return ApiResponse.success("상품을 삭제했습니다");
 	} 
 }
-
-
+  
+ 
 
 
 

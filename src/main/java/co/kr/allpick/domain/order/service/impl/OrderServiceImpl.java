@@ -29,6 +29,7 @@ import co.kr.allpick.domain.order.repository.PaymentRepository;
 import co.kr.allpick.domain.order.service.OrderService;
 import co.kr.allpick.domain.order.util.OrderNumberGenerator;
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -76,19 +77,32 @@ public class OrderServiceImpl implements OrderService {
         // 5. 주문 엔티티 생성 및 저장
         Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
 
-        // 6. 주문 상품 처리 (재고 검증 → 차감 → OrderItem 생성)
         for (OrderItemRequestDto itemDto : request.getOrderItems()) {
+            // 6-1. 상품 정보 조회
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-         // 재고 검증 + 차감을 서비스에서 직접
-            if (product.getOptionList().isEmpty()) {
-                // stock 필드가 없으니 주문 수량만 검증
-                throw new BusinessException(ErrorCode.PRODUCT_OUT_OF_STOCK);
+            // 6-2. [중요] 사용자가 선택한 특정 옵션 찾기 (for문 활용)
+            ProductOption targetOption = null;
+            for (ProductOption option : product.getOptionList()) {
+                if (option.getOptionId().equals(itemDto.getOptionId())) {
+                    targetOption = option;
+                    break;
+                }
             }
 
-            // OrderItem 생성 및 저장
-            OrderItem orderItem = itemDto.toEntity(product, order);
+            if (targetOption == null) {
+                throw new BusinessException(ErrorCode.PRODUCT_OPTION_NOT_FOUND);
+            }
+
+            // 6-3. [진짜 재고 차감] 엔티티 내부 메서드 호출
+            // (ProductOption 엔티티에 removeStock 메서드가 미리 구현되어 있어야 함)
+            targetOption.removeStock(itemDto.getQuantity());
+
+            // 6-4. OrderItem 생성 및 저장 (방금 수정한 엔티티 구조 반영)
+            // toEntity 메서드를 수정하셨다면 그대로 호출, 아니면 빌더 직접 사용
+            OrderItem orderItem = itemDto.toEntity(product, targetOption, order);
+            
             orderItemRepository.save(orderItem);
             order.addOrderItem(orderItem);
         }

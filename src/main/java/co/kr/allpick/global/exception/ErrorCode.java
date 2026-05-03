@@ -109,8 +109,9 @@ public enum ErrorCode {
 
 
     // Review
-    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다.");
-
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다."),
+	REVIEW_NOT_AUTHOR(HttpStatus.FORBIDDEN, "REVIEW_NOT_AUTHOR", "해당 리뷰를 수정할 권한이 없습니다.");
+	
 
 	
     

@@ -108,7 +108,7 @@ public class ProductServiceImpl implements ProductService{
 		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		
-		productRepository.delete(product);
+		product.delete();
 	}
 	
 

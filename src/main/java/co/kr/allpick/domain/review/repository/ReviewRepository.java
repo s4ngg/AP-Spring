@@ -1,5 +1,7 @@
 package co.kr.allpick.domain.review.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +27,14 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 	@Query("SELECT COUNT(r) > 0 FROM Review r WHERE r.orderItem.orderItemId = :orderItemId")
 	boolean existsByOrderItemId(Long orderItemId);
 	
-	
+	// 3. 리뷰 수정,삭제용 리뷰 작성자 검증하여 단건의 리뷰 조회(작성자 본인인지)
+	@Query( " SELECT r FROM Review r " +
+			" JOIN FETCH r.orderItem oi " +
+			" JOIN FETCH oi.order o " +
+			" JOIN FETCH o.member m " +
+			" WHERE r.reviewId = :reviewId And m.memberId = :memberId")
+	Optional<Review> findByReviewIdAndMemberId(@Param("reviewId") Long reviewId,@Param("memberId") Long memberId);
+	 
+	 
 }
   

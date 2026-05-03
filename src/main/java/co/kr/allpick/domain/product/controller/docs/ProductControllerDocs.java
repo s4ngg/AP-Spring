@@ -1,5 +1,19 @@
 package co.kr.allpick.domain.product.controller.docs;
 
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
@@ -14,17 +28,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springdoc.core.annotations.ParameterObject;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-
 
 @Tag(name = "Product", description = "상품 관련 API")
 public interface ProductControllerDocs {
@@ -44,17 +47,78 @@ public interface ProductControllerDocs {
             """))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 (중복 상품명 등)")
     })
+    @PostMapping
     ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(
-        @AuthenticationPrincipal JwtUserInfoDto userInfo, // [수정] JWT 정보 추가
+        @AuthenticationPrincipal JwtUserInfoDto userInfo,
         @RequestBody @Valid ProductSaveRequestDto productSaveRequestDto);
 
-    @Operation(summary = "상품 목록 조회", description = "판매 중이고 승인된 상품 목록을 페이징으로 조회합니다.")
+    @Operation(summary = "상품 목록 조회", description = "판매 중이고 승인된 상품 목록을 페이징으로 조회합니다. 삭제된 상품은 제외됩니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "상품 목록을 조회했습니다.",
+                    "data": {
+                        "content": [
+                            {
+                                "productId": 1,
+                                "productName": "나이키 에어맥스",
+                                "price": 129000,
+                                "thumbnailUrl": "https://allpick.com",
+                                "brand": "나이키",
+                                "status": "ON_SALE"
+                            }
+                        ],
+                        "pageable": { "pageNumber": 0, "pageSize": 8 },
+                        "totalElements": 1,
+                        "totalPages": 1
+                    }
+                }
+            """)))
+    })
     @GetMapping
     ResponseEntity<ApiResponse<Page<ProductListResponseDto>>> getProductList(
             @ParameterObject @PageableDefault(size = 8, sort = "createdAt",
                                                 direction = Sort.Direction.DESC) Pageable pageable);
 
-    @Operation(summary = "상품 상세 조회", description = "상품 ID로 상세 정보와 리뷰 목록(페이징)을 조회합니다.")
+    @Operation(summary = "상품 상세 조회", description = "상품 ID로 상세 정보, 옵션, 이미지, 리뷰 목록(페이징)을 조회합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상세 조회 성공",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "상품 상세 정보를 조회했습니다.",
+                    "data": {
+                        "productId": 1,
+                        "parentCategoryName": "주류",
+                        "brand": "나이키",
+                        "productName": "신발",
+                        "thumbnailUrl": "https://allpick.com",
+                        "price": 25000,
+                        "description": "나이키 에어맥스 97의 클래식 화이트 컬러입니다.",
+                        "manufacturer": "나이키 코리아",
+                        "origin": "베트남",
+                        "precaution": "직사광선을 피해 보관하세요",
+                        "optionList": [
+                            { "optionId": 1, "optionName": "260mm", "stockQuantity": 10 }
+                        ],
+                        "productImagesList": [
+                            { "imageId": 1, "imageUrl": "https://allpick.com", "sortOrder": 1 }
+                        ],
+                        "reviewList": {
+                            "content": [
+                                { "reviewId": 1, "content": "좋아요", "rating": 5, "userName": "홍길동" }
+                            ],
+                            "pageable": { "pageNumber": 0, "pageSize": 5 },
+                            "totalElements": 1,
+                            "totalPages": 1
+                        }
+                    }
+                }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 상품")
+    })
     @GetMapping("/{productId}")
     ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail(
         @PathVariable("productId") Long productId,
@@ -63,13 +127,40 @@ public interface ProductControllerDocs {
     );
 
     @Operation(summary = "상품 수정", description = "상품 정보를 수정합니다. 본인이 등록한 상품만 수정 가능합니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 수정 성공",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "상품을 수정했습니다.",
+                    "data": {
+                        "productId": 1,
+                        "message": "수정이 완료되었습니다."
+                    }
+                }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "수정 권한 없음")
+    })
+    @PatchMapping("/{productId}")
     ResponseEntity<ApiResponse<ProductUpdateResponseDto>> updateProduct(
-        @AuthenticationPrincipal JwtUserInfoDto userInfo, // [추가] 본인 확인용
+        @AuthenticationPrincipal JwtUserInfoDto userInfo,
         @PathVariable("productId") Long productId,
         @RequestBody ProductUpdateRequestDto productUpdateRequestDto);
 
-    @Operation(summary = "상품 삭제", description = "상품을 삭제합니다. 본인이 등록한 상품만 삭제 가능합니다.")
+    @Operation(summary = "상품 삭제", description = "상품을 삭제 상태로 변경합니다. (소프트 딜리트 적용)")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 삭제 성공",
+            content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "상품을 삭제했습니다.",
+                    "data": null
+                }
+            """))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "삭제 권한 없음")
+    })
+    @DeleteMapping("/{productId}")
     ResponseEntity<ApiResponse<Void>> deleteProduct(
-        @AuthenticationPrincipal JwtUserInfoDto userInfo, // [추가] 본인 확인용
+        @AuthenticationPrincipal JwtUserInfoDto userInfo,
         @PathVariable("productId") Long productId);
 }

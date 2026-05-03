@@ -26,7 +26,8 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
  // 판매자인지 검증 (새 상품 등록용)
   	@Query("SELECT s FROM Seller s " +
   		   "JOIN FETCH s.member m " + 
-  		   " WHERE m.id = :memberId") 
+  		   " WHERE m.id = :memberId " +
+  		   "AND s.deletedAt IS NULL ") 
   	Optional<Seller> findWithMemberByMemberId(@Param("memberId") Long memberId);
 
     boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);

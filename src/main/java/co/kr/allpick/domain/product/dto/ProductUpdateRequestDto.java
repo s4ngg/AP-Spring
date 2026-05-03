@@ -18,10 +18,8 @@ import lombok.NoArgsConstructor;
 
 @Schema(description = "상품수정 요청 DTO")
 public class ProductUpdateRequestDto {
-
-	@NotNull @Schema(description = "수정할 상품 Id", example = "1", requiredMode = RequiredMode.REQUIRED)
-	private Long productId;
 	
+	@NotNull
 	@Schema(description = "수정 가격", example = "27000", requiredMode = RequiredMode.REQUIRED)
 	@PositiveOrZero
 	private BigDecimal price; 

@@ -1,5 +1,7 @@
 package co.kr.allpick.domain.review.dto;
 
+import java.time.format.DateTimeFormatter;
+
 import co.kr.allpick.domain.review.entity.Review;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -31,6 +33,9 @@ public class ReviewResponseDto {
 	   
 	    @Schema(description = "리뷰 내용", example = "재질이 너무 부드럽고 핏이 예뻐요!")
 	    private String content;
+	    
+	    @Schema(description = "리뷰 날짜", example = "2025.01.16")
+	    private String reviewDate;
     
     public static ReviewResponseDto from(Review review) { 
     	return ReviewResponseDto.builder()
@@ -40,9 +45,12 @@ public class ReviewResponseDto {
     			.selectedOption(review.getSelectedOption())
     			.rating(review.getRating())
     			.content(review.getContent())
+    			.reviewDate(review.getUpdatedAt() != null ? 
+    					review.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")):null)
     			.build();
     }
 }
 
 
 
+ 

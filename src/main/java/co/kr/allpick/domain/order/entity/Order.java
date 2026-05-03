@@ -25,6 +25,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Builder
 @Entity
 @Table(name = "orders")
 @Getter
