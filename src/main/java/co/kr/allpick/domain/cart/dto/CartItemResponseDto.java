@@ -35,7 +35,7 @@ public class CartItemResponseDto {
     private Integer quantity;
 	
 	
-	
+	 
 	public static CartItemResponseDto from(CartItem cartItem) {
 		return CartItemResponseDto.builder()
 				.cartItemId(cartItem.getCartItemId())

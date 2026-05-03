@@ -99,6 +99,8 @@ public enum ErrorCode {
 	// Cart 
 	MEMBER_CART_NOT_FOUND(HttpStatus.NOT_FOUND,"CART_NOT_FOUND", "해당 사용자의 장바구니가 존재하지 않습니다."),
 
+	// CartItem
+	CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND","장바구니에 해당 상품이 존재하지 않습니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 카테고리입니다."),

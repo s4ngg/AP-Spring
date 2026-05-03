@@ -18,13 +18,6 @@ public class CartItemRequestDto {
 	@NotNull @Schema(description = "상품 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long productId;
 	
-	@NotNull @Schema(description = "장바구니 상품 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Long cartItemId;
-
-	
-	@NotNull @Schema(description = "회원 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Long memberId;
-	
 	@NotNull @Schema(description = "상품옵션 Id", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long productOptionId;
 	
