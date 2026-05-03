@@ -6,8 +6,8 @@ import co.kr.allpick.domain.admin.product.dto.InquiryAnswerResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryResponseDto;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
-import co.kr.allpick.global.response.ApiResponse;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
+import co.kr.allpick.global.response.ApiResponse;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +57,7 @@ public class InquiryController implements InquiryControllerDocs {
             @PathVariable("inquiryId") Long inquiryId,
             @RequestBody @Valid InquiryAnswerRequestDto request,
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
-        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, adminInfo.getAdminId(), null));
+        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAdminAnswer(inquiryId, request, adminInfo.getAdminId()));
     }
 
     @Override
@@ -66,8 +66,7 @@ public class InquiryController implements InquiryControllerDocs {
             @PathVariable("inquiryId") Long inquiryId,
             @RequestBody @Valid InquiryAnswerRequestDto request,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
-        // TODO: 판매자 JWT 구현 후 sellerId 교체 예정
-        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addAnswer(inquiryId, request, null, userInfo.getMemberId()));
+        return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addSellerAnswer(inquiryId, request, userInfo.getMemberId()));
     }
 
     @Override
