@@ -72,10 +72,8 @@ public class ProductController implements ProductControllerDocs{
 	public ResponseEntity<ApiResponse<Void>> deleteProduct (
 			@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@PathVariable("productId") Long productId) {
-		return ApiResponse.success("상품을 삭제했습니다", productService.deleteProduct(userInfo.getMemberId(), productId));
+		return ApiResponse.success("상품을 삭제했습니다");
 	} 
-	
-	 
 }
 
 

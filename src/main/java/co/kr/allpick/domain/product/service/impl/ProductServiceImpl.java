@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService{
 		}
 		
 		// 상품 생성 (위의 검증 모두 통과)
-		Product product = reqDto.toEntity(parentCategory);
+		Product product = reqDto.toEntity(seller, parentCategory);
 		// 만들어진 상품 저장
 		productRepository.save(product);
 		// 응답객체로 변환하여 반환
@@ -82,8 +82,9 @@ public class ProductServiceImpl implements ProductService{
 	@Override
 	
 	// 상품 가격 수정 ( PatchMapping )
-	public ProductUpdateResponseDto updateProduct(Long productId, ProductUpdateRequestDto reqDto) {
-		Product product = productRepository.findById(productId)
+	public ProductUpdateResponseDto updateProduct(Long memberId, Long productId, ProductUpdateRequestDto reqDto) {
+		// 상품 존재 검증 + 판매자의 상품인지 검증 
+		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		product.updatePrice(reqDto.getPrice());
 		return ProductUpdateResponseDto.from(product);
@@ -102,8 +103,9 @@ public class ProductServiceImpl implements ProductService{
 	}
 	
 	@Override
-	public void deleteProduct(Long productId) {
-		Product product = productRepository.findById(productId)
+	public void deleteProduct(Long memberId,Long productId) {
+		// 해당 상품의 판매자인지 확인 
+		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		
 		productRepository.delete(product);

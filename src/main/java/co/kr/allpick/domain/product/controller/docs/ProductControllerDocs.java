@@ -66,7 +66,7 @@ public interface ProductControllerDocs {
     ResponseEntity<ApiResponse<ProductUpdateResponseDto>> updateProduct(
         @AuthenticationPrincipal JwtUserInfoDto userInfo, // [추가] 본인 확인용
         @PathVariable("productId") Long productId,
-        @RequestBody @Valid ProductUpdateRequestDto productUpdateRequestDto);
+        @RequestBody ProductUpdateRequestDto productUpdateRequestDto);
 
     @Operation(summary = "상품 삭제", description = "상품을 삭제합니다. 본인이 등록한 상품만 삭제 가능합니다.")
     ResponseEntity<ApiResponse<Void>> deleteProduct(

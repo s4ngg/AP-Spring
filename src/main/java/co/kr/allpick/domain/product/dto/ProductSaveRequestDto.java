@@ -8,6 +8,7 @@ import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.entity.ProductImage;
 import co.kr.allpick.domain.product.entity.ProductOption;
+import co.kr.allpick.domain.seller.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
@@ -71,9 +72,10 @@ public class ProductSaveRequestDto {
 		
 		
 		
-		@Schema(description = "상품객체 생성 메서드 :	상품생성 직전 카테고리를 정해야함 / 필드의 카테고리 아이디로 카테고리 객체를 만들어준다.")
-		public Product toEntity(ParentCategory parentCategory) {
+		@Schema(description = "상품객체 생성 메서드")
+		public Product toEntity(Seller seller, ParentCategory parentCategory) {
 			Product product = Product.builder()
+						.seller(seller)
 						.parentCategory(parentCategory)	
 						.productName(this.productName)
 						.brand(this.brand)
