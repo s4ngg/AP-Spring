@@ -20,8 +20,11 @@ public interface InquiryService {
     // 전체 문의 목록 조회 (관리자)
     List<InquiryResponseDto> getAllInquiries();
 
-    // 답변 등록
-    InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId, Long sellerId);
+    // 관리자 답변 등록
+    InquiryAnswerResponseDto addAdminAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId);
+
+    // 판매자 답변 등록
+    InquiryAnswerResponseDto addSellerAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long memberId);
 
     // 문의 취소
     void cancelInquiry(Long inquiryId, Long memberId);
