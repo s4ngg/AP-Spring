@@ -166,13 +166,14 @@ public class FaqServiceImplTest {
     void deleteFaq_success() {
         // given
         Long faqId = 1L;
-        given(faqRepository.findById(faqId)).willReturn(Optional.of(createFaq()));
+        Faq faq = createFaq();
+        given(faqRepository.findById(faqId)).willReturn(Optional.of(faq));
 
         // when
         faqService.deleteFaq(faqId);
 
         // then
-        then(faqRepository).should().findById(faqId);
+        assertThat(faq.getDeletedAt()).isNotNull();
     }
 
     @Test
