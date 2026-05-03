@@ -18,8 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
 @Service
 @RequiredArgsConstructor
 public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalService {
@@ -51,7 +49,6 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     public SellerApprovalResponseDto rejectSeller(AdminJwtUserInfoDto adminInfo, Long sellerId, SellerRejectRequestDto request) {
         Admin admin = getSuperAdmin(adminInfo);
         Seller seller = getPendingSeller(sellerId);
-        validateRejectReason(request.getRejectReason());
 
         seller.reject();
         SellerApproval sellerApproval = sellerApprovalRepository.save(
@@ -79,14 +76,9 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
         Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         if (seller.getStatus() != SellerStatus.PENDING) {
-            throw new BusinessException(ErrorCode.APPROVAL_ALREADY_PROCESSED);
+            throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
         }
         return seller;
     }
 
-    private void validateRejectReason(String rejectReason) {
-        if (!StringUtils.hasText(rejectReason)) {
-            throw new BusinessException(ErrorCode.REJECT_REASON_REQUIRED);
-        }
-    }
 }

@@ -161,7 +161,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -176,7 +176,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -191,7 +191,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -261,7 +261,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -278,7 +278,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -295,43 +295,7 @@ class AdminSellerApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
-        verify(sellerApprovalRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("판매자 승인 거절 실패 - 거절 사유 없음")
-    void 판매자_승인_거절_실패_거절사유없음() {
-        // given
-        AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Seller seller = seller(SellerStatus.PENDING);
-        SellerRejectRequestDto request = new SellerRejectRequestDto(" ");
-
-        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
-
-        // when & then
-        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.REJECT_REASON_REQUIRED);
-        assertThat(seller.getStatus()).isEqualTo(SellerStatus.PENDING);
-        verify(sellerApprovalRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("판매자 승인 거절 실패 - 처리 완료 상태가 거절 사유보다 우선")
-    void 판매자_승인_거절_실패_처리완료상태가거절사유보다우선() {
-        // given
-        AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        SellerRejectRequestDto request = new SellerRejectRequestDto(" ");
-
-        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
-
-        // when & then
-        assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_ALREADY_PROCESSED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
         verify(sellerApprovalRepository, never()).save(any());
     }
 
