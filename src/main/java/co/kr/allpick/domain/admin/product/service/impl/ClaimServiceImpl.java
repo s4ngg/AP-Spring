@@ -17,6 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 import java.util.List;
@@ -201,8 +204,10 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     private void validateSellerClaimOwnership(Claim claim, Long memberId) {
-        sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
+        // 판매자 등록 여부 먼저 확인
+        if (!sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)) {
+            throw new BusinessException(ErrorCode.NOT_SELLER);
+        }
 
         OrderItem orderItem = orderItemRepository.findByIdWithSellerMember(claim.getOrderItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
@@ -223,5 +228,22 @@ public class ClaimServiceImpl implements ClaimService {
         if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
             throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClaimResponseDto> getSellerClaims(Long memberId) {
+        // 판매자 여부 + APPROVED 상태 확인
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+
+        if (seller.getStatus() != SellerStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.NOT_SELLER);
+        }
+
+        // 판매자 확인 후 클레임 조회
+        return claimRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
+                .stream()
+                .map(ClaimResponseDto::from)
+                .toList();
     }
 }

@@ -19,4 +19,7 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
     boolean existsByMemberId(Long memberId);
 
     Optional<Seller> findByMemberIdAndDeletedAtIsNull(Long memberId);
+    
+    boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);
+
 }

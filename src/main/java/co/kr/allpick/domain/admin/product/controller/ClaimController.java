@@ -95,5 +95,12 @@ public class ClaimController implements ClaimControllerDocs {
             @RequestBody @Valid ClaimRejectRequestDto request) {
         return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaimBySeller(claimId, request, userInfo.getMemberId()));
     }
+    
+    @GetMapping("/seller")
+    public ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getSellerClaims(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        return ApiResponse.success("판매자 클레임 목록 조회 성공",
+                claimService.getSellerClaims(userInfo.getMemberId()));
+    }
 }
 

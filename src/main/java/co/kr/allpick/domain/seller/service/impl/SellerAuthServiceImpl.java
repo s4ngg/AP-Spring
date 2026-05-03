@@ -98,7 +98,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 
-        if (seller.getStatus() == SellerStatus.SUSPENDED) {
+        if (seller.getStatus() != SellerStatus.APPROVED) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 

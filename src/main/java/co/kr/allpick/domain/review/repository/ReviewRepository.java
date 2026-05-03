@@ -22,6 +22,7 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 	Page<Review> findByProductId(@Param("productId") Long productId, Pageable pageable);
 	
 	// 2. 기존리뷰 작성 내역 확인 
+	@Query("SELECT COUNT(r) > 0 FROM Review r WHERE r.orderItem.orderItemId = :orderItemId")
 	boolean existsByOrderItemId(Long orderItemId);
 	
 	

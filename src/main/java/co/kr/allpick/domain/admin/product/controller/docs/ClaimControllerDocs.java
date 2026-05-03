@@ -48,6 +48,14 @@ public interface ClaimControllerDocs {
     ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getAllClaims(
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo);
 
+    @Operation(summary = "판매자 클레임 목록 조회", description = "JWT 토큰으로 인증된 판매자의 클레임 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "판매자 클레임 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 판매자")
+    })
+    ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getSellerClaims(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
     @Operation(summary = "클레임 상태 변경", description = "관리자 또는 판매자가 클레임 상태를 변경합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 상태 변경 성공"),
