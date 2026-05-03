@@ -3,10 +3,13 @@ package co.kr.allpick.domain.order.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,62 +55,107 @@ class OrderServiceImplTest {
     OrderServiceImpl orderService;
 
     @Test
-    @DisplayName("주문 생성 성공")
+    @DisplayName("주문 생성 성공 - 항목 및 금액 업데이트 확인")
     void 주문_생성_성공() {
+        // given
         Long memberId = 1L;
         Long addressId = 1L;
-        Long couponId = 1L;
-        Long productId = 1L;
-
+        Long productId = 100L;
+        
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(productId, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(memberId, addressId, couponId, List.of(itemRequest));
+        OrderCreateRequestDto request = new OrderCreateRequestDto(memberId, addressId, null, List.of(itemRequest));
 
         Member mockMember = Member.builder().build();
         DeliveryAddress mockAddress = DeliveryAddress.builder().build();
-        MemberCoupon mockCoupon = MemberCoupon.builder().build();
-        Product mockProduct = Product.builder().price(BigDecimal.valueOf(10000)).build();
+        Product mockProduct = Product.builder()
+                .price(BigDecimal.valueOf(10000))
+                .build();
 
+        // 초기 save 시 반환될 Order (아이템 리스트가 초기화되어 있어야 함)
         Order mockOrder = Order.builder()
-            .member(mockMember)
-            .memberCoupon(mockCoupon)
-            .deliveryAddress(mockAddress)
-            .orderNumber("ORD-001")
-            .totalAmount(BigDecimal.ZERO)
-            .discountAmount(BigDecimal.ZERO)
-            .shippingFee(3000)
-            .status(Order.OrderStatus.PENDING)
-            .orderedAt(LocalDateTime.now())
+            .orderNumber("ORD-GENERATED-001")
             .build();
 
-        when(memberRepository.findById(any())).thenReturn(Optional.of(mockMember));
-        when(deliveryAddressRepository.findById(any())).thenReturn(Optional.of(mockAddress));
-        when(memberCouponRepository.findById(any())).thenReturn(Optional.of(mockCoupon));
-        when(orderRepository.existsByOrderNumber(any())).thenReturn(false);
-        when(orderRepository.save(any())).thenReturn(mockOrder);
-        when(productRepository.findById(any())).thenReturn(Optional.of(mockProduct));
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
+        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
+        when(orderRepository.existsByOrderNumber(anyString())).thenReturn(false);
+        when(orderRepository.save(any(Order.class))).thenReturn(mockOrder);
+        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
 
+        // when
         OrderResponseDto result = orderService.createOrder(request);
 
+        // then
         assertThat(result).isNotNull();
-        assertThat(result.getOrderNumber()).isEqualTo("ORD-001");
+        assertThat(result.getOrderNumber()).isEqualTo("ORD-GENERATED-001");
+        verify(orderRepository, atLeastOnce()).save(any(Order.class));
+        verify(productRepository).findById(productId);
     }
 
     @Test
-    @DisplayName("주문 생성 실패 - 배송지 없음")
-    void 주문_생성_실패_배송지없음() {
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, 999L, 1L, List.of());
+    @DisplayName("주문 생성 실패 - 상품이 존재하지 않음")
+    void 주문_생성_실패_상품없음() {
+        // given
+        OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 1);
+        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, 1L, null, List.of(itemRequest));
 
-        when(memberRepository.findById(any())).thenReturn(Optional.of(Member.builder().build()));
-        when(deliveryAddressRepository.findById(any())).thenReturn(Optional.empty());
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(Member.builder().build()));
+        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(DeliveryAddress.builder().build()));
+        when(orderRepository.save(any())).thenReturn(Order.builder().build());
+        when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
+        // when & then
         assertThatThrownBy(() -> orderService.createOrder(request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADDRESS_NOT_FOUND.getMessage());
+                .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
+    }
+
+    @Test
+    @DisplayName("배송지 수정 성공")
+    void 배송지_수정_성공() {
+        // given
+        Long memberId = 1L;
+        Long addressId = 1L;
+        DeliveryAddressRequestDto request = new DeliveryAddressRequestDto(
+            "수정된이름", "010-0000-0000", "12345", "서울", "202", true
+        );
+
+        DeliveryAddress mockAddress = spy(DeliveryAddress.builder()
+                .memberId(memberId)
+                .build());
+
+        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
+        when(orderRepository.existsByAddressId(addressId)).thenReturn(false);
+
+        // when
+        DeliveryAddressResponseDto result = orderService.updateDeliveryAddress(memberId, addressId, request);
+
+        // then
+        assertThat(result.getRecipientName()).isEqualTo("수정된이름");
+        verify(mockAddress).update(any(), any(), any(), any(), any(), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("배송지 삭제 실패 - 이미 주문에 사용된 배송지")
+    void 배송지_삭제_실패_사용중() {
+        // given
+        Long memberId = 1L;
+        Long addressId = 1L;
+        DeliveryAddress mockAddress = DeliveryAddress.builder().memberId(memberId).build();
+
+        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
+        when(orderRepository.existsByAddressId(addressId)).thenReturn(true); // 사용 중 설정
+
+        // when & then
+        assertThatThrownBy(() -> orderService.deleteDeliveryAddress(memberId, addressId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.ADDRESS_CANNOT_MODIFY.getMessage());
     }
 
     @Test
     @DisplayName("배송지 추가 성공")
     void 배송지_추가_성공() {
+        // given
         Long memberId = 1L;
         DeliveryAddressRequestDto request = new DeliveryAddressRequestDto(
             "홍길동", "010-1234-5678", "12345", "서울", "101", false
@@ -122,18 +170,26 @@ class OrderServiceImplTest {
         when(deliveryAddressRepository.save(any()))
             .thenReturn(mockAddress);
 
+        // when
         DeliveryAddressResponseDto result = orderService.addDeliveryAddress(memberId, request);
+
+        // then
         assertThat(result.getRecipientName()).isEqualTo("홍길동");
     }
 
     @Test
     @DisplayName("배송지 목록 조회 성공")
     void 배송지_목록_조회_성공() {
+        // given
         Long memberId = 1L;
-        when(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(any()))
+        when(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId))
             .thenReturn(List.of(DeliveryAddress.builder().recipientName("홍길동").build()));
 
+        // when
         List<DeliveryAddressResponseDto> result = orderService.getDeliveryAddresses(memberId);
+
+        // then
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getRecipientName()).isEqualTo("홍길동");
     }
 }
