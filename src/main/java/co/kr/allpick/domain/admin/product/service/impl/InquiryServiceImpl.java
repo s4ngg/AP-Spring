@@ -17,6 +17,10 @@ import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.repository.ProductRepository;
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +37,8 @@ public class InquiryServiceImpl implements InquiryService {
     private final AttachmentRepository attachmentRepository;
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
+    private final SellerRepository sellerRepository;
+    private final ProductRepository productRepository;
 
     // 1. 문의 등록
     @Override
@@ -90,18 +96,38 @@ public class InquiryServiceImpl implements InquiryService {
                 .toList();
     }
 
-    // 5. 답변 등록
+    // 5. 관리자 답변 등록
     @Override
     @Transactional
-    public InquiryAnswerResponseDto addAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId, Long sellerId) {
+    public InquiryAnswerResponseDto addAdminAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
         inquiry.updateStatus(Inquiry.InquiryStatus.PROCESSING);
-        InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId, adminId, sellerId));
+        InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId, adminId, null));
         return InquiryAnswerResponseDto.from(answer);
     }
 
-    // 6. 문의 취소
+    // 6. 판매자 답변 등록
+    @Override
+    @Transactional
+    public InquiryAnswerResponseDto addSellerAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long memberId) {
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+        if (inquiry.getProductId() != null) {
+            Product product = productRepository.findById(inquiry.getProductId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!product.getSeller().getSellerId().equals(seller.getSellerId())) {
+                throw new BusinessException(ErrorCode.INQUIRY_UNAUTHORIZED);
+            }
+        }
+        inquiry.updateStatus(Inquiry.InquiryStatus.PROCESSING);
+        InquiryAnswer answer = inquiryAnswerRepository.save(request.toEntity(inquiryId, null, seller.getSellerId()));
+        return InquiryAnswerResponseDto.from(answer);
+    }
+
+    // 7. 문의 취소
     @Override
     @Transactional
     public void cancelInquiry(Long inquiryId, Long memberId) {

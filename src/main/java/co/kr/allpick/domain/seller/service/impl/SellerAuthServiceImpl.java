@@ -39,7 +39,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Seller seller = sellerRepository.findById(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
-        validateSellerOwner(seller, memberId);  // ← 헬퍼 메서드로 교체
+        validateSellerOwner(seller, memberId);
 
         seller.updateInfo(
                 dto.getBusinessName(),
@@ -98,11 +98,14 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 
-        if (seller.getStatus() == SellerStatus.SUSPENDED) {
+        if (seller.getStatus() != SellerStatus.APPROVED) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 
-        String token = jwtProvider.createToken(JwtUserInfoDto.from(member));
+        String token = jwtProvider.createToken(JwtUserInfoDto.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .build());
         logger.info("[SellerAuthService] 판매자 로그인 성공 - sellerId: {}", seller.getSellerId());
 
         return SellerLoginResponseDto.of(seller, token);

@@ -51,9 +51,10 @@ public class OrderResponseDto {
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
                 .orderNumber(order.getOrderNumber())
-                .totalAmount(order.getTotalAmount())
+                .totalAmount(order.getTotalAmount()) 
                 .discountAmount(order.getDiscountAmount())
-                .memberCouponId(order.getMemberCouponId())
+                .memberCouponId(order.getMemberCoupon() != null ? 
+                		order.getMemberCoupon().getMemberCouponId() : null)
                 .shippingFee(order.getShippingFee())
                 .status(order.getStatus())
                 .orderedAt(order.getOrderedAt())

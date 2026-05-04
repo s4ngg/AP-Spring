@@ -46,17 +46,18 @@ public class Seller extends BaseEntity {
     @Builder.Default
     private SellerStatus status = SellerStatus.PENDING;
 
-
-    /**
-     * 판매자 승인 상태 변경 메서드
-     */
-    public void updateStatus(SellerStatus status) {
-        this.status = status;
+    public void approve() {
+        this.status = SellerStatus.APPROVED;
     }
 
-    /**
-     * 은행 정보 업데이트 메서드
-     */
+    public void reject() {
+        this.status = SellerStatus.REJECTED;
+    }
+
+    public void suspend() {
+        this.status = SellerStatus.SUSPENDED;
+    }
+
     public void updateInfo(String businessName, String representativeName, String bankName, String bankAccount) {
         this.businessName = businessName;
         this.representativeName = representativeName;
@@ -64,7 +65,7 @@ public class Seller extends BaseEntity {
         this.bankAccount = bankAccount;
     }
     public void delete() {
-        this.status = SellerStatus.SUSPENDED;
+        suspend();
         super.delete();
     }
 

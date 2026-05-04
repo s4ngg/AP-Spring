@@ -66,7 +66,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
-        String token = jwtProvider.createToken(JwtUserInfoDto.from(member));
+        String token = jwtProvider.createToken(JwtUserInfoDto.builder()
+                .memberId(member.getId())
+                .email(member.getEmail())
+                .build());
         return AuthResponseDto.of(token, member);
     }
 }

@@ -52,8 +52,8 @@ public class SellerAuthController implements SellerAuthControllerDocs {
     public ResponseEntity<ApiResponse<Void>> update(
             @RequestBody @Valid SellerUpdateRequestDto dto,
             @PathVariable("sellerId") Long sellerId,
-            @AuthenticationPrincipal JwtUserInfoDto userInfo){
-    	sellerAuthService.update(sellerId, dto, userInfo.getMemberId());
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        sellerAuthService.update(sellerId, dto, userInfo.getMemberId());
         return ApiResponse.success("판매자 정보가 수정되었습니다.");
     }
     
