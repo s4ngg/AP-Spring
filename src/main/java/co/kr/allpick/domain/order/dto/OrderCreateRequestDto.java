@@ -31,14 +31,14 @@ public class OrderCreateRequestDto {
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> orderItems;
 
-    public Order toEntity(Member member, MemberCoupon memberCoupon, DeliveryAddress deliveryAddress, String orderNumber) {
+    public Order toEntity(Member member, MemberCoupon memberCoupon, DeliveryAddress deliveryAddress, String orderNumber, BigDecimal discountAmount) {
         return Order.builder()
                 .member(member)
                 .memberCoupon(memberCoupon)
                 .deliveryAddress(deliveryAddress)
                 .orderNumber(orderNumber)
                 .totalAmount(BigDecimal.ZERO)
-                .discountAmount(BigDecimal.ZERO)
+                .discountAmount(discountAmount)
                 .shippingFee(3000)
                 .status(Order.OrderStatus.PENDING)
                 .orderedAt(LocalDateTime.now())

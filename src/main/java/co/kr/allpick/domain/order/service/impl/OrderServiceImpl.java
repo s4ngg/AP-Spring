@@ -64,19 +64,39 @@ public class OrderServiceImpl implements OrderService {
         DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // 3. 쿠폰 확인 (쿠폰 없이 주문 가능)
+        // 3. 쿠폰 확인 및 할인금액 계산
         MemberCoupon memberCoupon = null;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+
         if (request.getMemberCouponId() != null) {
             memberCoupon = memberCouponRepository.findById(request.getMemberCouponId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_COUPON_NOT_FOUND));
+
+            BigDecimal totalProductPrice = request.getOrderItems().stream()
+                    .map(item -> productRepository.findById(item.getProductId())
+                            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND))
+                            .getPrice()
+                            .multiply(BigDecimal.valueOf(item.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            var coupon = memberCoupon.getCoupon();
+            if (coupon.getDiscountType().name().equals("PERCENT")) {
+                discountAmount = totalProductPrice
+                        .multiply(coupon.getDiscountValue())
+                        .divide(BigDecimal.valueOf(100));
+                if (coupon.getMaxDiscount() != null) {
+                    discountAmount = discountAmount.min(coupon.getMaxDiscount());
+                }
+            } else {
+                discountAmount = coupon.getDiscountValue();
+            }
         }
 
-        // 4. 주문번호 생성
+// 4. 주문번호 생성
         String orderNumber = generateUniqueOrderNumber();
 
-        // 5. 주문 엔티티 생성 및 저장
-        Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber));
-
+// 5. 주문 엔티티 생성 및 저장
+        Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber, discountAmount));
         for (OrderItemRequestDto itemDto : request.getOrderItems()) {
             // 6-1. 상품 정보 조회
             Product product = productRepository.findById(itemDto.getProductId())
