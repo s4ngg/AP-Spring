@@ -5,12 +5,17 @@ import org.springframework.data.domain.Pageable;
 
 import co.kr.allpick.domain.review.dto.ReviewRequestDto;
 import co.kr.allpick.domain.review.dto.ReviewResponseDto;
+import co.kr.allpick.domain.review.dto.ReviewUpdateRequestDto;
 
 public interface ReviewService {
 	// 전체사용자의 리뷰 조회.
 	Page<ReviewResponseDto> getReviewAll(Long productId, Pageable pageable);
 	
-	// 리뷰 작성..(Review 객체는 orderItem 객체를 매개변수로 받으므로, reqDto의 orderItemId가
-	//존재하는 지 확인 하고, 새로운 리뷰객체 생성)
-	ReviewResponseDto createReview(ReviewRequestDto reqdto);
+	// 물품을 구매한 사용자인지 검증 -> 이미 해당상품에 리뷰를 달았는지 검증 ->  리뷰 작성
+	ReviewResponseDto createReview(Long memberId ,ReviewRequestDto reqDto);
+	
+	// 리뷰 수정
+	ReviewResponseDto updateReview(Long reviewId ,Long memberId, ReviewUpdateRequestDto reqDto); 
+	
 }
+ 

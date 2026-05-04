@@ -2,6 +2,7 @@ package co.kr.allpick.domain.review.controller.docs;
 
 import co.kr.allpick.domain.review.dto.ReviewRequestDto;
 import co.kr.allpick.domain.review.dto.ReviewResponseDto;
+import co.kr.allpick.domain.review.dto.ReviewUpdateRequestDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,9 +17,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
- 
+
 @Tag(name = "Review", description = "리뷰 API")
 public interface ReviewControllerDocs {
 
@@ -41,23 +43,8 @@ public interface ReviewControllerDocs {
                                     "content": "재질이 너무 부드럽고 핏이 예뻐요!"
                                 }
                             ],
-                            "pageable": {
-                                "sort": { "sorted": true, "unsorted": false, "empty": false },
-                                "offset": 0,
-                                "pageSize": 5,
-                                "pageNumber": 0,
-                                "paged": true,
-                                "unpaged": false
-                            },
                             "totalElements": 1,
-                            "totalPages": 1,
-                            "last": true,
-                            "size": 5,
-                            "number": 0,
-                            "sort": { "sorted": true, "unsorted": false, "empty": false },
-                            "numberOfElements": 1,
-                            "first": true,
-                            "empty": false
+                            "totalPages": 1
                         }
                     }
                 """)
@@ -81,7 +68,6 @@ public interface ReviewControllerDocs {
                             "reviewId": 1,
                             "writerName": "홍길동",
                             "productName": "올픽 시그니처 티셔츠",
-                            "selectedOption": "L / White",
                             "rating": 5,
                             "content": "재질이 너무 부드럽고 핏이 예뻐요!"
                         }
@@ -89,26 +75,38 @@ public interface ReviewControllerDocs {
                 """)
             )),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "중복 리뷰 작성 시도",
-            content = @Content(
-                examples = @ExampleObject(value = """
-                    {
-                        "success": false,
-                        "message": "이미 리뷰를 작성한 상품입니다.",
-                        "data": null
-                    }
-                """)
-            )),
+            content = @Content(examples = @ExampleObject(value = "{\"success\": false, \"message\": \"이미 리뷰를 작성한 상품입니다.\"}"))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문 내역 없음",
-            content = @Content(
-                examples = @ExampleObject(value = """
-                    {
-                        "success": false,
-                        "message": "주문 내역을 찾을 수 없습니다.",
-                        "data": null
-                    }
-                """)
-            ))
+            content = @Content(examples = @ExampleObject(value = "{\"success\": false, \"message\": \"주문 내역을 찾을 수 없습니다.\"}")))
     })
     ResponseEntity<ApiResponse<ReviewResponseDto>> createReview(
             @Valid @RequestBody ReviewRequestDto reqdto);
+
+    // --- 추가된 리뷰 수정(Patch) 부분 ---
+    @Operation(summary = "리뷰 수정", description = "기존에 작성한 리뷰를 수정합니다. (작성자 본인만 가능)")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "리뷰 수정 성공",
+            content = @Content(
+                examples = @ExampleObject(value = """
+                    {
+                        "success": true,
+                        "message": "리뷰가 수정되었습니다.",
+                        "data": {
+                            "reviewId": 1,
+                            "writerName": "홍길동",
+                            "rating": 4,
+                            "content": "수정된 리뷰 내용입니다."
+                        }
+                    }
+                """)
+            )),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한 없음",
+            content = @Content(examples = @ExampleObject(value = "{\"success\": false, \"message\": \"리뷰 작성자가 아닙니다.\"}"))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "리뷰 없음",
+            content = @Content(examples = @ExampleObject(value = "{\"success\": false, \"message\": \"리뷰를 찾을 수 없습니다.\"}")))
+    })
+    @PatchMapping("/{reviewId}")
+    ResponseEntity<ApiResponse<ReviewResponseDto>> updateReview(
+            @PathVariable("reviewId") Long reviewId,
+            @Valid @RequestBody ReviewUpdateRequestDto reqDto);
 }

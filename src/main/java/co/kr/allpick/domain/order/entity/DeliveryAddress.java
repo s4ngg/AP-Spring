@@ -19,7 +19,7 @@ public class DeliveryAddress extends BaseEntity {
 
     @Column(name = "member_id", nullable = false)
     private Long memberId;
-
+    
     @Column(name = "recipient_name", nullable = false, length = 50)
     private String recipientName;
 

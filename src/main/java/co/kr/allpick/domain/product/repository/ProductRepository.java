@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.seller.entity.Seller;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long>{
@@ -20,8 +21,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 		   "WHERE p.productId = :id " +
 		   "AND p.status = 'ON_SALE' " +
 		   "AND p.approvalStatus = 'APPROVED' ")
-
-	
 	Optional<Product> findValidProduct(@Param("id") Long productId);
 	
 	// 상품명 존재 여부 확인 메서드
@@ -29,9 +28,13 @@ public interface ProductRepository extends JpaRepository<Product, Long>{
 
 	Optional<Product> findByProductIdAndDeletedAtIsNull(Long productId);
 
-
-	
-
+	// 상품 조회 (판매자가 검증이된 경우만.)
+ 	@Query("SELECT p FROM Product p " + 
+ 		   " JOIN FETCH p.seller s " + 
+ 			"JOIN s.member m " + 
+ 		   "WHERE p.productId = :productId AND m.id = :memberId")
+	Optional<Product> findByProductIdAndMemberId(@Param("memberId") Long memberId,@Param("productId") Long productId );
+ 	
 	// 판매 중이고 승인된 상품 목록 페이지 조회
 	@EntityGraph(attributePaths = {"parentCategory"})
 	Page<Product> findByStatusAndApprovalStatusAndDeletedAtIsNull(

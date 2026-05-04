@@ -3,6 +3,7 @@ package co.kr.allpick.domain.order.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,7 +24,6 @@ import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,8 +35,10 @@ public class OrderController implements OrderControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-                        @RequestBody @Valid OrderCreateRequestDto request) {
-        return ApiResponse.success("주문이 생성되었습니다.", orderService.createOrder(request));
+    		@AuthenticationPrincipal JwtUserInfoDto userInfo,
+    		@RequestBody @Valid OrderCreateRequestDto request) {
+        return ApiResponse.success("주문이 생성되었습니다.", 
+        		orderService.createOrder(userInfo.getMemberId(),request));
     }
 
     @Override

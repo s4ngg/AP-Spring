@@ -20,4 +20,11 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     
     @Query("SELECT SUM(oi.totalPrice) FROM OrderItem oi WHERE oi.order.orderId = :orderId")
     BigDecimal sumTotalPriceByOrderId(@Param("orderId") Long orderId);
+    
+    // 상품주문과 연결된 member 객체 한번에 불러오기
+    @Query( "SELECT oi FROM OrderItem oi " + 
+    		"JOIN FETCH oi.order o " +
+    		"JOIN FETCH o.member m " +
+    		"WHERE oi.orderItemId = :orderItemId")
+    Optional<OrderItem> findWithOrderAndMember(@Param("orderItemId") Long orderItemId);
 }

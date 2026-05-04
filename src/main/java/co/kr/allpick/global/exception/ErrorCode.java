@@ -56,6 +56,8 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "UNAUTHORIZED", "본인만 접근 가능합니다."),
+    PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "PRODUCT_NOT_OWNED", "해당 상품에 대한 권한이 없습니다."),
+    
     // SMS
     SMS_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SMS_SEND_FAILED", "SMS 발송에 실패했습니다."),
     PHONE_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "PHONE_NOT_VERIFIED", "핸드폰 인증이 필요합니다."),
@@ -98,6 +100,8 @@ public enum ErrorCode {
 	// Cart 
 	MEMBER_CART_NOT_FOUND(HttpStatus.NOT_FOUND,"CART_NOT_FOUND", "해당 사용자의 장바구니가 존재하지 않습니다."),
 
+	// CartItem
+	CART_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_ITEM_NOT_FOUND","장바구니에 해당 상품이 존재하지 않습니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 카테고리입니다."),
@@ -109,8 +113,9 @@ public enum ErrorCode {
 
 
     // Review
-    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다.");
-
+    REVIEW_ALREADY_EXISTS(HttpStatus.BAD_REQUEST,"REVIEW_ALREADY_EXISTS", "하나의 상품에 한번의 리뷰만 가능합니다."),
+	REVIEW_NOT_AUTHOR(HttpStatus.FORBIDDEN, "REVIEW_NOT_AUTHOR", "해당 리뷰를 수정할 권한이 없습니다.");
+	
 
 	
     

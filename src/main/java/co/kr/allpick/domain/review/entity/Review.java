@@ -2,6 +2,7 @@ package co.kr.allpick.domain.review.entity;
 
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.review.dto.ReviewRequestDto;
+import co.kr.allpick.domain.review.dto.ReviewUpdateRequestDto;
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -53,4 +54,12 @@ public class Review extends BaseEntity{
     			.selectedOption(reqDto.getSelectedOption())
     			.build();
     } 
+    
+    
+    public void updateReview(ReviewUpdateRequestDto reqDto) {
+    	this.rating = reqDto.getRating();
+    	this.content = reqDto.getContent();
+    }
 }
+
+

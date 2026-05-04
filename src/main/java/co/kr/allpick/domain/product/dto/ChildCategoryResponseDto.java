@@ -9,7 +9,7 @@ import lombok.Getter;
 @Builder
 @Schema(description = "자식 카테고리 응답 DTO")
 public class ChildCategoryResponseDto {
-
+ 
     @Schema(description = "자식 카테고리 ID", example = "1")
     private Long childCategoryId;
 
