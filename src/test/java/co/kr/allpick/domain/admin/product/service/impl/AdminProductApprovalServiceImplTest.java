@@ -76,6 +76,7 @@ class AdminProductApprovalServiceImplTest {
 
         ArgumentCaptor<ProductApproval> captor = ArgumentCaptor.forClass(ProductApproval.class);
         then(productApprovalRepository).should().save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(ProductApproval.ApprovalStatus.APPROVED);
         assertThat(captor.getValue().getProduct()).isEqualTo(product);
         assertThat(captor.getValue().getAdmin()).isEqualTo(admin);
         assertThat(captor.getValue().getRejectReason()).isNull();
@@ -102,30 +103,46 @@ class AdminProductApprovalServiceImplTest {
         // then
         assertThat(product.getApprovalStatus()).isEqualTo(Product.ApprovalStatus.REJECTED);
         assertThat(result.getStatus()).isEqualTo(ProductApproval.ApprovalStatus.REJECTED);
+        assertThat(result.getRequestType()).isEqualTo(ProductApproval.RequestType.REGISTER);
         assertThat(result.getRejectReason()).isEqualTo("상품 설명 보완 필요");
         assertThat(result.getProductId()).isEqualTo(1L);
         assertThat(result.getAdminId()).isEqualTo(1L);
 
         ArgumentCaptor<ProductApproval> captor = ArgumentCaptor.forClass(ProductApproval.class);
         then(productApprovalRepository).should().save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(ProductApproval.ApprovalStatus.REJECTED);
         assertThat(captor.getValue().getRejectReason()).isEqualTo("상품 설명 보완 필요");
         assertThat(captor.getValue().getProcessedAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("상품 승인 실패 - SUPER_ADMIN 권한 없음 (JWT)")
+    @DisplayName("상품 승인 실패 - adminInfo null")
+    void 상품_승인_실패_adminInfo_null() {
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.approveProduct(null, 1L))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
+        then(adminRepository).should(never()).findById(any());
+        then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
+        then(productApprovalRepository).should(never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 실패 - SUPER_ADMIN 권한 없음")
     void 상품_승인_실패_권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = AdminJwtUserInfoDto.builder()
                 .adminId(1L)
                 .role(Admin.AdminRole.CS_ADMIN)
                 .build();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(csAdmin()));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        then(adminRepository).should(never()).findById(any());
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -140,7 +157,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_NOT_FOUND);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_NOT_FOUND);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -155,7 +173,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -170,7 +189,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -186,7 +206,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 999L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -202,7 +223,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.APPROVAL_NOT_PENDING);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -218,7 +240,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.APPROVAL_NOT_PENDING);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -234,7 +257,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.SELLER_NOT_APPROVED);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -243,7 +267,23 @@ class AdminProductApprovalServiceImplTest {
     // ─────────────────────────────────────────
 
     @Test
-    @DisplayName("상품 승인 거절 실패 - SUPER_ADMIN 권한 없음 (JWT)")
+    @DisplayName("상품 승인 거절 실패 - adminInfo null")
+    void 상품_승인_거절_실패_adminInfo_null() {
+        // given
+        ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+
+        // when & then
+        assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(null, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
+        then(adminRepository).should(never()).findById(any());
+        then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
+        then(productApprovalRepository).should(never()).save(any());
+    }
+
+    @Test
+    @DisplayName("상품 승인 거절 실패 - SUPER_ADMIN 권한 없음")
     void 상품_승인_거절_실패_권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = AdminJwtUserInfoDto.builder()
@@ -251,12 +291,13 @@ class AdminProductApprovalServiceImplTest {
                 .role(Admin.AdminRole.CS_ADMIN)
                 .build();
         ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(csAdmin()));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        then(adminRepository).should(never()).findById(any());
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -272,7 +313,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_NOT_FOUND);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_NOT_FOUND);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -288,7 +330,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -298,15 +341,14 @@ class AdminProductApprovalServiceImplTest {
     void 상품_승인_거절_실패_DB관리자권한없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
-        Admin admin = csAdmin();
         ProductRejectRequestDto request = new ProductRejectRequestDto("상품 설명 보완 필요");
-
-        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(csAdmin()));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ADMIN_FORBIDDEN);
         then(productRepository).should(never()).findByProductIdAndDeletedAtIsNull(any());
         then(productApprovalRepository).should(never()).save(any());
     }
@@ -324,7 +366,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 999L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -342,7 +385,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.APPROVAL_NOT_PENDING);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -360,7 +404,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.APPROVAL_NOT_PENDING);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.APPROVAL_NOT_PENDING);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -378,7 +423,8 @@ class AdminProductApprovalServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.SELLER_NOT_APPROVED);
         then(productApprovalRepository).should(never()).save(any());
     }
 
@@ -403,8 +449,8 @@ class AdminProductApprovalServiceImplTest {
 
     private Admin superAdmin() {
         return Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
+                .email("dummy@test.local")
+                .password("DUMMY_PASSWORD")
                 .adminName("관리자")
                 .adminPhone("010-0000-0000")
                 .role(Admin.AdminRole.SUPER_ADMIN)
@@ -414,8 +460,8 @@ class AdminProductApprovalServiceImplTest {
 
     private Admin csAdmin() {
         return Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
+                .email("dummy@test.local")
+                .password("DUMMY_PASSWORD")
                 .adminName("관리자")
                 .adminPhone("010-0000-0000")
                 .role(Admin.AdminRole.CS_ADMIN)
@@ -425,8 +471,8 @@ class AdminProductApprovalServiceImplTest {
 
     private Admin blockedAdmin() {
         return Admin.builder()
-                .email("admin@example.com")
-                .password("encodedPassword")
+                .email("dummy@test.local")
+                .password("DUMMY_PASSWORD")
                 .adminName("관리자")
                 .adminPhone("010-0000-0000")
                 .role(Admin.AdminRole.SUPER_ADMIN)

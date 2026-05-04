@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class AdminProductApprovalServiceImpl implements AdminProductApprovalService {
@@ -63,7 +64,7 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
     }
 
     private Admin getSuperAdmin(AdminJwtUserInfoDto adminInfo) {
-        if (adminInfo == null || adminInfo.getRole() != Admin.AdminRole.SUPER_ADMIN) {
+        if (adminInfo == null) {
             throw new BusinessException(ErrorCode.ADMIN_FORBIDDEN);
         }
         Admin admin = adminRepository.findById(adminInfo.getAdminId())
@@ -88,5 +89,4 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
             throw new BusinessException(ErrorCode.SELLER_NOT_APPROVED);
         }
     }
-
 }

@@ -91,6 +91,6 @@ public class ProductApproval extends BaseEntity {
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, REJECTED
+        APPROVED, REJECTED
     }
 }

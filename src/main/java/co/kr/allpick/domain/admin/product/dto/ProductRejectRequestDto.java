@@ -2,6 +2,7 @@ package co.kr.allpick.domain.admin.product.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class ProductRejectRequestDto {
 
     @NotBlank
+    @Size(max = 500)
     @Schema(description = "거절 사유", example = "상품 설명 보완이 필요합니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     private String rejectReason;
 }
