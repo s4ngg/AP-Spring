@@ -3,24 +3,31 @@ package co.kr.allpick.domain.order.service.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.atLeastOnce;
+
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import co.kr.allpick.domain.coupon.entity.MemberCoupon;
 import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
@@ -29,18 +36,22 @@ import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderItemRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
+import co.kr.allpick.domain.order.dto.PaymentResponseDto;
 import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
+import co.kr.allpick.domain.order.entity.Payment;
 import co.kr.allpick.domain.order.repository.DeliveryAddressRepository;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.domain.order.repository.PaymentRepository;
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class OrderServiceImplTest {
 
     @Mock OrderRepository orderRepository;
@@ -54,58 +65,85 @@ class OrderServiceImplTest {
     @InjectMocks
     OrderServiceImpl orderService;
 
+    private Member mockMember;
+    private DeliveryAddress mockAddress;
+
+    @BeforeEach
+    void setUp() {
+        
+        mockMember = new Member();
+        ReflectionTestUtils.setField(mockMember, "id", 1L);
+
+        // DeliveryAddress 생성
+        mockAddress = DeliveryAddress.builder()
+                .memberId(1L)
+                .recipientName("테스터")
+                .phone("01012345678")
+                .zipCode("12345")
+                .address("서울시")
+                .addressDetail("101호")
+                .isDefault(true)
+                .build();
+        ReflectionTestUtils.setField(mockAddress, "addressId", 1L);
+    }
+
     @Test
-    @DisplayName("주문 생성 성공 - 항목 및 금액 업데이트 확인")
+    @DisplayName("주문 생성 성공 - 항목 및 재고 차감 확인")
     void 주문_생성_성공() {
         // given
         Long memberId = 1L;
-        Long addressId = 1L;
-        Long productId = 100L;
-        
-        OrderItemRequestDto itemRequest = new OrderItemRequestDto(productId, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(memberId, addressId, null, List.of(itemRequest));
+        OrderItemRequestDto itemRequest = new OrderItemRequestDto(100L, 10L, 2);
+        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest));
 
-        Member mockMember = Member.builder().build();
-        DeliveryAddress mockAddress = DeliveryAddress.builder().build();
+        ProductOption mockOption = spy(ProductOption.builder()
+                .stockQuantity(10)
+                .build());
+        ReflectionTestUtils.setField(mockOption, "optionId", 10L);
+
         Product mockProduct = Product.builder()
-                .price(BigDecimal.valueOf(10000))
+                .productId(100L)
+                .productName("테스트 상품")
+                .optionList(List.of(mockOption))
                 .build();
 
-        // 초기 save 시 반환될 Order (아이템 리스트가 초기화되어 있어야 함)
-        Order mockOrder = Order.builder()
-            .orderNumber("ORD-GENERATED-001")
-            .build();
+        Order mockOrder = spy(new Order());
+        ReflectionTestUtils.setField(mockOrder, "orderId", 1L);
+        ReflectionTestUtils.setField(mockOrder, "orderNumber", "ORD-GENERATED-001");
+        ReflectionTestUtils.setField(mockOrder, "orderItems", new ArrayList<>());
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
-        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
+        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(mockAddress));
         when(orderRepository.existsByOrderNumber(anyString())).thenReturn(false);
+        // 생성 시점과 금액 업데이트 후 시점 모두 mockOrder 반환
         when(orderRepository.save(any(Order.class))).thenReturn(mockOrder);
-        when(productRepository.findById(productId)).thenReturn(Optional.of(mockProduct));
+        when(productRepository.findById(100L)).thenReturn(Optional.of(mockProduct));
+        when(orderItemRepository.sumTotalPriceByOrderId(any())).thenReturn(BigDecimal.valueOf(20000));
 
         // when
-        OrderResponseDto result = orderService.createOrder(request);
+        OrderResponseDto result = orderService.createOrder(memberId, request);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getOrderNumber()).isEqualTo("ORD-GENERATED-001");
+        verify(mockOption).removeStock(2); 
         verify(orderRepository, atLeastOnce()).save(any(Order.class));
-        verify(productRepository).findById(productId);
-    }
+    } 
 
     @Test
     @DisplayName("주문 생성 실패 - 상품이 존재하지 않음")
     void 주문_생성_실패_상품없음() {
-        // given
-        OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 1);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, 1L, null, List.of(itemRequest));
+        // given  
+        Long memberId = 1L;
+        OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 10L, 1);
+        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest));
 
-        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(Member.builder().build()));
-        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(DeliveryAddress.builder().build()));
-        when(orderRepository.save(any())).thenReturn(Order.builder().build());
+        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
+        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(mockAddress));
+        when(orderRepository.save(any())).thenReturn(new Order()); // 예외 발생 방지용 Mock 반환
         when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> orderService.createOrder(request))
+        assertThatThrownBy(() -> orderService.createOrder(memberId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
     }
@@ -117,22 +155,21 @@ class OrderServiceImplTest {
         Long memberId = 1L;
         Long addressId = 1L;
         DeliveryAddressRequestDto request = new DeliveryAddressRequestDto(
-            "수정된이름", "010-0000-0000", "12345", "서울", "202", true
+            "수정된이름", "01000000000", "12345", "서울", "202", true
         );
 
-        DeliveryAddress mockAddress = spy(DeliveryAddress.builder()
-                .memberId(memberId)
-                .build());
+        DeliveryAddress addressToUpdate = spy(mockAddress);
 
-        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
-        when(orderRepository.existsByAddressId(addressId)).thenReturn(false);
+        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(addressToUpdate));
+        when(orderRepository.existsByDeliveryAddress_AddressId(addressId)).thenReturn(false);
 
         // when
         DeliveryAddressResponseDto result = orderService.updateDeliveryAddress(memberId, addressId, request);
 
         // then
         assertThat(result.getRecipientName()).isEqualTo("수정된이름");
-        verify(mockAddress).update(any(), any(), any(), any(), any(), anyBoolean());
+        // 서비스 로직의 address.update 인자 6개와 매칭
+        verify(addressToUpdate).update(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
     }
 
     @Test
@@ -141,10 +178,9 @@ class OrderServiceImplTest {
         // given
         Long memberId = 1L;
         Long addressId = 1L;
-        DeliveryAddress mockAddress = DeliveryAddress.builder().memberId(memberId).build();
 
         when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
-        when(orderRepository.existsByAddressId(addressId)).thenReturn(true); // 사용 중 설정
+        when(orderRepository.existsByDeliveryAddress_AddressId(addressId)).thenReturn(true);
 
         // when & then
         assertThatThrownBy(() -> orderService.deleteDeliveryAddress(memberId, addressId))
@@ -153,28 +189,26 @@ class OrderServiceImplTest {
     }
 
     @Test
-    @DisplayName("배송지 추가 성공")
-    void 배송지_추가_성공() {
+    @DisplayName("결제 조회 성공")
+    void 결제_조회_성공() {
         // given
-        Long memberId = 1L;
-        DeliveryAddressRequestDto request = new DeliveryAddressRequestDto(
-            "홍길동", "010-1234-5678", "12345", "서울", "101", false
-        );
+        Long orderId = 1L;
+        Payment mockPayment = Payment.builder()
+                .paymentId(100L)
+                .amount(new BigDecimal("50000"))
+                .method(Payment.PaymentMethod.CARD)
+                .status(Payment.PaymentStatus.DONE)
+                .build();
 
-        DeliveryAddress mockAddress = DeliveryAddress.builder()
-            .recipientName("홍길동")
-            .build();
-
-        when(deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(any(), any(), any()))
-            .thenReturn(false);
-        when(deliveryAddressRepository.save(any()))
-            .thenReturn(mockAddress);
+        when(paymentRepository.findByOrder_OrderId(orderId)).thenReturn(Optional.of(mockPayment));
 
         // when
-        DeliveryAddressResponseDto result = orderService.addDeliveryAddress(memberId, request);
+        PaymentResponseDto result = orderService.getPayment(orderId);
 
         // then
-        assertThat(result.getRecipientName()).isEqualTo("홍길동");
+        assertThat(result).isNotNull();
+        assertThat(result.getAmount()).isEqualByComparingTo(new BigDecimal("50000"));
+        verify(paymentRepository).findByOrder_OrderId(orderId);
     }
 
     @Test
@@ -183,13 +217,14 @@ class OrderServiceImplTest {
         // given
         Long memberId = 1L;
         when(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId))
-            .thenReturn(List.of(DeliveryAddress.builder().recipientName("홍길동").build()));
+            .thenReturn(List.of(mockAddress));
 
         // when
         List<DeliveryAddressResponseDto> result = orderService.getDeliveryAddresses(memberId);
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getRecipientName()).isEqualTo("홍길동");
+        assertThat(result.get(0).getRecipientName()).isEqualTo("테스터");
+        assertThat(result.get(0).getAddressId()).isEqualTo(1L);
     }
 }

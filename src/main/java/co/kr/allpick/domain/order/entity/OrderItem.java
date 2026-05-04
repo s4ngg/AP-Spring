@@ -3,6 +3,7 @@ package co.kr.allpick.domain.order.entity;
 import java.math.BigDecimal;
 
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,6 +36,13 @@ public class OrderItem extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_option_id", nullable = false) // ERD에 이 컬럼이 추가됩니다.
+    private ProductOption productOption;
+    
+    @Column(name = "product_name", nullable = false)
+    private String productName;
 
     @Column(name = "product_price", nullable = false)
     private BigDecimal productPrice;
@@ -51,11 +59,13 @@ public class OrderItem extends BaseEntity {
     }
     
     @Builder
-    public OrderItem(Order order, Product product,
-                     BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
+    public OrderItem(Order order, Product product,ProductOption productOption,
+                     String productName ,BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
         this.order = order;
         this.product = product;
-        this.productPrice = productPrice;
+        this.productOption = productOption;
+        this.productName = productName;
+        this.productPrice = productPrice; 
         this.quantity = quantity;
         this.totalPrice = totalPrice;
     }

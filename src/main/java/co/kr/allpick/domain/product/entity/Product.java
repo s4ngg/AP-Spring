@@ -100,12 +100,27 @@ public class Product extends BaseEntity {
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
     public enum Status {
-        ON_SALE, SOLD_OUT, HIDDEN
+        ON_SALE, SOLD_OUT, HIDDEN, DELETED
     }
 
     public enum ApprovalStatus {
         PENDING, APPROVED, SUSPENDED
 
     }
+    
+    
+    
+    public void updatePrice(BigDecimal price) { 
+    	this.price = price;
+    }
+    @Override 
+    public void delete() {
+    	super.delete();
+    	this.status = Status.DELETED;
+    }
 }
+ 
+
+
+
 

@@ -8,20 +8,26 @@ import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
+import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
+import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
 
 
 public interface ProductService {
 	// 상품 생성 메서드
-	//		-	검증 : 1. 존재하는 카테고리인지 2. 이미 사용중인 상품명인지 -> 매개변수 : 요청Dto을 통해 검사
-	// 		- 	반환 : 생성된 객체의 id, 생성성공 메세지.. 
-	ProductSaveResponseDto createProduct(ProductSaveRequestDto reqDto);
+	ProductSaveResponseDto createProduct(Long memberId ,ProductSaveRequestDto reqDto);
 	 
 	// 상품 id로 상품상세 페이지 조회하기
 
 	ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable);
 
+	// 상품 가격수정 메서드 ( PatchMapping ) 
+	ProductUpdateResponseDto updateProduct(Long memberId ,Long productId, ProductUpdateRequestDto reqdto);
 
 	// 상품 목록 페이지 조회
 	Page<ProductListResponseDto> getProductList(Pageable pageable);
+	
+	// 상품 삭제 ( DeleteMapping )
+	void deleteProduct(Long memberId ,Long productId);
+	
 
 }
