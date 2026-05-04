@@ -1,7 +1,7 @@
-package co.kr.allpick.domain.admin.seller.entity;
+package co.kr.allpick.domain.admin.product.entity;
 
 import co.kr.allpick.domain.admin.entity.Admin;
-import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,19 +22,19 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "seller_approvals")
+@Table(name = "product_approvals")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SellerApproval extends BaseEntity {
+public class ProductApproval extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "seller_approval_id")
-    private Long sellerApprovalId;
+    @Column(name = "product_approval_id")
+    private Long productApprovalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id", nullable = false)
-    private Seller seller;
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_id")
@@ -55,9 +55,9 @@ public class SellerApproval extends BaseEntity {
     private LocalDateTime processedAt;
 
     @Builder
-    private SellerApproval(Seller seller, Admin admin, RequestType requestType,
-                           ApprovalStatus status, String rejectReason, LocalDateTime processedAt) {
-        this.seller = seller;
+    private ProductApproval(Product product, Admin admin, RequestType requestType,
+                            ApprovalStatus status, String rejectReason, LocalDateTime processedAt) {
+        this.product = product;
         this.admin = admin;
         this.requestType = requestType;
         this.status = status;
@@ -65,9 +65,9 @@ public class SellerApproval extends BaseEntity {
         this.processedAt = processedAt;
     }
 
-    public static SellerApproval approved(Seller seller, Admin admin, RequestType requestType) {
-        return SellerApproval.builder()
-                .seller(seller)
+    public static ProductApproval approved(Product product, Admin admin, RequestType requestType) {
+        return ProductApproval.builder()
+                .product(product)
                 .admin(admin)
                 .requestType(requestType)
                 .status(ApprovalStatus.APPROVED)
@@ -75,9 +75,9 @@ public class SellerApproval extends BaseEntity {
                 .build();
     }
 
-    public static SellerApproval rejected(Seller seller, Admin admin, RequestType requestType, String rejectReason) {
-        return SellerApproval.builder()
-                .seller(seller)
+    public static ProductApproval rejected(Product product, Admin admin, RequestType requestType, String rejectReason) {
+        return ProductApproval.builder()
+                .product(product)
                 .admin(admin)
                 .requestType(requestType)
                 .status(ApprovalStatus.REJECTED)
@@ -91,6 +91,6 @@ public class SellerApproval extends BaseEntity {
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, REJECTED
+        APPROVED, REJECTED
     }
 }
