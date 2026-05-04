@@ -32,7 +32,7 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 			" JOIN FETCH r.orderItem oi " +
 			" JOIN FETCH oi.order o " +
 			" JOIN FETCH o.member m " +
-			" WHERE r.reviewId = :reviewId And m.memberId = :memberId")
+			" WHERE r.reviewId = :reviewId And m.id = :memberId")
 	Optional<Review> findByReviewIdAndMemberId(@Param("reviewId") Long reviewId,@Param("memberId") Long memberId);
 	 
 	 
