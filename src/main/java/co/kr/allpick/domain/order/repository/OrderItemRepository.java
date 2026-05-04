@@ -24,7 +24,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     // 상품주문과 연결된 member 객체 한번에 불러오기
     @Query( "SELECT oi FROM OrderItem oi " + 
     		"JOIN FETCH oi.order o " +
-    		"JOIN FETCH o.member m" +
+    		"JOIN FETCH o.member m " +
     		"WHERE oi.orderItemId = :orderItemId")
     Optional<OrderItem> findWithOrderAndMember(@Param("orderItemId") Long orderItemId);
 }
