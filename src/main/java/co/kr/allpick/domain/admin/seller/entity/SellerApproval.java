@@ -87,7 +87,7 @@ public class SellerApproval extends BaseEntity {
     }
 
     public enum RequestType {
-        REGISTER
+        REGISTER, SUSPEND
     }
 
     public enum ApprovalStatus {
