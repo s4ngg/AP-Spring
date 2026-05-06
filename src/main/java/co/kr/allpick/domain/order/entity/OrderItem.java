@@ -1,12 +1,22 @@
 package co.kr.allpick.domain.order.entity;
 
+import java.math.BigDecimal;
+
+import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.global.common.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
@@ -22,10 +32,15 @@ public class OrderItem extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
-
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
-
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_option_id", nullable = false) // ERD에 이 컬럼이 추가됩니다.
+    private ProductOption productOption;
+    
     @Column(name = "product_name", nullable = false)
     private String productName;
 
@@ -37,14 +52,20 @@ public class OrderItem extends BaseEntity {
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice;
-
+    
+    // 편의 메서드 (부모를 매개변수로 전달해주면 자식과 연결해줌.)
+    public void assignOrder(Order order) {
+    	this.order = order;
+    }
+    
     @Builder
-    public OrderItem(Order order, Long productId, String productName,
-                     BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
+    public OrderItem(Order order, Product product,ProductOption productOption,
+                     String productName ,BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
         this.order = order;
-        this.productId = productId;
+        this.product = product;
+        this.productOption = productOption;
         this.productName = productName;
-        this.productPrice = productPrice;
+        this.productPrice = productPrice; 
         this.quantity = quantity;
         this.totalPrice = totalPrice;
     }

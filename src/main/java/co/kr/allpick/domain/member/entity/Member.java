@@ -57,12 +57,12 @@ public class Member extends BaseEntity {
     private String socialId;
     
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name ="grade", nullable = false)
     @Builder.Default
     private MemberGrade grade = MemberGrade.NORMAL;
 
     public enum LoginType {
-        LOCAL, KAKAO, NAVER, GOOGLE
+        LOCAL, GOOGLE, KAKAO, NAVER
     }
 
     // 일반 회원가입 (BUYER)
@@ -110,10 +110,5 @@ public class Member extends BaseEntity {
 
     public void updateGrade(MemberGrade grade) {
         this.grade = grade;
-    }
-
-    // JWT 변환
-    public JwtUserInfoDto toJwtUserInfoDto() {
-        return new JwtUserInfoDto(this.id, this.email);
     }
 }

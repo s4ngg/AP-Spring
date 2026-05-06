@@ -29,4 +29,15 @@ public interface ClaimService {
 
     // 클레임 취소 (회원)
     void cancelClaim(Long claimId, Long memberId);
+    
+    // 클레임 승인 (관리자/판매자)
+    ClaimResponseDto approveClaim(Long claimId, Long memberId);
+    
+    // 클레임 거부 (판매자)
+    ClaimResponseDto rejectClaimBySeller(Long claimId, ClaimRejectRequestDto request, Long memberId);
+    
+    // 판매자 클레임 목록 조회
+    List<ClaimResponseDto> getSellerClaims(Long memberId);
+    
+    
 }

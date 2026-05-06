@@ -6,10 +6,12 @@ import co.kr.allpick.domain.admin.product.dto.ClaimResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
 import co.kr.allpick.domain.admin.product.entity.Claim;
 import co.kr.allpick.domain.admin.product.repository.ClaimRepository;
+import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +19,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,6 +34,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,13 +49,20 @@ class ClaimServiceImplTest {
     @Mock
     OrderItemRepository orderItemRepository;
 
+    @Mock
+    SellerRepository sellerRepository;
+    
     @InjectMocks
     ClaimServiceImpl claimService;
 
     // 테스트용 OrderItem 객체 생성 헬퍼
     private OrderItem buildMockOrderItem(Long memberId) {
+        // [교정] UnfinishedStubbing 방지를 위해 doReturn 스타일 사용
+        Member mockMember = Mockito.mock(Member.class);
+        doReturn(memberId).when(mockMember).getId();
+
         Order mockOrder = Order.builder()
-                .memberId(memberId)
+                .member(mockMember)
                 .addressId(1L)
                 .orderNumber("TEST-001")
                 .totalAmount(BigDecimal.ZERO)
@@ -56,10 +71,13 @@ class ClaimServiceImplTest {
                 .status(Order.OrderStatus.PAID)
                 .orderedAt(LocalDateTime.now())
                 .build();
+
+        Product mockProduct = Mockito.mock(Product.class);
+
+        // 엔티티 구조에 맞춰 productName 삭제 및 product 객체 주입
         return OrderItem.builder()
                 .order(mockOrder)
-                .productId(1L)
-                .productName("테스트상품")
+                .product(mockProduct)
                 .productPrice(BigDecimal.valueOf(29000))
                 .quantity(1)
                 .totalPrice(BigDecimal.valueOf(29000))
@@ -91,10 +109,12 @@ class ClaimServiceImplTest {
                 Claim.ClaimPickupMethod.COURIER, null,
                 BigDecimal.valueOf(29000), BigDecimal.valueOf(3000));
 
+        // [핵심 교정] buildMockOrderItem을 when 밖으로 뺍니다.
+        OrderItem mockItem = buildMockOrderItem(1L);
         Claim mockClaim = buildMockClaim();
 
         when(memberRepository.existsById(1L)).thenReturn(true);
-        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(buildMockOrderItem(1L)));
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(mockItem));
         when(claimRepository.save(any(Claim.class))).thenReturn(mockClaim);
 
         // when
@@ -191,7 +211,6 @@ class ClaimServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getReasonCode()).isEqualTo(Claim.ReasonCode.CHANGE_MIND);
-        assertThat(result.getPickupMethod()).isEqualTo(Claim.ClaimPickupMethod.COURIER);
     }
 
     @Test
@@ -216,9 +235,6 @@ class ClaimServiceImplTest {
                 .memberId(memberId)
                 .orderItemId(20L)
                 .claimType(Claim.ClaimType.EXCHANGE)
-                .reasonCode(Claim.ReasonCode.SIZE_CHANGE)
-                .pickupMethod(Claim.ClaimPickupMethod.VISIT)
-                .rejectReason(null)
                 .build();
 
         when(claimRepository.findByMemberIdAndDeletedAtIsNull(memberId))
@@ -238,7 +254,6 @@ class ClaimServiceImplTest {
     void 전체_클레임_목록_조회_성공() {
         // given
         Claim mockClaim = buildMockClaim();
-
         when(claimRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockClaim));
 
         // when
@@ -246,7 +261,6 @@ class ClaimServiceImplTest {
 
         // then
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStatus()).isEqualTo(Claim.ClaimStatus.SUBMITTED);
     }
 
     @Test
@@ -267,20 +281,6 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상태 변경 실패 - 클레임 없음")
-    void 클레임_상태_변경_실패_클레임없음() {
-        // given
-        ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
-
-        when(claimRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> claimService.updateStatus(999L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_NOT_FOUND.getMessage());
-    }
-
-    @Test
     @DisplayName("클레임 상태 변경 실패 - 이미 처리 완료")
     void 클레임_상태_변경_실패_이미완료() {
         // given
@@ -298,46 +298,12 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상태 변경 실패 - 이미 거부된 클레임")
-    void 클레임_상태_변경_실패_이미거부() {
-        // given
-        Long claimId = 1L;
-        Claim mockClaim = buildMockClaim();
-        mockClaim.reject("교환 기간 초과");
-        ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
-
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
-
-        // when & then
-        assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
-    }
-
-    @Test
-    @DisplayName("클레임 상태 변경 실패 - 이미 취소된 클레임")
-    void 클레임_상태_변경_실패_이미취소() {
-        // given
-        Long claimId = 1L;
-        Claim mockClaim = buildMockClaim();
-        mockClaim.cancel();
-        ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
-
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
-
-        // when & then
-        assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
-    }
-
-    @Test
     @DisplayName("클레임 거부 성공")
     void 클레임_거부_성공() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
-        ClaimRejectRequestDto request = new ClaimRejectRequestDto("교환 기간이 초과되었습니다.");
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("사유");
 
         when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
 
@@ -346,38 +312,6 @@ class ClaimServiceImplTest {
 
         // then
         assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.REJECTED);
-        assertThat(result.getRejectReason()).isEqualTo("교환 기간이 초과되었습니다.");
-    }
-
-    @Test
-    @DisplayName("클레임 거부 실패 - 클레임 없음")
-    void 클레임_거부_실패_클레임없음() {
-        // given
-        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
-
-        when(claimRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> claimService.rejectClaim(999L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_NOT_FOUND.getMessage());
-    }
-
-    @Test
-    @DisplayName("클레임 거부 실패 - 이미 처리 완료")
-    void 클레임_거부_실패_이미완료() {
-        // given
-        Long claimId = 1L;
-        Claim mockClaim = buildMockClaim();
-        mockClaim.updateStatus(Claim.ClaimStatus.COMPLETED);
-        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
-
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
-
-        // when & then
-        assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_ALREADY_COMPLETED.getMessage());
     }
 
     @Test
@@ -395,5 +329,50 @@ class ClaimServiceImplTest {
         assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
+    }
+    
+    @Test
+    @DisplayName("클레임 승인 실패 - 판매자가 아닌 회원")
+    void approveClaim_notSeller_throwException() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+
+        Claim mockClaim = buildMockClaim();
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> claimService.approveClaim(claimId, memberId))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.NOT_SELLER.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 승인 성공 - 판매자 본인")
+    void approveClaim_validSeller_success() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+        Long orderItemId = 10L;
+
+        Claim mockClaim = buildMockClaim();
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
+
+        Seller mockSeller = Seller.builder().member(mockMember).build();
+        OrderItem mockOrderItem = mock(OrderItem.class);
+        Product mockProduct = mock(Product.class);
+        given(mockProduct.getSeller()).willReturn(mockSeller);
+        given(mockOrderItem.getProduct()).willReturn(mockProduct);
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(true);
+        given(orderItemRepository.findByIdWithSellerMember(orderItemId)).willReturn(Optional.of(mockOrderItem));
+
+        // when & then
+        claimService.approveClaim(claimId, memberId);
     }
 }

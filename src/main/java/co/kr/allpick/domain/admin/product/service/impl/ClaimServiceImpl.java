@@ -18,6 +18,10 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
+import co.kr.allpick.domain.seller.repository.SellerRepository;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +54,7 @@ public class ClaimServiceImpl implements ClaimService {
     private final ClaimRepository claimRepository;
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
+    private final SellerRepository sellerRepository;
 
     // 1. 클레임 등록
     @Override
@@ -73,7 +78,7 @@ public class ClaimServiceImpl implements ClaimService {
         // OrderItem 소유권까지 확인
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
-        if (!orderItem.getOrder().getMemberId().equals(memberId)) {
+        if (!orderItem.getOrder().getMember().getId().equals(memberId)) {
             throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
         }
         if (claimRepository.existsByOrderItemIdAndStatusNotIn(
@@ -164,5 +169,81 @@ public class ClaimServiceImpl implements ClaimService {
 
         claim.reject(request.getRejectReason());
         return ClaimResponseDto.from(claim);
+    }
+ // ✅ 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
+    @Override
+    @Transactional
+    public ClaimResponseDto approveClaim(Long claimId, Long memberId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
+
+        validateSellerClaimOwnership(claim, memberId);
+
+        if (claim.getStatus() != Claim.ClaimStatus.SUBMITTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+
+        claim.updateStatus(Claim.ClaimStatus.IN_PROGRESS);
+        logger.info("[ClaimService] 판매자 클레임 승인 - claimId: {}, memberId: {}", claimId, memberId);
+        return ClaimResponseDto.from(claim);
+    }
+
+    // ✅ 9. 클레임 거부 (판매자)
+    @Override
+    @Transactional
+    public ClaimResponseDto rejectClaimBySeller(Long claimId, ClaimRejectRequestDto request, Long memberId) {
+        Claim claim = claimRepository.findById(claimId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
+
+        validateSellerClaimOwnership(claim, memberId);
+        validateRejectableStatus(claim);
+
+        claim.reject(request.getRejectReason());
+        logger.info("[ClaimService] 판매자 클레임 거부 - claimId: {}, memberId: {}", claimId, memberId);
+        return ClaimResponseDto.from(claim);
+    }
+
+    private void validateSellerClaimOwnership(Claim claim, Long memberId) {
+        // 판매자 등록 여부 먼저 확인
+        if (!sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)) {
+            throw new BusinessException(ErrorCode.NOT_SELLER);
+        }
+
+        OrderItem orderItem = orderItemRepository.findByIdWithSellerMember(claim.getOrderItemId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
+
+        Long productOwnerMemberId = orderItem.getProduct().getSeller().getMember().getId();
+        if (!productOwnerMemberId.equals(memberId)) {
+            throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
+        }
+    }
+
+    private void validateRejectableStatus(Claim claim) {
+        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+    }
+    @Override
+    @Transactional(readOnly = true)
+    public List<ClaimResponseDto> getSellerClaims(Long memberId) {
+        // 판매자 여부 + APPROVED 상태 확인
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+
+        if (seller.getStatus() != SellerStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.NOT_SELLER);
+        }
+
+        // 판매자 확인 후 클레임 조회
+        return claimRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
+                .stream()
+                .map(ClaimResponseDto::from)
+                .toList();
     }
 }

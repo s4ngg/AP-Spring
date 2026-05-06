@@ -1,15 +1,18 @@
 package co.kr.allpick.domain.order.dto;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.member.entity.Member;
+import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -28,14 +31,14 @@ public class OrderCreateRequestDto {
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> orderItems;
 
-    public Order toEntity(Long memberId, String orderNumber) {
+    public Order toEntity(Member member, MemberCoupon memberCoupon, DeliveryAddress deliveryAddress, String orderNumber, BigDecimal discountAmount) {
         return Order.builder()
-                .memberId(memberId)
-                .addressId(this.addressId)
-                .memberCouponId(this.memberCouponId)
+                .member(member)
+                .memberCoupon(memberCoupon)
+                .deliveryAddress(deliveryAddress)
                 .orderNumber(orderNumber)
                 .totalAmount(BigDecimal.ZERO)
-                .discountAmount(BigDecimal.ZERO)
+                .discountAmount(discountAmount)
                 .shippingFee(3000)
                 .status(Order.OrderStatus.PENDING)
                 .orderedAt(LocalDateTime.now())
