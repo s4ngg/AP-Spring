@@ -25,7 +25,7 @@ public interface ReviewRepository extends JpaRepository<Review , Long>{
 	
 	// 2. 기존리뷰 작성 내역 확인 
 	@Query("SELECT COUNT(r) > 0 FROM Review r WHERE r.orderItem.orderItemId = :orderItemId")
-	boolean existsByOrderItemId(Long orderItemId);
+	boolean existsByOrderItemId(@Param("orderItemId") Long orderItemId);
 	
 	// 3. 리뷰 수정,삭제용 리뷰 작성자 검증하여 단건의 리뷰 조회(작성자 본인인지)
 	@Query( " SELECT r FROM Review r " +

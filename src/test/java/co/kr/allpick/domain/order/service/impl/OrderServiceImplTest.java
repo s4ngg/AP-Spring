@@ -227,4 +227,4 @@ class OrderServiceImplTest {
         assertThat(result.get(0).getRecipientName()).isEqualTo("테스터");
         assertThat(result.get(0).getAddressId()).isEqualTo(1L);
     }
-}
+}	
