@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "판매자 승인 거절 요청 DTO")
 public class SellerRejectRequestDto {
 
-    @NotBlank
+    @NotBlank(message = "거절 사유는 필수입니다.")
     @Schema(description = "거절 사유", example = "사업자등록번호 확인이 필요합니다.", requiredMode = Schema.RequiredMode.REQUIRED)
     private String rejectReason;
 }

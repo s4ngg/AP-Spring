@@ -8,6 +8,8 @@ import co.kr.allpick.domain.seller.entity.Seller;
 import org.hibernate.annotations.BatchSize;
 
 import co.kr.allpick.global.common.BaseEntity;
+import co.kr.allpick.global.exception.BusinessException;
+import co.kr.allpick.global.exception.ErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,9 +39,8 @@ import lombok.NoArgsConstructor;
 @Getter
 public class Product extends BaseEntity {
 
-    @Id 
-    @GeneratedValue(strategy
-    		= GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long productId;
 
@@ -56,11 +57,10 @@ public class Product extends BaseEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductOption> optionList = new ArrayList<>();
 
-
     @Builder.Default
     @BatchSize(size = 100)
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OrderBy("sortOrder ASC") // 이미지 순서 정렬 추가
+    @OrderBy("sortOrder ASC")
     private List<ProductImage> productImageList = new ArrayList<>();
 
     @Column(name = "product_name", length = 200, nullable = false)
@@ -99,28 +99,35 @@ public class Product extends BaseEntity {
     @Column(name = "approval_status", nullable = false)
     private ApprovalStatus approvalStatus = ApprovalStatus.PENDING;
 
+    public void approve() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
+        }
+        this.approvalStatus = ApprovalStatus.APPROVED;
+    }
+
+    public void reject() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
+        }
+        this.approvalStatus = ApprovalStatus.REJECTED;
+    }
+
+    public void updatePrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    @Override
+    public void delete() {
+        super.delete();
+        this.status = Status.DELETED;
+    }
+
     public enum Status {
         ON_SALE, SOLD_OUT, HIDDEN, DELETED
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, SUSPENDED
-
-    }
-    
-    
-    
-    public void updatePrice(BigDecimal price) { 
-    	this.price = price;
-    }
-    @Override 
-    public void delete() {
-    	super.delete();
-    	this.status = Status.DELETED;
+        PENDING, APPROVED, REJECTED
     }
 }
- 
-
-
-
-
