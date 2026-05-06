@@ -48,7 +48,14 @@ public class InquiryController implements InquiryControllerDocs {
     @Override
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<List<InquiryResponseDto>>> getAllInquiries() {
-        return ApiResponse.success("전체 문의 목록 조회 성공.", inquiryService.getAllInquiries());
+        return ApiResponse.success("관리자 문의 목록 조회 성공.", inquiryService.getAllInquiries());
+    }
+
+    @Override
+    @GetMapping("/seller")
+    public ResponseEntity<ApiResponse<List<InquiryResponseDto>>> getSellerInquiries(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        return ApiResponse.success("판매자 문의 목록 조회 성공.", inquiryService.getSellerInquiries(userInfo.getMemberId()));
     }
 
     @Override
