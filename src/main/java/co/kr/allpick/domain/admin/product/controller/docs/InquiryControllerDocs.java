@@ -46,6 +46,10 @@ public interface InquiryControllerDocs {
     @Operation(summary = "전체 문의 목록 조회", description = "관리자가 전체 문의 목록을 조회합니다.")
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<List<InquiryResponseDto>>> getAllInquiries();
 
+    @Operation(summary = "판매자 문의 목록 조회", description = "판매자 본인 상품에 달린 문의 목록을 조회합니다.")
+    ResponseEntity<co.kr.allpick.global.response.ApiResponse<List<InquiryResponseDto>>> getSellerInquiries(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
+
     @Operation(summary = "관리자 답변 등록", description = "관리자가 JWT 토큰 기반으로 답변을 등록합니다.")
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryAnswerResponseDto>> addAdminAnswer(
             @Parameter(description = "문의 ID") @PathVariable("inquiryId") Long inquiryId,

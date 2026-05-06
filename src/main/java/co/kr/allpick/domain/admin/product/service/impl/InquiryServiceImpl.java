@@ -86,7 +86,7 @@ public class InquiryServiceImpl implements InquiryService {
                 .toList();
     }
 
-    // 4. 전체 문의 목록 조회
+    // 4. 관리자 전체 문의 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getAllInquiries() {
@@ -96,7 +96,26 @@ public class InquiryServiceImpl implements InquiryService {
                 .toList();
     }
 
-    // 5. 관리자 답변 등록
+    // 5. 판매자 전체 문의 목록 조회
+    @Override
+    @Transactional(readOnly = true)
+    public List<InquiryResponseDto> getSellerInquiries(Long memberId) {
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+
+        List<Long> productIds = productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
+                .stream()
+                .map(Product::getProductId)
+                .toList();
+
+        return inquiryRepository.findByProductIdInAndDeletedAtIsNull(productIds)
+                .stream()
+                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
+                .toList();
+    }
+
+
+    // 6. 관리자 답변 등록
     @Override
     @Transactional
     public InquiryAnswerResponseDto addAdminAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId) {
@@ -107,7 +126,7 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryAnswerResponseDto.from(answer);
     }
 
-    // 6. 판매자 답변 등록
+    // 7. 판매자 답변 등록
     @Override
     @Transactional
     public InquiryAnswerResponseDto addSellerAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long memberId) {
@@ -127,7 +146,7 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryAnswerResponseDto.from(answer);
     }
 
-    // 7. 문의 취소
+    // 8. 문의 취소
     @Override
     @Transactional
     public void cancelInquiry(Long inquiryId, Long memberId) {
