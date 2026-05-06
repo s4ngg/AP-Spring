@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.util.List;
 import co.kr.allpick.domain.product.controller.docs.ProductControllerDocs;
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
@@ -75,7 +75,13 @@ public class ProductController implements ProductControllerDocs{
 		
 		productService.deleteProduct(userInfo.getMemberId(), productId);
 		return ApiResponse.success("상품을 삭제했습니다");
-	} 
+	}
+	@GetMapping("/seller")
+	public ResponseEntity<ApiResponse<List<ProductListResponseDto>>> getSellerProducts(
+	        @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+	    return ApiResponse.success("판매자 상품 목록 조회 성공",
+	            productService.getSellerProducts(userInfo.getMemberId()));
+	}
 }
   
  

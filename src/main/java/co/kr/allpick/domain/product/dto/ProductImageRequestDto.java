@@ -6,7 +6,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor
 @Schema(description = "상품이미지 생성 요청dto")
 public class ProductImageRequestDto {
 	
@@ -24,6 +28,7 @@ public class ProductImageRequestDto {
 		return ProductImage.builder()
 				.productImageId(this.productImageId)
 				.imageUrl(this.imageUrl)
+				.product(product)
 				.sortOrder(this.sortOrder)
 				.build();
 				
