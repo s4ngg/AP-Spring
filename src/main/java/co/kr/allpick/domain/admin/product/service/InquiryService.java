@@ -20,6 +20,9 @@ public interface InquiryService {
     // 전체 문의 목록 조회 (관리자)
     List<InquiryResponseDto> getAllInquiries();
 
+    // 전체 문의 목록 조회 (판매자)
+    List<InquiryResponseDto> getSellerInquiries(Long memberId);
+
     // 관리자 답변 등록
     InquiryAnswerResponseDto addAdminAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId);
 
