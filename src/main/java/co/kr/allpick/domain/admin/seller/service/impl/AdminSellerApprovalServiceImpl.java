@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalService {
@@ -65,33 +65,42 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SellerListResponseDto> getSellers(AdminJwtUserInfoDto adminInfo) {
+        getSuperAdmin(adminInfo);
         return sellerRepository
-                .findAllByStatusInOrderByCreatedAtDesc(List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED))
+                .findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED))
                 .stream()
                 .map(SellerListResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SellerListResponseDto> getPendingSellers(AdminJwtUserInfoDto adminInfo) {
+        getSuperAdmin(adminInfo);
         return sellerRepository
-                .findAllByStatusOrderByCreatedAtDesc(SellerStatus.PENDING)
+                .findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus.PENDING)
                 .stream()
                 .map(SellerListResponseDto::from)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
     @Transactional
     public void toggleSellerStatus(AdminJwtUserInfoDto adminInfo, Long sellerId) {
+        getSuperAdmin(adminInfo);
         Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         if (seller.getStatus() == SellerStatus.APPROVED) {
             seller.suspend();
-        } else {
-            seller.approve();
+            return;
         }
+        if (seller.getStatus() == SellerStatus.SUSPENDED) {
+            seller.approve();
+            return;
+        }
+        throw new BusinessException(ErrorCode.SELLER_STATUS_NOT_TOGGLEABLE);
     }
 
     private Admin getSuperAdmin(AdminJwtUserInfoDto adminInfo) {

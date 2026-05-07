@@ -34,7 +34,7 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
 
     boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);
 
-    List<Seller> findAllByStatusInOrderByCreatedAtDesc(List<SellerStatus> statuses);
+    List<Seller> findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(List<SellerStatus> statuses);
 
-    List<Seller> findAllByStatusOrderByCreatedAtDesc(SellerStatus status);
+    List<Seller> findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus status);
 }

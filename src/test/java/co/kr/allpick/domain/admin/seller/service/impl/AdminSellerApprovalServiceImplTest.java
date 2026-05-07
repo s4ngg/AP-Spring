@@ -312,7 +312,8 @@ class AdminSellerApprovalServiceImplTest {
         Seller approvedSeller = sellerWithMember(SellerStatus.APPROVED);
         Seller suspendedSeller = sellerWithMember(SellerStatus.SUSPENDED);
 
-        given(sellerRepository.findAllByStatusInOrderByCreatedAtDesc(
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(
                 List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED)))
                 .willReturn(List.of(approvedSeller, suspendedSeller));
 
@@ -326,6 +327,19 @@ class AdminSellerApprovalServiceImplTest {
     }
 
     @Test
+    @DisplayName("판매자 목록 조회 실패 - SUPER_ADMIN 권한 없음")
+    void 판매자_목록_조회_실패_권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = csAdminInfo();
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.getSellers(adminInfo))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(any());
+    }
+
+    @Test
     @DisplayName("승인 대기 판매자 목록 조회 성공 - PENDING만 포함")
     void 승인대기_판매자_목록_조회_성공() {
         // given
@@ -333,7 +347,8 @@ class AdminSellerApprovalServiceImplTest {
         Seller pendingSeller1 = sellerWithMember(SellerStatus.PENDING);
         Seller pendingSeller2 = sellerWithMember(SellerStatus.PENDING);
 
-        given(sellerRepository.findAllByStatusOrderByCreatedAtDesc(SellerStatus.PENDING))
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus.PENDING))
                 .willReturn(List.of(pendingSeller1, pendingSeller2));
 
         // when
@@ -345,12 +360,23 @@ class AdminSellerApprovalServiceImplTest {
     }
 
     @Test
+    @DisplayName("승인 대기 판매자 목록 조회 실패 - 인증 관리자 정보 없음")
+    void 승인대기_판매자_목록_조회_실패_관리자정보없음() {
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.getPendingSellers(null))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(any());
+    }
+
+    @Test
     @DisplayName("판매자 상태 토글 성공 - APPROVED → SUSPENDED")
     void 판매자_상태_토글_성공_승인에서정지() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         Seller seller = seller(SellerStatus.APPROVED);
 
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
 
         // when
@@ -367,6 +393,7 @@ class AdminSellerApprovalServiceImplTest {
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         Seller seller = seller(SellerStatus.SUSPENDED);
 
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
 
         // when
@@ -377,11 +404,59 @@ class AdminSellerApprovalServiceImplTest {
     }
 
     @Test
+    @DisplayName("판매자 상태 토글 실패 - SUPER_ADMIN 권한 없음")
+    void 판매자_상태_토글_실패_권한없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = csAdminInfo();
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+    }
+
+    @Test
+    @DisplayName("판매자 상태 토글 실패 - PENDING 상태는 처리 불가")
+    void 판매자_상태_토글_실패_PENDING상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller seller = seller(SellerStatus.PENDING);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_STATUS_NOT_TOGGLEABLE);
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("판매자 상태 토글 실패 - REJECTED 상태는 처리 불가")
+    void 판매자_상태_토글_실패_REJECTED상태전이불가() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller seller = seller(SellerStatus.REJECTED);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_STATUS_NOT_TOGGLEABLE);
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.REJECTED);
+    }
+
+    @Test
     @DisplayName("판매자 상태 토글 실패 - 판매자 없음")
     void 판매자_상태_토글_실패_판매자없음() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
 
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
 
         // when & then
@@ -394,6 +469,13 @@ class AdminSellerApprovalServiceImplTest {
         return AdminJwtUserInfoDto.builder()
                 .adminId(1L)
                 .role(Admin.AdminRole.SUPER_ADMIN)
+                .build();
+    }
+
+    private AdminJwtUserInfoDto csAdminInfo() {
+        return AdminJwtUserInfoDto.builder()
+                .adminId(1L)
+                .role(Admin.AdminRole.CS_ADMIN)
                 .build();
     }
 
