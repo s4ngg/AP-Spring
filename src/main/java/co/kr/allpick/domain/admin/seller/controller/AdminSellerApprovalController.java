@@ -64,6 +64,6 @@ public class AdminSellerApprovalController implements AdminSellerApprovalControl
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("sellerId") Long sellerId) {
         adminSellerApprovalService.toggleSellerStatus(adminInfo, sellerId);
-        return ApiResponse.success("판매자 상태 변경 성공", null);
+        return ApiResponse.success("판매자 상태 변경 성공");
     }
 }

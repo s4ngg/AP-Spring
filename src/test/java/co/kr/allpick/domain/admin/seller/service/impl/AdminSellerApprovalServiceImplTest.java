@@ -302,6 +302,44 @@ class AdminSellerApprovalServiceImplTest {
         verify(sellerApprovalRepository, never()).save(any());
     }
 
+    @Test
+    @DisplayName("판매자 승인 실패 - 관리자 DB 조회 실패")
+    void 판매자_승인_실패_관리자없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_NOT_FOUND);
+        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("판매자 승인 실패 - SUPER_ADMIN이지만 BLOCKED 상태")
+    void 판매자_승인_실패_관리자BLOCKED() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Admin blockedAdmin = Admin.builder()
+                .email("admin@example.com")
+                .password("ENCODED_DUMMY")
+                .adminName("관리자")
+                .adminPhone("010-0000-0000")
+                .role(Admin.AdminRole.SUPER_ADMIN)
+                .status(Admin.AdminStatus.BLOCKED)
+                .build();
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(blockedAdmin));
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
+        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerApprovalRepository, never()).save(any());
+    }
+
     // ── 판매자 목록 조회 / 상태 토글 테스트 ──────────────────────────────────
 
     @Test
