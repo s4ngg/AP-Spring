@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import java.util.Map;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Tag(name = "Member", description = "회원 API")
 public interface MemberControllerDocs {
@@ -40,4 +42,5 @@ public interface MemberControllerDocs {
             """)))
     })
     ResponseEntity<ApiResponse<MemberResponseDto>> getMember(JwtUserInfoDto userInfo);
+    ResponseEntity<ApiResponse<Map<String, Boolean>>> checkEmail(@RequestParam("email") String email);
 }
