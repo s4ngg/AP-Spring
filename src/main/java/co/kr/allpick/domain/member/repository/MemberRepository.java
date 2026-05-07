@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.member.repository;
 
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	Page<Member> findAll(Pageable pageable);
 	Optional<Member> findByEmail(String email);
 	boolean existsByEmail(String email);
+	List<Member> findAllByOrderByCreatedAtDesc();
 	
 	@Query("SELECT m.email FROM Member m WHERE m.phone = :phone")
     Optional<String> findEmailByUserPhone(@Param("phone") String phone);
