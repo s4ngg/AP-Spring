@@ -20,9 +20,11 @@ import co.kr.allpick.domain.review.dto.ReviewUpdateRequestDto;
 import co.kr.allpick.domain.review.service.ReviewService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Review", description = "리뷰 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/reviews")
