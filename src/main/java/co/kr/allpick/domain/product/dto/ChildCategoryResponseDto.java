@@ -2,11 +2,17 @@ package co.kr.allpick.domain.product.dto;
 
 import co.kr.allpick.domain.product.entity.ChildCategory;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
+
 @Schema(description = "자식 카테고리 응답 DTO")
 public class ChildCategoryResponseDto {
  

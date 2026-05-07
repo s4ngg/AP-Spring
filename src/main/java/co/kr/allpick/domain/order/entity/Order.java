@@ -42,7 +42,7 @@ public class Order extends BaseEntity {
     private Member member;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_coupon_id")
+    @JoinColumn(name = "member_coupon_id", nullable = true)
     private MemberCoupon memberCoupon;
     
     @ManyToOne(fetch = FetchType.LAZY)
