@@ -14,11 +14,11 @@ public class Terms {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "terms_id")
+    @Column(name = "term_id")
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "terms_type", nullable = false, unique = true)
+    @Column(name = "term_type", nullable = false, unique = true)
     private TermsType termsType;
 
     @Column(nullable = false, length = 200)

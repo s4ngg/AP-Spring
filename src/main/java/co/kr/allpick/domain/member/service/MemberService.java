@@ -18,4 +18,7 @@ public interface MemberService {
     void deleteMember(Long memberId);
 
     List<OrderResponseDto> getMyOrders(Long memberId);
+    
+    boolean checkEmailDuplicate(String email);
+
 }
