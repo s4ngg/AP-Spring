@@ -1,5 +1,7 @@
    package co.kr.allpick.domain.product.service.impl;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.data.domain.Page;
@@ -112,5 +114,15 @@ public class ProductServiceImpl implements ProductService{
 	}
 	
 
+	@Transactional(readOnly = true)
+	@Override
+	public List<ProductListResponseDto> getSellerProducts(Long memberId) {
+	    Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
+	            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+	    return productRepository.findBySeller_SellerId(seller.getSellerId())
+	            .stream()
+	            .map(ProductListResponseDto::from)
+	            .toList();
+	}
 
 }

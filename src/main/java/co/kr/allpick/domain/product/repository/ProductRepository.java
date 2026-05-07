@@ -27,6 +27,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	// 상품명 존재 여부 확인 메서드 (중복 확인)
 	boolean existsByProductName(String productName);
 
+	List<Product> findBySeller_SellerId(Long sellerId);
 	// 상품 조회 (seller fetch-join 포함 — 판매자 상태 검증용- 단건 조회)
 	@Query("SELECT p FROM Product p JOIN FETCH p.seller WHERE p.productId = :productId AND p.deletedAt IS NULL")
 	Optional<Product> findByProductIdAndDeletedAtIsNull(@Param("productId") Long productId);
