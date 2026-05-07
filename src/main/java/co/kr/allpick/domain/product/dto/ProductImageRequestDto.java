@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-
+ 
 @Schema(description = "상품이미지 생성 요청dto")
 public class ProductImageRequestDto {
 	
