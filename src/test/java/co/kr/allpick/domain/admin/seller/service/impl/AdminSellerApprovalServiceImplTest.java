@@ -3,9 +3,11 @@ package co.kr.allpick.domain.admin.seller.service.impl;
 import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.admin.seller.dto.SellerApprovalResponseDto;
+import co.kr.allpick.domain.admin.seller.dto.SellerListResponseDto;
 import co.kr.allpick.domain.admin.seller.dto.SellerRejectRequestDto;
 import co.kr.allpick.domain.admin.seller.entity.SellerApproval;
 import co.kr.allpick.domain.admin.seller.repository.SellerApprovalRepository;
+import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
@@ -20,6 +22,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -299,6 +302,94 @@ class AdminSellerApprovalServiceImplTest {
         verify(sellerApprovalRepository, never()).save(any());
     }
 
+    // ── 판매자 목록 조회 / 상태 토글 테스트 ──────────────────────────────────
+
+    @Test
+    @DisplayName("판매자 목록 조회 성공 - APPROVED, SUSPENDED 포함")
+    void 판매자_목록_조회_성공() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller approvedSeller = sellerWithMember(SellerStatus.APPROVED);
+        Seller suspendedSeller = sellerWithMember(SellerStatus.SUSPENDED);
+
+        given(sellerRepository.findAllByStatusInOrderByCreatedAtDesc(
+                List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED)))
+                .willReturn(List.of(approvedSeller, suspendedSeller));
+
+        // when
+        List<SellerListResponseDto> result = adminSellerApprovalService.getSellers(adminInfo);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getStatus()).isEqualTo(SellerStatus.APPROVED);
+        assertThat(result.get(1).getStatus()).isEqualTo(SellerStatus.SUSPENDED);
+    }
+
+    @Test
+    @DisplayName("승인 대기 판매자 목록 조회 성공 - PENDING만 포함")
+    void 승인대기_판매자_목록_조회_성공() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller pendingSeller1 = sellerWithMember(SellerStatus.PENDING);
+        Seller pendingSeller2 = sellerWithMember(SellerStatus.PENDING);
+
+        given(sellerRepository.findAllByStatusOrderByCreatedAtDesc(SellerStatus.PENDING))
+                .willReturn(List.of(pendingSeller1, pendingSeller2));
+
+        // when
+        List<SellerListResponseDto> result = adminSellerApprovalService.getPendingSellers(adminInfo);
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(dto -> dto.getStatus() == SellerStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("판매자 상태 토글 성공 - APPROVED → SUSPENDED")
+    void 판매자_상태_토글_성공_승인에서정지() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller seller = seller(SellerStatus.APPROVED);
+
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+
+        // when
+        adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L);
+
+        // then
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.SUSPENDED);
+    }
+
+    @Test
+    @DisplayName("판매자 상태 토글 성공 - SUSPENDED → APPROVED")
+    void 판매자_상태_토글_성공_정지에서승인() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        Seller seller = seller(SellerStatus.SUSPENDED);
+
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+
+        // when
+        adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L);
+
+        // then
+        assertThat(seller.getStatus()).isEqualTo(SellerStatus.APPROVED);
+    }
+
+    @Test
+    @DisplayName("판매자 상태 토글 실패 - 판매자 없음")
+    void 판매자_상태_토글_실패_판매자없음() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+
+        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 999L))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_FOUND);
+    }
+
     private AdminJwtUserInfoDto superAdminInfo() {
         return AdminJwtUserInfoDto.builder()
                 .adminId(1L)
@@ -331,6 +422,21 @@ class AdminSellerApprovalServiceImplTest {
     private Seller seller(SellerStatus status) {
         return Seller.builder()
                 .sellerId(1L)
+                .businessName("올픽상점")
+                .businessNumber("123-45-67890")
+                .representativeName("대표자")
+                .bankName("은행")
+                .bankAccount("1234567890")
+                .status(status)
+                .build();
+    }
+
+    private Seller sellerWithMember(SellerStatus status) {
+        Member member = Member.createLocal(
+                "seller@test.com", "encodedPw", "판매자", "010-1234-5678", "서울시");
+        return Seller.builder()
+                .sellerId(1L)
+                .member(member)
                 .businessName("올픽상점")
                 .businessNumber("123-45-67890")
                 .representativeName("대표자")
