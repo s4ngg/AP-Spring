@@ -2,7 +2,8 @@ package co.kr.allpick.domain.member.service.impl;
 
 import co.kr.allpick.domain.member.service.AuthService;
 import co.kr.allpick.domain.member.sms.service.SmsService;
-
+import co.kr.allpick.domain.seller.repository.SellerRepository;
+import co.kr.allpick.domain.seller.entity.Seller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final SmsService smsService;
-
+    private final SellerRepository sellerRepository;
     @Override
     public void signup(SignupRequestDto dto) {
 //    	TODO: CoolSMS 연동 완료 후 주석 해제
@@ -66,10 +67,20 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
+
         String token = jwtProvider.createToken(JwtUserInfoDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
                 .build());
-        return AuthResponseDto.of(token, member);
+
+        // 셀러 여부 확인 후 셀러 토큰 발급
+        String sellerToken = sellerRepository.findByMemberId(member.getId())
+                .map(seller -> jwtProvider.createToken(JwtUserInfoDto.builder()
+                        .memberId(member.getId())
+                        .email(member.getEmail())
+                        .build()))
+                .orElse(null);
+
+        return AuthResponseDto.of(token, member, sellerToken);
     }
 }
