@@ -1,8 +1,9 @@
-package co.kr.allpick.domain.member.dto.admin;
+package co.kr.allpick.domain.admin.member.dto;
 
 import co.kr.allpick.domain.member.entity.Member;
 import lombok.Builder;
 import lombok.Getter;
+
 import java.time.LocalDateTime;
 
 @Getter

@@ -1,9 +1,8 @@
-package co.kr.allpick.domain.member.service.admin;
+package co.kr.allpick.domain.admin.member.service.impl;
 
-import co.kr.allpick.domain.member.dto.admin.MemberListResponseDto;
+import co.kr.allpick.domain.admin.member.dto.MemberListResponseDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.domain.member.service.admin.impl.AdminMemberServiceImpl;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;

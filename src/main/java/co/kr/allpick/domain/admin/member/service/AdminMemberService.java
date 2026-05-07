@@ -1,6 +1,6 @@
-package co.kr.allpick.domain.member.service.admin;
+package co.kr.allpick.domain.admin.member.service;
 
-import co.kr.allpick.domain.member.dto.admin.MemberListResponseDto;
+import co.kr.allpick.domain.admin.member.dto.MemberListResponseDto;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 
 import java.util.List;
