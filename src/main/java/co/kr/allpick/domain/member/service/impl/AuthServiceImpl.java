@@ -73,14 +73,8 @@ public class AuthServiceImpl implements AuthService {
                 .email(member.getEmail())
                 .build());
 
-        // 셀러 여부 확인 후 셀러 토큰 발급
-        String sellerToken = sellerRepository.findByMemberId(member.getId())
-                .map(seller -> jwtProvider.createToken(JwtUserInfoDto.builder()
-                        .memberId(member.getId())
-                        .email(member.getEmail())
-                        .build()))
-                .orElse(null);
+        boolean isSeller = sellerRepository.findByMemberId(member.getId()).isPresent();
 
-        return AuthResponseDto.of(token, member, sellerToken);
+        return AuthResponseDto.of(token, member, isSeller);
     }
 }
