@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 
+@Getter
+@NoArgsConstructor
 @Schema(description = "상품이미지 생성 요청dto")
 public class ProductImageRequestDto {
 	
@@ -33,6 +35,7 @@ public class ProductImageRequestDto {
 		return ProductImage.builder()
 				.productImageId(this.productImageId)
 				.imageUrl(this.imageUrl)
+				.product(product)
 				.sortOrder(this.sortOrder)
 				.product(product)
 				.build();
