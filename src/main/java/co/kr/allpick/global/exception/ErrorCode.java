@@ -84,7 +84,6 @@ public enum ErrorCode {
     SELLER_NOT_FOUND(HttpStatus.NOT_FOUND, "SELLER_NOT_FOUND", "판매자를 찾을 수 없습니다."),
     SELLER_NOT_APPROVED(HttpStatus.BAD_REQUEST, "SELLER_NOT_APPROVED", "승인된 판매자의 상품만 처리할 수 있습니다."),
     SELLER_ALREADY_EXISTS(HttpStatus.CONFLICT, "SELLER_ALREADY_EXISTS", "이미 판매자로 등록된 회원입니다."),
-    
     // Notice
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
     NOTICE_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "NOTICE_ALREADY_DELETED", "이미 삭제된 공지사항입니다."),
