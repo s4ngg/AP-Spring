@@ -43,6 +43,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 	@Query("SELECT p FROM Product p WHERE p.seller.sellerId = :sellerId AND p.deletedAt IS NULL")
     List<Product> findBySellerIdAndDeletedAtIsNull(@Param("sellerId") Long sellerId);
 
+	// 관리자 상품 목록 조회
+	@EntityGraph(attributePaths = {"parentCategory", "optionList", "seller"})
+	List<Product> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
+
 	// 판매 중이고 승인된 상품 목록 페이지 조회
 	@EntityGraph(attributePaths = {"parentCategory"})
 	Page<Product> findByStatusAndApprovalStatusAndDeletedAtIsNull(

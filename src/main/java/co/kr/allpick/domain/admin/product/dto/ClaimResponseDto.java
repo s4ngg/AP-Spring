@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.admin.product.dto;
 
 import co.kr.allpick.domain.admin.product.entity.Claim;
+import co.kr.allpick.domain.order.entity.OrderItem;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,15 @@ public class ClaimResponseDto {
 
     @Schema(description = "주문 상품 ID", example = "10")
     private Long orderItemId;
+
+    @Schema(description = "주문 번호", example = "ORD-20260503-000001")
+    private String orderNumber;
+
+    @Schema(description = "신청자 이름", example = "홍길동")
+    private String memberName;
+
+    @Schema(description = "상품명", example = "나이키 운동화")
+    private String productName;
 
     @Schema(description = "옵션 ID", example = "5")
     private Long optionId;
@@ -67,6 +77,29 @@ public class ClaimResponseDto {
                 .claimId(claim.getClaimId())
                 .memberId(claim.getMemberId())
                 .orderItemId(claim.getOrderItemId())
+                .optionId(claim.getOptionId())
+                .claimType(claim.getClaimType())
+                .status(claim.getStatus())
+                .reasonCode(claim.getReasonCode())
+                .detail(claim.getDetail())
+                .pickupMethod(claim.getPickupMethod())
+                .rejectReason(claim.getRejectReason())
+                .exchangeOption(claim.getExchangeOption())
+                .refundAmount(claim.getRefundAmount())
+                .shippingFee(claim.getShippingFee())
+                .createdAt(claim.getCreatedAt())
+                .completedAt(claim.getCompletedAt())
+                .build();
+    }
+
+    public static ClaimResponseDto from(Claim claim, OrderItem orderItem) {
+        return ClaimResponseDto.builder()
+                .claimId(claim.getClaimId())
+                .memberId(claim.getMemberId())
+                .orderItemId(claim.getOrderItemId())
+                .orderNumber(orderItem.getOrder().getOrderNumber())
+                .memberName(orderItem.getOrder().getMember().getName())
+                .productName(orderItem.getProductName())
                 .optionId(claim.getOptionId())
                 .claimType(claim.getClaimType())
                 .status(claim.getStatus())

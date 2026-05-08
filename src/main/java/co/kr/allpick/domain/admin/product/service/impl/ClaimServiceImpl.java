@@ -24,6 +24,8 @@ import co.kr.allpick.domain.seller.repository.SellerRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 @Service
@@ -114,9 +116,28 @@ public class ClaimServiceImpl implements ClaimService {
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getAllClaims() {
-        return claimRepository.findAllByDeletedAtIsNull()
+        List<Claim> claims = claimRepository.findAllByDeletedAtIsNull();
+        if (claims.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, OrderItem> orderItemMap = orderItemRepository
+                .findAllWithOrderMemberAndProductByOrderItemIdIn(
+                        claims.stream()
+                                .map(Claim::getOrderItemId)
+                                .distinct()
+                                .toList()
+                )
                 .stream()
-                .map(ClaimResponseDto::from)
+                .collect(Collectors.toMap(OrderItem::getOrderItemId, Function.identity()));
+
+        return claims.stream()
+                .map(claim -> {
+                    OrderItem orderItem = orderItemMap.get(claim.getOrderItemId());
+                    return orderItem == null
+                            ? ClaimResponseDto.from(claim)
+                            : ClaimResponseDto.from(claim, orderItem);
+                })
                 .toList();
     }
 
