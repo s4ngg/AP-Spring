@@ -95,6 +95,10 @@ public class SellerAuthServiceImpl implements SellerAuthService {
             logger.warn("[SellerAuthService] 비밀번호 불일치 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
+        if (!Integer.valueOf(1).equals(member.getStatus())) {
+            logger.warn("[SellerAuthService] 정지 회원 판매자 로그인 시도 - memberId: {}", member.getId());
+            throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
+        }
         Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 

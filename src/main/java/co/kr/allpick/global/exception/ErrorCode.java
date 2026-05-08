@@ -55,6 +55,7 @@ public enum ErrorCode {
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
+    MEMBER_BLOCKED(HttpStatus.FORBIDDEN, "MEMBER_BLOCKED", "정지된 회원 계정입니다."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "UNAUTHORIZED", "본인만 접근 가능합니다."),
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "PRODUCT_NOT_OWNED", "해당 상품에 대한 권한이 없습니다."),
     
