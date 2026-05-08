@@ -44,6 +44,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/admins").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admins/*/status").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers("/api/admin/members/**").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/admin/sellers/**").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admin/products/*/approve").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admin/products/*/reject").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
