@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.admin.product.controller;
 
 import co.kr.allpick.domain.admin.product.controller.docs.AdminProductApprovalControllerDocs;
+import co.kr.allpick.domain.admin.product.dto.AdminProductListResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductApprovalResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductRejectRequestDto;
 import co.kr.allpick.domain.admin.product.service.AdminProductApprovalService;
@@ -10,11 +11,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminProductApprovalController implements AdminProductApprovalControllerDocs {
 
     private final AdminProductApprovalService adminProductApprovalService;
+
+    @Override
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<AdminProductListResponseDto>>> getProducts(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
+        return ApiResponse.success("관리자 상품 목록 조회 성공", adminProductApprovalService.getProducts(adminInfo));
+    }
 
     @Override
     @PatchMapping("/{productId}/approve")

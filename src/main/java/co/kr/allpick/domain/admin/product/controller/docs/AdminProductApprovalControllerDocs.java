@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.admin.product.controller.docs;
 
+import co.kr.allpick.domain.admin.product.dto.AdminProductListResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductApprovalResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductRejectRequestDto;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
@@ -14,8 +15,18 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.List;
+
 @Tag(name = "Admin Product Approval", description = "관리자 상품 승인 API")
 public interface AdminProductApprovalControllerDocs {
+
+    @Operation(summary = "관리자 상품 목록 조회", description = "SUPER_ADMIN이 전체 상품 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "상품 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "SUPER_ADMIN 권한 없음")
+    })
+    ResponseEntity<ApiResponse<List<AdminProductListResponseDto>>> getProducts(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo);
 
     @Operation(summary = "상품 승인", description = "SUPER_ADMIN이 PENDING 상태의 상품을 승인합니다.")
     @ApiResponses({

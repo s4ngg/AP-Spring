@@ -50,7 +50,7 @@ public class ClaimController implements ClaimControllerDocs {
     @GetMapping("/admin")
     public ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getAllClaims(
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
-        return ApiResponse.success("전체 클레임 목록 조회 성공.", claimService.getAllClaims());
+        return ApiResponse.success("전체 클레임 목록 조회 성공.", claimService.getAllClaims(adminInfo));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class ClaimController implements ClaimControllerDocs {
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimStatusUpdateRequestDto request) {
-        return ApiResponse.success("클레임 상태가 변경되었습니다.", claimService.updateStatus(claimId, request));
+        return ApiResponse.success("클레임 상태가 변경되었습니다.", claimService.updateStatus(adminInfo, claimId, request));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ClaimController implements ClaimControllerDocs {
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimRejectRequestDto request) {
-        return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaim(claimId, request));
+        return ApiResponse.success("클레임이 거부되었습니다.", claimService.rejectClaim(adminInfo, claimId, request));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.admin.product.service.impl;
 
 import co.kr.allpick.domain.admin.entity.Admin;
+import co.kr.allpick.domain.admin.product.dto.AdminProductListResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductApprovalResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ProductRejectRequestDto;
 import co.kr.allpick.domain.admin.product.entity.ProductApproval;
@@ -19,6 +20,8 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AdminProductApprovalServiceImpl implements AdminProductApprovalService {
@@ -28,6 +31,18 @@ public class AdminProductApprovalServiceImpl implements AdminProductApprovalServ
     private final ProductRepository productRepository;
     private final AdminRepository adminRepository;
     private final ProductApprovalRepository productApprovalRepository;
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AdminProductListResponseDto> getProducts(AdminJwtUserInfoDto adminInfo) {
+        Admin admin = getSuperAdmin(adminInfo);
+        logger.info("[AdminProductApprovalServiceImpl] 관리자 상품 목록 조회 - actorAdminId: {}", admin.getAdminId());
+
+        return productRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
+                .stream()
+                .map(AdminProductListResponseDto::from)
+                .toList();
+    }
 
     @Override
     @Transactional
