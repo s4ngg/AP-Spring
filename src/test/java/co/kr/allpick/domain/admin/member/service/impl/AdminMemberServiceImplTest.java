@@ -139,6 +139,7 @@ class AdminMemberServiceImplTest {
 
     private Member member(Long id, int status) {
         return Member.builder()
+                .id(id)
                 .email("test" + id + "@example.com")
                 .name("테스터" + id)
                 .phone("010-0000-000" + id)
