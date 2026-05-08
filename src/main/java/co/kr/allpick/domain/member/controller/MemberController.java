@@ -35,7 +35,7 @@ public class MemberController implements MemberControllerDocs {
     @GetMapping("/check-email")
     public ResponseEntity<ApiResponse<Map<String, Boolean>>> checkEmail(
             @RequestParam("email") String email) {
-        boolean exists = memberService.checkEmailDuplicate(email);  // ← service 호출로 변경
+        boolean exists = memberService.checkEmailDuplicate(email);
         return ApiResponse.success("이메일 확인 완료", Map.of("available", !exists));
     }
 }
