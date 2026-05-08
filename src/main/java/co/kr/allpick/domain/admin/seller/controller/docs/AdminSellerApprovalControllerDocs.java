@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.admin.seller.controller.docs;
 
 import co.kr.allpick.domain.admin.seller.dto.SellerApprovalResponseDto;
+import co.kr.allpick.domain.admin.seller.dto.SellerListResponseDto;
 import co.kr.allpick.domain.admin.seller.dto.SellerRejectRequestDto;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
@@ -13,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
 
 @Tag(name = "Admin Seller Approval", description = "관리자 판매자 승인 API")
 public interface AdminSellerApprovalControllerDocs {
@@ -39,4 +42,29 @@ public interface AdminSellerApprovalControllerDocs {
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @Parameter(description = "판매자 ID") @PathVariable("sellerId") Long sellerId,
             @RequestBody @Valid SellerRejectRequestDto request);
+
+    @Operation(summary = "판매자 목록 조회", description = "APPROVED, SUSPENDED 상태의 판매자 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "판매자 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    ResponseEntity<ApiResponse<List<SellerListResponseDto>>> getSellers(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo);
+
+    @Operation(summary = "승인 대기 판매자 목록 조회", description = "PENDING 상태의 판매자 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "승인 대기 목록 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "관리자 권한 없음")
+    })
+    ResponseEntity<ApiResponse<List<SellerListResponseDto>>> getPendingSellers(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo);
+
+    @Operation(summary = "판매자 상태 토글", description = "APPROVED ↔ SUSPENDED 상태를 전환합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "판매자 상태 변경 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "판매자 없음")
+    })
+    ResponseEntity<ApiResponse<Void>> toggleSellerStatus(
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
+            @Parameter(description = "판매자 ID") @PathVariable("sellerId") Long sellerId);
 }
