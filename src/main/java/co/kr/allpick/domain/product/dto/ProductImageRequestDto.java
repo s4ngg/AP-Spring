@@ -32,7 +32,6 @@ public class ProductImageRequestDto {
 		return ProductImage.builder()
 				.productImageId(this.productImageId)
 				.imageUrl(this.imageUrl)
-				.product(product)
 				.sortOrder(this.sortOrder)
 				.product(product)
 				.build();

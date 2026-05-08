@@ -1,5 +1,5 @@
 package co.kr.allpick.global.config;
- 
+
 import co.kr.allpick.global.filter.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,14 +14,14 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
- 
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
- 
+
     private final JwtAuthFilter jwtAuthFilter;
- 
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -29,12 +29,12 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
- 
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
- 
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -58,6 +58,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/admins").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admins/*/status").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/admin/members/**").hasAuthority("ROLE_SUPER_ADMIN")
+                .requestMatchers("/api/admin/sellers/**").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admin/products/*/approve").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/admin/products/*/reject").hasAuthority("ROLE_SUPER_ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()

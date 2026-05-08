@@ -63,6 +63,10 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("[AuthService] 비밀번호 불일치 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
+        if (!Integer.valueOf(1).equals(member.getStatus())) {
+            logger.warn("[AuthService] 정지 회원 로그인 시도 - memberId: {}", member.getId());
+            throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
+        }
         logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
 
         String token = jwtProvider.createToken(JwtUserInfoDto.builder()

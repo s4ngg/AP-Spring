@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.seller.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 
 public interface SellerRepository extends JpaRepository<Seller, Long> {
 
@@ -31,4 +33,8 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
   	Optional<Seller> findWithMemberByMemberId(@Param("memberId") Long memberId);
 
     boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);
+
+    List<Seller> findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(List<SellerStatus> statuses);
+
+    List<Seller> findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus status);
 }

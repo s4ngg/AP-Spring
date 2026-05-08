@@ -55,6 +55,7 @@ public enum ErrorCode {
     NOT_SELLER(HttpStatus.FORBIDDEN, "NOT_SELLER", "판매자 권한이 없습니다."),
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", "이미 사용 중인 이메일입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
+    MEMBER_BLOCKED(HttpStatus.FORBIDDEN, "MEMBER_BLOCKED", "정지된 회원 계정입니다."),
     UNAUTHORIZED(HttpStatus.FORBIDDEN, "UNAUTHORIZED", "본인만 접근 가능합니다."),
     PRODUCT_NOT_OWNED(HttpStatus.FORBIDDEN, "PRODUCT_NOT_OWNED", "해당 상품에 대한 권한이 없습니다."),
     
@@ -83,6 +84,7 @@ public enum ErrorCode {
     INVALID_BUSINESS_NUMBER(HttpStatus.BAD_REQUEST, "INVALID_BUSINESS_NUMBER", "유효하지 않은 사업자등록번호입니다."),
     SELLER_NOT_FOUND(HttpStatus.NOT_FOUND, "SELLER_NOT_FOUND", "판매자를 찾을 수 없습니다."),
     SELLER_NOT_APPROVED(HttpStatus.BAD_REQUEST, "SELLER_NOT_APPROVED", "승인된 판매자의 상품만 처리할 수 있습니다."),
+    SELLER_STATUS_NOT_TOGGLEABLE(HttpStatus.BAD_REQUEST, "SELLER_STATUS_NOT_TOGGLEABLE", "승인 또는 정지 상태의 판매자만 상태를 변경할 수 있습니다."),
     SELLER_ALREADY_EXISTS(HttpStatus.CONFLICT, "SELLER_ALREADY_EXISTS", "이미 판매자로 등록된 회원입니다."),
     // Notice
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTICE_NOT_FOUND", "공지사항을 찾을 수 없습니다."),
