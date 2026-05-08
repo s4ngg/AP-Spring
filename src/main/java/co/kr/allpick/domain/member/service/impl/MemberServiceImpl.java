@@ -73,6 +73,11 @@ public class MemberServiceImpl implements MemberService {
                 .map(order -> OrderResponseDto.from(order, order.getOrderItems()))
                 .toList();
     }
+    
+    @Override
+    public boolean checkEmailDuplicate(String email) {
+        return memberRepository.existsByEmail(email);
+    }
 
     private Member findMemberById(Long memberId) {
         return memberRepository.findById(memberId)
