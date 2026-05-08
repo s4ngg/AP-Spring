@@ -1,17 +1,20 @@
 package co.kr.allpick.domain.admin.product.service.impl;
 
+import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.product.dto.ClaimCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimRejectRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimResponseDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
 import co.kr.allpick.domain.admin.product.entity.Claim;
 import co.kr.allpick.domain.admin.product.repository.ClaimRepository;
+import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +45,9 @@ class ClaimServiceImplTest {
 
     @Mock
     ClaimRepository claimRepository;
+
+    @Mock
+    AdminRepository adminRepository;
 
     @Mock
     MemberRepository memberRepository;
@@ -96,6 +102,25 @@ class ClaimServiceImplTest {
                 .rejectReason(null)
                 .refundAmount(BigDecimal.valueOf(29000))
                 .shippingFee(BigDecimal.valueOf(3000))
+                .build();
+    }
+
+    private Admin buildAdmin(Admin.AdminRole role, Admin.AdminStatus status) {
+        return Admin.builder()
+                .email("admin@test.com")
+                .password("encodedPassword")
+                .adminName("관리자")
+                .adminPhone("01012345678")
+                .role(role)
+                .status(status)
+                .build();
+    }
+
+    private AdminJwtUserInfoDto superAdminInfo(Long adminId) {
+        return AdminJwtUserInfoDto.builder()
+                .adminId(adminId)
+                .email("admin@test.com")
+                .role(Admin.AdminRole.SUPER_ADMIN)
                 .build();
     }
 
@@ -253,11 +278,16 @@ class ClaimServiceImplTest {
     @DisplayName("전체 클레임 목록 조회 성공")
     void 전체_클레임_목록_조회_성공() {
         // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Claim mockClaim = buildMockClaim();
-        when(claimRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockClaim));
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findAllByDeletedAtIsNull()).willReturn(List.of(mockClaim));
+        given(orderItemRepository.findAllWithOrderMemberAndProductByOrderItemIdIn(List.of(10L)))
+                .willReturn(List.of());
 
         // when
-        List<ClaimResponseDto> result = claimService.getAllClaims();
+        List<ClaimResponseDto> result = claimService.getAllClaims(adminInfo);
 
         // then
         assertThat(result).hasSize(1);
@@ -267,14 +297,17 @@ class ClaimServiceImplTest {
     @DisplayName("클레임 상태 변경 성공")
     void 클레임_상태_변경_성공() {
         // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
         ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
 
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
 
         // when
-        ClaimResponseDto result = claimService.updateStatus(claimId, request);
+        ClaimResponseDto result = claimService.updateStatus(adminInfo, claimId, request);
 
         // then
         assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.IN_PROGRESS);
@@ -284,15 +317,18 @@ class ClaimServiceImplTest {
     @DisplayName("클레임 상태 변경 실패 - 이미 처리 완료")
     void 클레임_상태_변경_실패_이미완료() {
         // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
         mockClaim.updateStatus(Claim.ClaimStatus.COMPLETED);
         ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.IN_PROGRESS);
 
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
 
         // when & then
-        assertThatThrownBy(() -> claimService.updateStatus(claimId, request))
+        assertThatThrownBy(() -> claimService.updateStatus(adminInfo, claimId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
     }
@@ -301,14 +337,17 @@ class ClaimServiceImplTest {
     @DisplayName("클레임 거부 성공")
     void 클레임_거부_성공() {
         // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
         ClaimRejectRequestDto request = new ClaimRejectRequestDto("사유");
 
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
 
         // when
-        ClaimResponseDto result = claimService.rejectClaim(claimId, request);
+        ClaimResponseDto result = claimService.rejectClaim(adminInfo, claimId, request);
 
         // then
         assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.REJECTED);
@@ -318,15 +357,18 @@ class ClaimServiceImplTest {
     @DisplayName("클레임 거부 실패 - 이미 취소된 클레임")
     void 클레임_거부_실패_이미취소() {
         // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
         mockClaim.cancel();
         ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
 
-        when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
 
         // when & then
-        assertThatThrownBy(() -> claimService.rejectClaim(claimId, request))
+        assertThatThrownBy(() -> claimService.rejectClaim(adminInfo, claimId, request))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
     }

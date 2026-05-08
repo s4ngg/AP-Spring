@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.admin.product.service.impl;
 
+import co.kr.allpick.domain.admin.entity.Admin;
 import co.kr.allpick.domain.admin.product.dto.ClaimCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimRejectRequestDto;
 import co.kr.allpick.domain.admin.product.dto.ClaimResponseDto;
@@ -7,9 +8,11 @@ import co.kr.allpick.domain.admin.product.dto.ClaimStatusUpdateRequestDto;
 import co.kr.allpick.domain.admin.product.entity.Claim;
 import co.kr.allpick.domain.admin.product.repository.ClaimRepository;
 import co.kr.allpick.domain.admin.product.service.ClaimService;
+import co.kr.allpick.domain.admin.repository.AdminRepository;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +57,7 @@ public class ClaimServiceImpl implements ClaimService {
     );
 
     private final ClaimRepository claimRepository;
+    private final AdminRepository adminRepository;
     private final MemberRepository memberRepository;
     private final OrderItemRepository orderItemRepository;
     private final SellerRepository sellerRepository;
@@ -115,7 +119,10 @@ public class ClaimServiceImpl implements ClaimService {
     // 4. 전체 클레임 목록 조회
     @Override
     @Transactional(readOnly = true)
-    public List<ClaimResponseDto> getAllClaims() {
+    public List<ClaimResponseDto> getAllClaims(AdminJwtUserInfoDto adminInfo) {
+        Admin admin = getClaimAdmin(adminInfo);
+        logger.info("[ClaimService] 관리자 클레임 목록 조회 - actorAdminId: {}", admin.getAdminId());
+
         List<Claim> claims = claimRepository.findAllByDeletedAtIsNull();
         if (claims.isEmpty()) {
             return List.of();
@@ -144,7 +151,8 @@ public class ClaimServiceImpl implements ClaimService {
     // 5. 클레임 상태 변경
     @Override
     @Transactional
-    public ClaimResponseDto updateStatus(Long claimId, ClaimStatusUpdateRequestDto request) {
+    public ClaimResponseDto updateStatus(AdminJwtUserInfoDto adminInfo, Long claimId, ClaimStatusUpdateRequestDto request) {
+        Admin admin = getClaimAdmin(adminInfo);
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
@@ -153,6 +161,8 @@ public class ClaimServiceImpl implements ClaimService {
         }
 
         claim.updateStatus(request.getStatus());
+        logger.info("[ClaimService] 관리자 클레임 상태 변경 - actorAdminId: {}, claimId: {}, status: {}",
+                admin.getAdminId(), claimId, request.getStatus());
         return ClaimResponseDto.from(claim);
     }
 
@@ -174,7 +184,8 @@ public class ClaimServiceImpl implements ClaimService {
     // 7. 클레임 거부
     @Override
     @Transactional
-    public ClaimResponseDto rejectClaim(Long claimId, ClaimRejectRequestDto request) {
+    public ClaimResponseDto rejectClaim(AdminJwtUserInfoDto adminInfo, Long claimId, ClaimRejectRequestDto request) {
+        Admin admin = getClaimAdmin(adminInfo);
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
@@ -189,6 +200,8 @@ public class ClaimServiceImpl implements ClaimService {
         }
 
         claim.reject(request.getRejectReason());
+        logger.info("[ClaimService] 관리자 클레임 거부 - actorAdminId: {}, claimId: {}",
+                admin.getAdminId(), claimId);
         return ClaimResponseDto.from(claim);
     }
  // ✅ 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
@@ -250,6 +263,27 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
     }
+
+    private Admin getClaimAdmin(AdminJwtUserInfoDto adminInfo) {
+        if (adminInfo == null || !isClaimAdminRole(adminInfo.getRole())) {
+            throw new BusinessException(ErrorCode.ADMIN_FORBIDDEN);
+        }
+
+        Admin admin = adminRepository.findById(adminInfo.getAdminId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_NOT_FOUND));
+        if (!isClaimAdminRole(admin.getRole())) {
+            throw new BusinessException(ErrorCode.ADMIN_FORBIDDEN);
+        }
+        if (admin.getStatus() == Admin.AdminStatus.BLOCKED) {
+            throw new BusinessException(ErrorCode.ADMIN_BLOCKED);
+        }
+        return admin;
+    }
+
+    private boolean isClaimAdminRole(Admin.AdminRole role) {
+        return role == Admin.AdminRole.SUPER_ADMIN || role == Admin.AdminRole.CS_ADMIN;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getSellerClaims(Long memberId) {
