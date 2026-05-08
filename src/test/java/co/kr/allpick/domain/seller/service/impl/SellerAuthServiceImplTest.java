@@ -236,6 +236,27 @@ class SellerAuthServiceImplTest {
                 .hasMessage(ErrorCode.NOT_SELLER.getMessage());
     }
 
+    @Test
+    @DisplayName("판매자 로그인 실패 - 정지 회원")
+    void login_blockedMember_throwException() {
+        // given
+        SellerLoginRequestDto dto = new SellerLoginRequestDto("blocked@test.com", "password123");
+
+        Member mockMember = Member.builder()
+                .email("blocked@test.com")
+                .password("encodedPassword")
+                .status(0)
+                .build();
+
+        given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
+        given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> sellerAuthService.login(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_BLOCKED);
+    }
+
     // ==================== 판매자 삭제 ====================
 
     @Test

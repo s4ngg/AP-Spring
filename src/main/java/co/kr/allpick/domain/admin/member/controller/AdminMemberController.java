@@ -1,5 +1,6 @@
 package co.kr.allpick.domain.admin.member.controller;
 
+import co.kr.allpick.domain.admin.member.controller.docs.AdminMemberControllerDocs;
 import co.kr.allpick.domain.admin.member.dto.MemberListResponseDto;
 import co.kr.allpick.domain.admin.member.service.AdminMemberService;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
@@ -18,12 +19,13 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/members")
-public class AdminMemberController {
+public class AdminMemberController implements AdminMemberControllerDocs {
 
     private final AdminMemberService adminMemberService;
 
     // GET /api/admin/members → 구매자 전체 목록
     @GetMapping
+    @Override
     public ResponseEntity<ApiResponse<List<MemberListResponseDto>>> getMembers(
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
         return ApiResponse.success("구매자 목록 조회 성공",
@@ -32,6 +34,7 @@ public class AdminMemberController {
 
     // PATCH /api/admin/members/{memberId}/status → 활성/정지 토글
     @PatchMapping("/{memberId}/status")
+    @Override
     public ResponseEntity<ApiResponse<Void>> toggleStatus(
             @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo,
             @PathVariable Long memberId) {

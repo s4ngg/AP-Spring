@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 import java.util.Optional;
 
@@ -167,5 +168,27 @@ class AuthServiceImplTest {
         assertThatThrownBy(() -> authService.login(dto))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.INVALID_PASSWORD.getMessage());
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 정지 회원")
+    void 로그인_실패_정지회원() {
+        LoginRequestDto dto = new LoginRequestDto("blocked@test.com", "password123");
+
+        Member mockMember = Member.builder()
+                .email("blocked@test.com")
+                .password("encodedPassword")
+                .name("정지회원")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .status(0)
+                .build();
+
+        given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
+        given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
+
+        assertThatThrownBy(() -> authService.login(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_BLOCKED);
     }
 }

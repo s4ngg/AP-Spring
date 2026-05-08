@@ -54,4 +54,8 @@ public class ProductOption extends BaseEntity{
         
         this.stockQuantity = restStock;
     }
+
+    public void restoreStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
 }	

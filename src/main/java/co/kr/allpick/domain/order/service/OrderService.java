@@ -14,6 +14,8 @@ public interface OrderService {
 
     OrderResponseDto getOrder(Long orderId);
 
+    OrderResponseDto cancelOrder(Long memberId, Long orderId);
+
     PaymentResponseDto getPayment(Long orderId);
 
     DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request);

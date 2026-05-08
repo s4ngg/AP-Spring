@@ -149,6 +149,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
+    public OrderResponseDto cancelOrder(Long memberId, Long orderId) {
+        logger.info("주문 취소 요청 - memberId: {}, orderId: {}", memberId, orderId);
+        Order order = orderRepository.findByIdWithItems(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        validateOrderOwner(memberId, order);
+        validateOrderCancelable(order);
+        restoreOrderItemStock(order);
+        order.updateStatus(Order.OrderStatus.CANCELLED);
+
+        logger.info("주문 취소 완료 - orderId: {}", orderId);
+        return OrderResponseDto.from(order, order.getOrderItems());
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public PaymentResponseDto getPayment(Long orderId) {
         logger.info("결제 조회 - orderId: {}", orderId);
@@ -220,6 +236,24 @@ public class OrderServiceImpl implements OrderService {
         if (orderRepository.existsByDeliveryAddress_AddressId(addressId)) {
             throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
         }
+    }
+
+    private void validateOrderOwner(Long memberId, Order order) {
+        if (!order.getMember().getId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ORDER);
+        }
+    }
+
+    private void validateOrderCancelable(Order order) {
+        if (order.getStatus() != Order.OrderStatus.PENDING) {
+            throw new BusinessException(ErrorCode.ORDER_CANNOT_CANCEL);
+        }
+    }
+
+    private void restoreOrderItemStock(Order order) {
+        order.getOrderItems().forEach(orderItem ->
+                orderItem.getProductOption().restoreStock(orderItem.getQuantity())
+        );
     }
 
     // 중복 없는 주문번호 생성
