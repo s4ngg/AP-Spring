@@ -38,4 +38,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> sumDeliveredAmountByMemberBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT DISTINCT o FROM Order o
+            JOIN FETCH o.member
+            JOIN FETCH o.deliveryAddress
+            JOIN FETCH o.orderItems oi
+            JOIN FETCH oi.product p
+            WHERE p.seller.sellerId = :sellerId
+            ORDER BY o.orderedAt DESC
+            """)
+    List<Order> findBySellerIdWithDetails(@Param("sellerId") Long sellerId);
 } 

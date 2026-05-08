@@ -38,9 +38,9 @@ public class OrderItem extends BaseEntity {
     private Product product;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_option_id", nullable = false) // ERD에 이 컬럼이 추가됩니다.
+    @JoinColumn(name = "option_id", nullable = false)
     private ProductOption productOption;
-    
+
     @Column(name = "product_name", nullable = false)
     private String productName;
 
@@ -50,8 +50,9 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "total_price", nullable = false)
-    private BigDecimal totalPrice;
+    public BigDecimal getTotalPrice() {
+        return productPrice.multiply(BigDecimal.valueOf(quantity));
+    }
     
     // 편의 메서드 (부모를 매개변수로 전달해주면 자식과 연결해줌.)
     public void assignOrder(Order order) {
@@ -59,14 +60,13 @@ public class OrderItem extends BaseEntity {
     }
     
     @Builder
-    public OrderItem(Order order, Product product,ProductOption productOption,
-                     String productName ,BigDecimal productPrice, int quantity, BigDecimal totalPrice) {
+    public OrderItem(Order order, Product product, ProductOption productOption,
+                     String productName, BigDecimal productPrice, int quantity) {
         this.order = order;
         this.product = product;
         this.productOption = productOption;
         this.productName = productName;
-        this.productPrice = productPrice; 
+        this.productPrice = productPrice;
         this.quantity = quantity;
-        this.totalPrice = totalPrice;
     }
 }

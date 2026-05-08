@@ -12,17 +12,17 @@ import co.kr.allpick.domain.seller.entity.SellerStatus;
 
 public interface SellerRepository extends JpaRepository<Seller, Long> {
 
-    Optional<Seller> findByMemberId(Long memberId);
+    Optional<Seller> findByMember_Id(Long memberId);
 
     boolean existsByBusinessNumber(String businessNumber);
 
     Optional<Seller> findByBusinessNumber(String businessNumber);
-    
-    Optional<Seller> findBySellerIdAndDeletedAtIsNull(Long sellerId);
-    
-    boolean existsByMemberId(Long memberId);
 
-    Optional<Seller> findByMemberIdAndDeletedAtIsNull(Long memberId);
+    Optional<Seller> findBySellerIdAndDeletedAtIsNull(Long sellerId);
+
+    boolean existsByMember_Id(Long memberId);
+
+    Optional<Seller> findByMember_IdAndDeletedAtIsNull(Long memberId);
     
 
  // 판매자인지 검증 (새 상품 등록용)
@@ -32,7 +32,7 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
   		   "AND s.deletedAt IS NULL ") 
   	Optional<Seller> findWithMemberByMemberId(@Param("memberId") Long memberId);
 
-    boolean existsByMemberIdAndDeletedAtIsNull(Long memberId);
+    boolean existsByMember_IdAndDeletedAtIsNull(Long memberId);
 
     List<Seller> findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(List<SellerStatus> statuses);
 

@@ -12,6 +12,7 @@ import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.domain.product.entity.Product;
+import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 import org.junit.jupiter.api.DisplayName;
@@ -55,9 +56,9 @@ class ClaimServiceImplTest {
     @InjectMocks
     ClaimServiceImpl claimService;
 
-    // 테스트용 OrderItem 객체 생성 헬퍼
+    // ?�스?�용 OrderItem 객체 ?�성 ?�퍼
     private OrderItem buildMockOrderItem(Long memberId) {
-        // [교정] UnfinishedStubbing 방지를 위해 doReturn 스타일 사용
+        // [교정] UnfinishedStubbing 방�?�??�해 doReturn ?��????�용
         Member mockMember = Mockito.mock(Member.class);
         doReturn(memberId).when(mockMember).getId();
 
@@ -73,25 +74,27 @@ class ClaimServiceImplTest {
                 .build();
 
         Product mockProduct = Mockito.mock(Product.class);
+        ProductOption mockOption = Mockito.mock(ProductOption.class);
 
-        // 엔티티 구조에 맞춰 productName 삭제 및 product 객체 주입
+        // productPrice * quantity �?totalPrice가 계산?��?�?totalPrice ?�드 ?�음
         return OrderItem.builder()
                 .order(mockOrder)
                 .product(mockProduct)
+                .productOption(mockOption)
+                .productName("?�스???�품")
                 .productPrice(BigDecimal.valueOf(29000))
                 .quantity(1)
-                .totalPrice(BigDecimal.valueOf(29000))
                 .build();
     }
 
-    // 테스트용 Claim 객체 생성 헬퍼
+    // ?�스?�용 Claim 객체 ?�성 ?�퍼
     private Claim buildMockClaim() {
         return Claim.builder()
                 .memberId(1L)
                 .orderItemId(10L)
                 .claimType(Claim.ClaimType.RETURN)
                 .reasonCode(Claim.ReasonCode.CHANGE_MIND)
-                .detail("단순 변심입니다.")
+                .detail("?�순 변?�입?�다.")
                 .pickupMethod(Claim.ClaimPickupMethod.COURIER)
                 .rejectReason(null)
                 .refundAmount(BigDecimal.valueOf(29000))
@@ -100,16 +103,16 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 성공")
-    void 클레임_등록_성공() {
+    @DisplayName("?�레???�록 ?�공")
+    void ?�레???�록_?�공() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 10L, null, Claim.ClaimType.RETURN,
-                Claim.ReasonCode.CHANGE_MIND, "단순 변심입니다.",
+                Claim.ReasonCode.CHANGE_MIND, "?�순 변?�입?�다.",
                 Claim.ClaimPickupMethod.COURIER, null,
                 BigDecimal.valueOf(29000), BigDecimal.valueOf(3000));
 
-        // [핵심 교정] buildMockOrderItem을 when 밖으로 뺍니다.
+        // [?�심 교정] buildMockOrderItem??when 밖으�?뺍니??
         OrderItem mockItem = buildMockOrderItem(1L);
         Claim mockClaim = buildMockClaim();
 
@@ -128,8 +131,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 실패 - 존재하지 않는 회원")
-    void 클레임_등록_실패_회원없음() {
+    @DisplayName("?�레???�록 ?�패 - 존재?��? ?�는 ?�원")
+    void ?�레???�록_?�패_?�원?�음() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 10L, null, Claim.ClaimType.RETURN,
@@ -145,8 +148,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 실패 - 존재하지 않는 주문 상품")
-    void 클레임_등록_실패_주문상품없음() {
+    @DisplayName("?�레???�록 ?�패 - 존재?��? ?�는 주문 ?�품")
+    void ?�레???�록_?�패_주문?�품?�음() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 999L, null, Claim.ClaimType.RETURN,
@@ -163,8 +166,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 실패 - 반품 요청에 교환 전용 사유 사용")
-    void 클레임_등록_실패_반품에_교환사유() {
+    @DisplayName("?�레???�록 ?�패 - 반품 ?�청??교환 ?�용 ?�유 ?�용")
+    void ?�레???�록_?�패_반품??교환?�유() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 10L, null, Claim.ClaimType.RETURN,
@@ -180,8 +183,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 실패 - 교환 요청에 반품 전용 사유 사용")
-    void 클레임_등록_실패_교환에_반품사유() {
+    @DisplayName("?�레???�록 ?�패 - 교환 ?�청??반품 ?�용 ?�유 ?�용")
+    void ?�레???�록_?�패_교환??반품?�유() {
         // given
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 10L, null, Claim.ClaimType.EXCHANGE,
@@ -197,8 +200,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상세 조회 성공")
-    void 클레임_상세_조회_성공() {
+    @DisplayName("?�레???�세 조회 ?�공")
+    void ?�레???�세_조회_?�공() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
@@ -214,8 +217,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상세 조회 실패 - 클레임 없음")
-    void 클레임_상세_조회_실패_클레임없음() {
+    @DisplayName("?�레???�세 조회 ?�패 - ?�레???�음")
+    void ?�레???�세_조회_?�패_?�레?�없??) {
         // given
         when(claimRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -226,8 +229,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("내 클레임 목록 조회 성공")
-    void 내_클레임_목록_조회_성공() {
+    @DisplayName("???�레??목록 조회 ?�공")
+    void ???�레??목록_조회_?�공() {
         // given
         Long memberId = 1L;
         Claim mockClaim1 = buildMockClaim();
@@ -250,8 +253,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("전체 클레임 목록 조회 성공")
-    void 전체_클레임_목록_조회_성공() {
+    @DisplayName("?�체 ?�레??목록 조회 ?�공")
+    void ?�체_?�레??목록_조회_?�공() {
         // given
         Claim mockClaim = buildMockClaim();
         when(claimRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockClaim));
@@ -264,8 +267,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상태 변경 성공")
-    void 클레임_상태_변경_성공() {
+    @DisplayName("?�레???�태 변�??�공")
+    void ?�레???�태_변�??�공() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
@@ -281,8 +284,8 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상태 변경 실패 - 이미 처리 완료")
-    void 클레임_상태_변경_실패_이미완료() {
+    @DisplayName("?�레???�태 변�??�패 - ?��? 처리 ?�료")
+    void ?�레???�태_변�??�패_?��??�료() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
@@ -298,12 +301,12 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 거부 성공")
-    void 클레임_거부_성공() {
+    @DisplayName("?�레??거�? ?�공")
+    void ?�레??거�?_?�공() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
-        ClaimRejectRequestDto request = new ClaimRejectRequestDto("사유");
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("?�유");
 
         when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
 
@@ -315,13 +318,13 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 거부 실패 - 이미 취소된 클레임")
-    void 클레임_거부_실패_이미취소() {
+    @DisplayName("?�레??거�? ?�패 - ?��? 취소???�레??)
+    void ?�레??거�?_?�패_?��?취소() {
         // given
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
         mockClaim.cancel();
-        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거�? ?�유");
 
         when(claimRepository.findById(claimId)).thenReturn(Optional.of(mockClaim));
 
@@ -332,7 +335,7 @@ class ClaimServiceImplTest {
     }
     
     @Test
-    @DisplayName("클레임 승인 실패 - 판매자가 아닌 회원")
+    @DisplayName("?�레???�인 ?�패 - ?�매?��? ?�닌 ?�원")
     void approveClaim_notSeller_throwException() {
         // given
         Long claimId = 1L;
@@ -341,7 +344,7 @@ class ClaimServiceImplTest {
         Claim mockClaim = buildMockClaim();
 
         given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
-        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(false);
+        given(sellerRepository.existsByMember_IdAndDeletedAtIsNull(memberId)).willReturn(false);
 
         // when & then
         assertThatThrownBy(() -> claimService.approveClaim(claimId, memberId))
@@ -350,7 +353,7 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 승인 성공 - 판매자 본인")
+    @DisplayName("?�레???�인 ?�공 - ?�매??본인")
     void approveClaim_validSeller_success() {
         // given
         Long claimId = 1L;
@@ -369,7 +372,7 @@ class ClaimServiceImplTest {
         given(mockOrderItem.getProduct()).willReturn(mockProduct);
 
         given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
-        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(true);
+        given(sellerRepository.existsByMember_IdAndDeletedAtIsNull(memberId)).willReturn(true);
         given(orderItemRepository.findByIdWithSellerMember(orderItemId)).willReturn(Optional.of(mockOrderItem));
 
         // when & then

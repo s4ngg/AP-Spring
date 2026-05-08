@@ -26,13 +26,13 @@ public class SellerApplyServiceImpl implements SellerApplyService {
     private final MemberRepository memberRepository;
 
     @Override
-    public void apply(SellerApplyRequestDto dto, Long memberId) {  // ← apply 메서드 시작
-    	if (sellerRepository.existsByMemberId(memberId)) {
-            logger.warn("[SellerApplyService] 이미 판매자 신청된 회원 - memberId: {}", memberId);
+    public void apply(SellerApplyRequestDto dto, Long memberId) {  // ??apply 메서???�작
+    	if (sellerRepository.existsByMember_Id(memberId)) {
+            logger.warn("[SellerApplyService] ?��? ?�매???�청???�원 - memberId: {}", memberId);
             throw new BusinessException(ErrorCode.SELLER_ALREADY_EXISTS);
         }
     	if (sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())) {
-            logger.warn("[SellerApplyService] 사업자등록번호 중복 - businessNumber: {}", dto.getBusinessNumber());
+            logger.warn("[SellerApplyService] ?�업?�등록번??중복 - businessNumber: {}", dto.getBusinessNumber());
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
         
@@ -40,16 +40,16 @@ public class SellerApplyServiceImpl implements SellerApplyService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // ✅ 여기에 추가
+        // ???�기??추�?
         Seller seller = Seller.of(member, dto);
         sellerRepository.save(seller);
-        logger.info("[SellerApplyService] 판매자 신청 완료 - memberId: {}", memberId);
+        logger.info("[SellerApplyService] ?�매???�청 ?�료 - memberId: {}", memberId);
 
     }
     @Override
     @Transactional(readOnly = true)
     public SellerApplyStatusResponseDto getApplyStatus(Long memberId) {
-        Seller seller = sellerRepository.findByMemberId(memberId)
+        Seller seller = sellerRepository.findByMember_Id(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         return SellerApplyStatusResponseDto.of(seller);
     }

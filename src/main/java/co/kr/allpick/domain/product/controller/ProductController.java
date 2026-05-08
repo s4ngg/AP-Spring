@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
 import java.util.List;
 import co.kr.allpick.domain.product.controller.docs.ProductControllerDocs;
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
@@ -40,7 +41,7 @@ public class ProductController implements ProductControllerDocs{
 	@PostMapping
 	public ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(
 			@AuthenticationPrincipal JwtUserInfoDto userInfo,
-			@RequestBody ProductSaveRequestDto productSaveRequestDto) {
+			@Valid @RequestBody ProductSaveRequestDto productSaveRequestDto) {
 		return ApiResponse.success("상품을 생성했습니다", productService.createProduct(userInfo.getMemberId(), productSaveRequestDto));
 	} 
 	

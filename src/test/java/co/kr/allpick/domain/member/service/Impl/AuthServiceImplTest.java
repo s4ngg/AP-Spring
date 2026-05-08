@@ -45,18 +45,18 @@ class AuthServiceImplTest {
     JwtProvider jwtProvider;
 
     @Mock
-    SellerRepository sellerRepository;  // ← 추가
+    SellerRepository sellerRepository;  // ??추�?
 
     @InjectMocks
     AuthServiceImpl authService;
 
-    // ==================== 일반 회원가입 ====================
+    // ==================== ?�반 ?�원가??====================
 
     @Test
-    @DisplayName("일반 회원가입 성공")
-    void 일반_회원가입_성공() {
+    @DisplayName("?�반 ?�원가???�공")
+    void ?�반_?�원가???�공() {
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+            "test@test.com", "password123", "?�길??, "010-1234-5678", "?�울??강남�?);
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
@@ -67,10 +67,10 @@ class AuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("일반 회원가입 실패 - 중복 이메일")
-    void 일반_회원가입_실패_중복이메일() {
+    @DisplayName("?�반 ?�원가???�패 - 중복 ?�메??)
+    void ?�반_?�원가???�패_중복?�메??) {
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+            "test@test.com", "password123", "?�길??, "010-1234-5678", "?�울??강남�?);
 
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
@@ -79,46 +79,46 @@ class AuthServiceImplTest {
                 .hasMessage(ErrorCode.DUPLICATE_EMAIL.getMessage());
     }
 
-    // ==================== 로그인 ====================
+    // ==================== 로그??====================
 
     @Test
-    @DisplayName("로그인 성공 - 일반 회원 (isSeller = false)")
-    void 로그인_성공_일반회원() {
+    @DisplayName("로그???�공 - ?�반 ?�원 (isSeller = false)")
+    void 로그???�공_?�반?�원() {
         LoginRequestDto dto = new LoginRequestDto("test@test.com", "password123");
 
         Member mockMember = Member.builder()
                 .email("test@test.com")
                 .password("encodedPassword")
-                .name("홍길동")
+                .name("?�길??)
                 .phone("010-1234-5678")
-                .address("서울시 강남구")
+                .address("?�울??강남�?)
                 .build();
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.empty());  // ← 셀러 아님
+        when(sellerRepository.findByMember_Id(any())).thenReturn(Optional.empty());  // ???�???�님
 
         AuthResponseDto result = authService.login(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getToken()).isEqualTo("mockToken");
         assertThat(result.getEmail()).isEqualTo("test@test.com");
-        assertThat(result.getName()).isEqualTo("홍길동");
-        assertThat(result.isSeller()).isFalse();  // ← 셀러 아님 검증
+        assertThat(result.getName()).isEqualTo("?�길??);
+        assertThat(result.isSeller()).isFalse();  // ???�???�님 검�?
     }
 
     @Test
-    @DisplayName("로그인 성공 - 셀러 회원 (isSeller = true)")
-    void 로그인_성공_셀러회원() {
+    @DisplayName("로그???�공 - ?�???�원 (isSeller = true)")
+    void 로그???�공_?�?�회??) {
         LoginRequestDto dto = new LoginRequestDto("seller@test.com", "password123");
 
         Member mockMember = Member.builder()
                 .email("seller@test.com")
                 .password("encodedPassword")
-                .name("판매자")
+                .name("?�매??)
                 .phone("010-1234-5678")
-                .address("서울시 강남구")
+                .address("?�울??강남�?)
                 .build();
 
         Seller mockSeller = Seller.builder()
@@ -128,18 +128,18 @@ class AuthServiceImplTest {
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.of(mockSeller));  // ← 셀러임
+        when(sellerRepository.findByMember_Id(any())).thenReturn(Optional.of(mockSeller));  // ???�?�임
 
         AuthResponseDto result = authService.login(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getToken()).isEqualTo("mockToken");
-        assertThat(result.isSeller()).isTrue();  // ← 셀러임 검증
+        assertThat(result.isSeller()).isTrue();  // ???�?�임 검�?
     }
 
     @Test
-    @DisplayName("로그인 실패 - 이메일 없음")
-    void 로그인_실패_이메일없음() {
+    @DisplayName("로그???�패 - ?�메???�음")
+    void 로그???�패_?�메?�없??) {
         LoginRequestDto dto = new LoginRequestDto("none@test.com", "password123");
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
@@ -150,16 +150,16 @@ class AuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("로그인 실패 - 비밀번호 틀림")
-    void 로그인_실패_비밀번호틀림() {
+    @DisplayName("로그???�패 - 비�?번호 ?��?)
+    void 로그???�패_비�?번호?��?) {
         LoginRequestDto dto = new LoginRequestDto("test@test.com", "wrongPassword");
 
         Member mockMember = Member.builder()
                 .email("test@test.com")
                 .password("encodedPassword")
-                .name("홍길동")
+                .name("?�길??)
                 .phone("010-1234-5678")
-                .address("서울시 강남구")
+                .address("?�울??강남�?)
                 .build();
 
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
@@ -171,16 +171,16 @@ class AuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("로그인 실패 - 정지 회원")
-    void 로그인_실패_정지회원() {
+    @DisplayName("로그???�패 - ?��? ?�원")
+    void 로그???�패_?��??�원() {
         LoginRequestDto dto = new LoginRequestDto("blocked@test.com", "password123");
 
         Member mockMember = Member.builder()
                 .email("blocked@test.com")
                 .password("encodedPassword")
-                .name("정지회원")
+                .name("?��??�원")
                 .phone("010-1234-5678")
-                .address("서울시 강남구")
+                .address("?�울??강남�?)
                 .status(0)
                 .build();
 

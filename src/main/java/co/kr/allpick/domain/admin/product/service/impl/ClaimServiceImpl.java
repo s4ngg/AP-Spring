@@ -32,20 +32,20 @@ public class ClaimServiceImpl implements ClaimService {
 
     private static final Logger logger = LogManager.getLogger(ClaimServiceImpl.class);
 
-    // 반품 전용 사유 (교환 요청 시 사용 불가)
+    // 반품 ?�용 ?�유 (교환 ?�청 ???�용 불�?)
     private static final Set<Claim.ReasonCode> RETURN_ONLY_REASONS = Set.of(
             Claim.ReasonCode.CHANGE_MIND,
             Claim.ReasonCode.SIZE_COLOR,
             Claim.ReasonCode.DESCRIPTION_DIFF
     );
 
-    // 교환 전용 사유 (반품 요청 시 사용 불가)
+    // 교환 ?�용 ?�유 (반품 ?�청 ???�용 불�?)
     private static final Set<Claim.ReasonCode> EXCHANGE_ONLY_REASONS = Set.of(
             Claim.ReasonCode.SIZE_CHANGE,
             Claim.ReasonCode.COLOR_CHANGE
     );
 
-    // 허용된 상태 전이 규칙: SUBMITTED → IN_PROGRESS → COMPLETED
+    // ?�용???�태 ?�이 규칙: SUBMITTED ??IN_PROGRESS ??COMPLETED
     private static final Map<Claim.ClaimStatus, Set<Claim.ClaimStatus>> ALLOWED_TRANSITIONS = Map.of(
             Claim.ClaimStatus.SUBMITTED, Set.of(Claim.ClaimStatus.IN_PROGRESS),
             Claim.ClaimStatus.IN_PROGRESS, Set.of(Claim.ClaimStatus.COMPLETED)
@@ -56,17 +56,17 @@ public class ClaimServiceImpl implements ClaimService {
     private final OrderItemRepository orderItemRepository;
     private final SellerRepository sellerRepository;
 
-    // 1. 클레임 등록
+    // 1. ?�레???�록
     @Override
     @Transactional
     public ClaimResponseDto createClaim(Long memberId, ClaimCreateRequestDto request) {
-        logger.info("[ClaimService] 클레임 등록 - memberId: {}", memberId);
+        logger.info("[ClaimService] ?�레???�록 - memberId: {}", memberId);
 
         if (!memberRepository.existsById(memberId)) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
         }
 
-        // 신청 유형과 사유 코드 조합 검증
+        // ?�청 ?�형�??�유 코드 조합 검�?
         if (request.getClaimType() == Claim.ClaimType.RETURN &&
                 EXCHANGE_ONLY_REASONS.contains(request.getReasonCode())) {
             throw new BusinessException(ErrorCode.CLAIM_REASON_MISMATCH);
@@ -75,7 +75,7 @@ public class ClaimServiceImpl implements ClaimService {
                 RETURN_ONLY_REASONS.contains(request.getReasonCode())) {
             throw new BusinessException(ErrorCode.CLAIM_REASON_MISMATCH);
         }
-        // OrderItem 소유권까지 확인
+        // OrderItem ?�유권까지 ?�인
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_ITEM_NOT_FOUND));
         if (!orderItem.getOrder().getMember().getId().equals(memberId)) {
@@ -91,7 +91,7 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // 2. 클레임 상세 조회
+    // 2. ?�레???�세 조회
     @Override
     @Transactional(readOnly = true)
     public ClaimResponseDto getClaimById(Long claimId) {
@@ -100,7 +100,7 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // 3. 내 클레임 목록 조회
+    // 3. ???�레??목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getMyClaims(Long memberId) {
@@ -110,7 +110,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .toList();
     }
 
-    // 4. 전체 클레임 목록 조회
+    // 4. ?�체 ?�레??목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getAllClaims() {
@@ -120,7 +120,7 @@ public class ClaimServiceImpl implements ClaimService {
                 .toList();
     }
 
-    // 5. 클레임 상태 변경
+    // 5. ?�레???�태 변�?
     @Override
     @Transactional
     public ClaimResponseDto updateStatus(Long claimId, ClaimStatusUpdateRequestDto request) {
@@ -135,7 +135,7 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // 6. 클레임 취소
+    // 6. ?�레??취소
     @Override
     @Transactional
     public void cancelClaim(Long claimId, Long memberId) {
@@ -150,7 +150,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.cancel();
     }
 
-    // 7. 클레임 거부
+    // 7. ?�레??거�?
     @Override
     @Transactional
     public ClaimResponseDto rejectClaim(Long claimId, ClaimRejectRequestDto request) {
@@ -170,7 +170,7 @@ public class ClaimServiceImpl implements ClaimService {
         claim.reject(request.getRejectReason());
         return ClaimResponseDto.from(claim);
     }
- // ✅ 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
+ // ??8. ?�레???�인 (?�매?? SUBMITTED ??IN_PROGRESS
     @Override
     @Transactional
     public ClaimResponseDto approveClaim(Long claimId, Long memberId) {
@@ -184,11 +184,11 @@ public class ClaimServiceImpl implements ClaimService {
         }
 
         claim.updateStatus(Claim.ClaimStatus.IN_PROGRESS);
-        logger.info("[ClaimService] 판매자 클레임 승인 - claimId: {}, memberId: {}", claimId, memberId);
+        logger.info("[ClaimService] ?�매???�레???�인 - claimId: {}, memberId: {}", claimId, memberId);
         return ClaimResponseDto.from(claim);
     }
 
-    // ✅ 9. 클레임 거부 (판매자)
+    // ??9. ?�레??거�? (?�매??
     @Override
     @Transactional
     public ClaimResponseDto rejectClaimBySeller(Long claimId, ClaimRejectRequestDto request, Long memberId) {
@@ -199,13 +199,13 @@ public class ClaimServiceImpl implements ClaimService {
         validateRejectableStatus(claim);
 
         claim.reject(request.getRejectReason());
-        logger.info("[ClaimService] 판매자 클레임 거부 - claimId: {}, memberId: {}", claimId, memberId);
+        logger.info("[ClaimService] ?�매???�레??거�? - claimId: {}, memberId: {}", claimId, memberId);
         return ClaimResponseDto.from(claim);
     }
 
     private void validateSellerClaimOwnership(Claim claim, Long memberId) {
-        // 판매자 등록 여부 먼저 확인
-        if (!sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)) {
+        // ?�매???�록 ?��? 먼�? ?�인
+        if (!sellerRepository.existsByMember_IdAndDeletedAtIsNull(memberId)) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 
@@ -232,15 +232,15 @@ public class ClaimServiceImpl implements ClaimService {
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getSellerClaims(Long memberId) {
-        // 판매자 여부 + APPROVED 상태 확인
-        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+        // ?�매???��? + APPROVED ?�태 ?�인
+        Seller seller = sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 
         if (seller.getStatus() != SellerStatus.APPROVED) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 
-        // 판매자 확인 후 클레임 조회
+        // ?�매???�인 ???�레??조회
         return claimRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
                 .stream()
                 .map(ClaimResponseDto::from)

@@ -5,12 +5,15 @@ import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.domain.order.dto.SellerOrderResponseDto;
 
 import java.util.List;
 
 public interface OrderService {
 
     OrderResponseDto createOrder(Long memberId ,OrderCreateRequestDto request);
+
+    List<SellerOrderResponseDto> getSellerOrders(Long memberId);
 
     OrderResponseDto getOrder(Long orderId);
 

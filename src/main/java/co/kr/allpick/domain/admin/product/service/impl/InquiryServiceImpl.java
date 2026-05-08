@@ -40,11 +40,11 @@ public class InquiryServiceImpl implements InquiryService {
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
 
-    // 1. 문의 등록
+    // 1. 문의 ?�록
     @Override
     @Transactional
     public InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request) {
-        logger.info("[InquiryService] 문의 등록 - memberId: {}", memberId);
+        logger.info("[InquiryService] 문의 ?�록 - memberId: {}", memberId);
 
         if (!memberRepository.existsById(memberId)) {
             throw new BusinessException(ErrorCode.MEMBER_NOT_FOUND);
@@ -57,7 +57,7 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryResponseDto.from(inquiry, List.of(), List.of());
     }
 
-    // 2. 문의 상세 조회
+    // 2. 문의 ?�세 조회
     @Override
     @Transactional(readOnly = true)
     public InquiryResponseDto getInquiryById(Long inquiryId) {
@@ -76,7 +76,7 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryResponseDto.from(inquiry, answers, attachments);
     }
 
-    // 3. 내 문의 목록 조회
+    // 3. ??문의 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getMyInquiries(Long memberId) {
@@ -86,7 +86,7 @@ public class InquiryServiceImpl implements InquiryService {
                 .toList();
     }
 
-    // 4. 관리자 전체 문의 목록 조회
+    // 4. 관리자 ?�체 문의 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getAllInquiries() {
@@ -96,11 +96,11 @@ public class InquiryServiceImpl implements InquiryService {
                 .toList();
     }
 
-    // 5. 판매자 전체 문의 목록 조회
+    // 5. ?�매???�체 문의 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getSellerInquiries(Long memberId) {
-        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+        Seller seller = sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 
         List<Long> productIds = productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
@@ -115,7 +115,7 @@ public class InquiryServiceImpl implements InquiryService {
     }
 
 
-    // 6. 관리자 답변 등록
+    // 6. 관리자 ?��? ?�록
     @Override
     @Transactional
     public InquiryAnswerResponseDto addAdminAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long adminId) {
@@ -126,11 +126,11 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryAnswerResponseDto.from(answer);
     }
 
-    // 7. 판매자 답변 등록
+    // 7. ?�매???��? ?�록
     @Override
     @Transactional
     public InquiryAnswerResponseDto addSellerAnswer(Long inquiryId, InquiryAnswerRequestDto request, Long memberId) {
-        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+        Seller seller = sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));

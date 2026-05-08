@@ -33,16 +33,16 @@ class SellerApplyServiceImplTest {
     @Mock
     private MemberRepository memberRepository;
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // í”½ìŠ¤ì²˜ ë©”ì„œë“œ
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+    // ?½ìŠ¤ì²?ë©”ì„œ??
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     private SellerApplyRequestDto createFullDto() {
         return SellerApplyRequestDto.builder()
-                .businessName("í…ŒìŠ¤íŠ¸ìƒì ")
+                .businessName("?ŒìŠ¤?¸ìƒ??)
                 .businessNumber("123-45-67890")
-                .representativeName("í™ê¸¸ë™")
-                .bankName("êµ­ë¯¼ì€í–‰")
+                .representativeName("?ê¸¸??)
+                .bankName("êµ???€??)
                 .bankAccount("123456789012")
                 .build();
     }
@@ -53,12 +53,12 @@ class SellerApplyServiceImplTest {
                 .build();
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // apply() í…ŒìŠ¤íŠ¸
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+    // apply() ?ŒìŠ¤??
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     @Test
-    @DisplayName("íŒë§¤ìž ì‹ ì²­ ì„±ê³µ")
+    @DisplayName("?ë§¤??? ì²­ ?±ê³µ")
     void apply_success() {
         // given
         Long memberId = 1L;
@@ -66,7 +66,7 @@ class SellerApplyServiceImplTest {
         Member member = mock(Member.class);
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
-        given(sellerRepository.existsByMemberId(memberId)).willReturn(false);
+        given(sellerRepository.existsByMember_Id(memberId)).willReturn(false);
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // when
@@ -77,7 +77,7 @@ class SellerApplyServiceImplTest {
     }
 
     @Test
-    @DisplayName("ì‚¬ì—…ìžë“±ë¡ë²ˆí˜¸ ì¤‘ë³µ ì‹œ ì˜ˆì™¸ ë°œìƒ")
+    @DisplayName("?¬ì—…?ë“±ë¡ë²ˆ??ì¤‘ë³µ ???ˆì™¸ ë°œìƒ")
     void apply_fail_duplicateBusinessNumber() {
         // given
         Long memberId = 1L;
@@ -92,14 +92,14 @@ class SellerApplyServiceImplTest {
     }
 
     @Test
-    @DisplayName("ì´ë¯¸ íŒë§¤ìž ì‹ ì²­í•œ íšŒì›ì¼ ê²½ìš° ì˜ˆì™¸ ë°œìƒ")
+    @DisplayName("?´ë? ?ë§¤??? ì²­???Œì›??ê²½ìš° ?ˆì™¸ ë°œìƒ")
     void apply_fail_sellerAlreadyExists() {
         // given
         Long memberId = 1L;
         SellerApplyRequestDto dto = createDtoWithBusinessNumber("123-45-67890");
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
-        given(sellerRepository.existsByMemberId(memberId)).willReturn(true);
+        given(sellerRepository.existsByMember_Id(memberId)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> sellerApplyService.apply(dto, memberId))
@@ -108,14 +108,14 @@ class SellerApplyServiceImplTest {
     }
 
     @Test
-    @DisplayName("íšŒì›ì´ ì¡´ìž¬í•˜ì§€ ì•Šì„ ê²½ìš° ì˜ˆì™¸ ë°œìƒ")
+    @DisplayName("?Œì›??ì¡´ìž¬?˜ì? ?Šì„ ê²½ìš° ?ˆì™¸ ë°œìƒ")
     void apply_fail_memberNotFound() {
         // given
         Long memberId = 99L;
         SellerApplyRequestDto dto = createDtoWithBusinessNumber("123-45-67890");
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
-        given(sellerRepository.existsByMemberId(memberId)).willReturn(false);
+        given(sellerRepository.existsByMember_Id(memberId)).willReturn(false);
         given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         // when & then
@@ -124,39 +124,39 @@ class SellerApplyServiceImplTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_NOT_FOUND);
     }
 
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // getApplyStatus() í…ŒìŠ¤íŠ¸
-    // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+    // getApplyStatus() ?ŒìŠ¤??
+    // ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
 
     @Test
-    @DisplayName("ì‹ ì²­ ìƒíƒœ ì¡°íšŒ ì„±ê³µ")
+    @DisplayName("? ì²­ ?íƒœ ì¡°íšŒ ?±ê³µ")
     void getApplyStatus_success() {
         // given
         Long memberId = 1L;
         Seller seller = Seller.builder()
-                .businessName("í…ŒìŠ¤íŠ¸ìƒì ")
+                .businessName("?ŒìŠ¤?¸ìƒ??)
                 .businessNumber("123-45-67890")
                 .status(SellerStatus.PENDING)
                 .build();
 
-        given(sellerRepository.findByMemberId(memberId)).willReturn(Optional.of(seller));
+        given(sellerRepository.findByMember_Id(memberId)).willReturn(Optional.of(seller));
 
         // when
         SellerApplyStatusResponseDto result = sellerApplyService.getApplyStatus(memberId);
 
         // then
-        assertThat(result.getBusinessName()).isEqualTo("í…ŒìŠ¤íŠ¸ìƒì ");
+        assertThat(result.getBusinessName()).isEqualTo("?ŒìŠ¤?¸ìƒ??);
         assertThat(result.getBusinessNumber()).isEqualTo("123-45-67890");
         assertThat(result.getStatus()).isEqualTo(SellerStatus.PENDING);
     }
 
     @Test
-    @DisplayName("íŒë§¤ìž ì‹ ì²­ ë‚´ì—­ì´ ì—†ì„ ê²½ìš° ì˜ˆì™¸ ë°œìƒ")
+    @DisplayName("?ë§¤??? ì²­ ?´ì—­???†ì„ ê²½ìš° ?ˆì™¸ ë°œìƒ")
     void getApplyStatus_fail_sellerNotFound() {
         // given
         Long memberId = 1L;
 
-        given(sellerRepository.findByMemberId(memberId)).willReturn(Optional.empty());
+        given(sellerRepository.findByMember_Id(memberId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerApplyService.getApplyStatus(memberId))

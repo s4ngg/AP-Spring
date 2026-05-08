@@ -40,7 +40,6 @@ public class OrderItemRequestDto {
                 .productName(product.getProductName())
                 .productPrice(price)
                 .quantity(this.quantity)
-                .totalPrice(price.multiply(BigDecimal.valueOf(this.quantity)))
                 .build();
     }
 }

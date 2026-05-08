@@ -136,7 +136,7 @@ class ProductServiceImplTest {
 
         when(sellerRepository.findWithMemberByMemberId(memberId)).thenReturn(Optional.of(mockSeller));
         when(parentCategoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
-        when(productRepository.existsByProductName(reqDto.getProductName())).thenReturn(false);
+        when(productRepository.existsByProductNameAndDeletedAtIsNull(reqDto.getProductName())).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(mockProduct);
 
         ProductSaveResponseDto result = productService.createProduct(memberId, reqDto); 
@@ -173,7 +173,7 @@ class ProductServiceImplTest {
 
         when(sellerRepository.findWithMemberByMemberId(memberId)).thenReturn(Optional.of(Seller.builder().build()));
         when(parentCategoryRepository.findById(anyLong())).thenReturn(Optional.of(mock(ParentCategory.class)));
-        when(productRepository.existsByProductName("이미있는상품")).thenReturn(true);
+        when(productRepository.existsByProductNameAndDeletedAtIsNull("이미있는상품")).thenReturn(true);
 
         assertThatThrownBy(() -> productService.createProduct(memberId, reqDto)) // ✅ memberId 추가
                 .isInstanceOf(BusinessException.class)

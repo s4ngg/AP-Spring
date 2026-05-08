@@ -36,12 +36,12 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
         }
         if (memberRepository.existsByEmail(dto.getEmail())) {
-            logger.warn("[AuthService] 이메일 중복 - email: {}");
+            logger.warn("[AuthService] ?�메??중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
         smsService.removeVerified(dto.getPhone());
-        logger.info("[AuthService] 회원가입 완료");
+        logger.info("[AuthService] ?�원가???�료");
     }
 
     @Override
@@ -56,25 +56,25 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponseDto login(LoginRequestDto dto) {
         Member member = memberRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> {
-                    logger.warn("[AuthService] 존재하지 않는 이메일로 로그인 시도");
+                    logger.warn("[AuthService] 존재?��? ?�는 ?�메?�로 로그???�도");
                     return new BusinessException(ErrorCode.INVALID_PASSWORD);
                 });
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            logger.warn("[AuthService] 비밀번호 불일치 - memberId: {}", member.getId());
+            logger.warn("[AuthService] 비�?번호 불일�?- memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         if (!Integer.valueOf(1).equals(member.getStatus())) {
-            logger.warn("[AuthService] 정지 회원 로그인 시도 - memberId: {}", member.getId());
+            logger.warn("[AuthService] ?��? ?�원 로그???�도 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
         }
-        logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
+        logger.info("[AuthService] 로그???�공 - memberId: {}", member.getId());
 
         String token = jwtProvider.createToken(JwtUserInfoDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
                 .build());
 
-        boolean isSeller = sellerRepository.findByMemberId(member.getId()).isPresent();
+        boolean isSeller = sellerRepository.findByMember_Id(member.getId()).isPresent();
 
         return AuthResponseDto.of(token, member, isSeller);
     }

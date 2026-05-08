@@ -60,20 +60,20 @@ class InquiryServiceImplTest {
     InquiryServiceImpl inquiryService;
 
     @Test
-    @DisplayName("문의 등록 성공")
-    void 문의_등록_성공() {
+    @DisplayName("문의 ?�록 ?�공")
+    void 문의_?�록_?�공() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
                 10L, 5L, Inquiry.InquiryType.PRODUCT,
-                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+                "?�이�?문의?�립?�다.", "???�이즈인지 궁금?�니??");
 
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(1L)
                 .orderItemId(10L)
                 .productId(5L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("사이즈 문의드립니다.")
-                .content("정 사이즈인지 궁금합니다.")
+                .title("?�이�?문의?�립?�다.")
+                .content("???�이즈인지 궁금?�니??")
                 .build();
 
         when(memberRepository.existsById(1L)).thenReturn(true);
@@ -86,18 +86,18 @@ class InquiryServiceImplTest {
         // then
         assertThat(result).isNotNull();
         assertThat(result.getMemberId()).isEqualTo(1L);
-        assertThat(result.getTitle()).isEqualTo("사이즈 문의드립니다.");
+        assertThat(result.getTitle()).isEqualTo("?�이�?문의?�립?�다.");
         assertThat(result.getStatus()).isEqualTo(Inquiry.InquiryStatus.PENDING);
         assertThat(result.getAnswers()).isEmpty();
     }
 
     @Test
-    @DisplayName("문의 등록 실패 - 존재하지 않는 회원")
-    void 문의_등록_실패_회원없음() {
+    @DisplayName("문의 ?�록 ?�패 - 존재?��? ?�는 ?�원")
+    void 문의_?�록_?�패_?�원?�음() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
                 null, 5L, Inquiry.InquiryType.PRODUCT,
-                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+                "?�이�?문의?�립?�다.", "???�이즈인지 궁금?�니??");
 
         when(memberRepository.existsById(999L)).thenReturn(false);
 
@@ -108,12 +108,12 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 등록 실패 - 존재하지 않는 주문 상품")
-    void 문의_등록_실패_주문상품없음() {
+    @DisplayName("문의 ?�록 ?�패 - 존재?��? ?�는 주문 ?�품")
+    void 문의_?�록_?�패_주문?�품?�음() {
         // given
         InquiryCreateRequestDto request = new InquiryCreateRequestDto(
                 999L, 5L, Inquiry.InquiryType.PRODUCT,
-                "사이즈 문의드립니다.", "정 사이즈인지 궁금합니다.");
+                "?�이�?문의?�립?�다.", "???�이즈인지 궁금?�니??");
 
         when(memberRepository.existsById(1L)).thenReturn(true);
         when(orderItemRepository.existsById(999L)).thenReturn(false);
@@ -125,8 +125,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 상세 조회 성공")
-    void 문의_상세_조회_성공() {
+    @DisplayName("문의 ?�세 조회 ?�공")
+    void 문의_?�세_조회_?�공() {
         // given
         Long inquiryId = 1L;
 
@@ -135,14 +135,14 @@ class InquiryServiceImplTest {
                 .orderItemId(10L)
                 .productId(5L)
                 .inquiryType(Inquiry.InquiryType.DELIVERY)
-                .title("배송 관련 문의")
-                .content("배송이 언제 오나요?")
+                .title("배송 관??문의")
+                .content("배송???�제 ?�나??")
                 .build();
 
         InquiryAnswer mockAnswer = InquiryAnswer.builder()
                 .inquiryId(inquiryId)
                 .adminId(2L)
-                .content("3~5일 이내 도착 예정입니다.")
+                .content("3~5???�내 ?�착 ?�정?�니??")
                 .build();
 
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
@@ -153,14 +153,14 @@ class InquiryServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getTitle()).isEqualTo("배송 관련 문의");
+        assertThat(result.getTitle()).isEqualTo("배송 관??문의");
         assertThat(result.getAnswers()).hasSize(1);
-        assertThat(result.getAnswers().get(0).getContent()).isEqualTo("3~5일 이내 도착 예정입니다.");
+        assertThat(result.getAnswers().get(0).getContent()).isEqualTo("3~5???�내 ?�착 ?�정?�니??");
     }
 
     @Test
-    @DisplayName("문의 상세 조회 실패 - 문의 없음")
-    void 문의_상세_조회_실패_문의없음() {
+    @DisplayName("문의 ?�세 조회 ?�패 - 문의 ?�음")
+    void 문의_?�세_조회_?�패_문의?�음() {
         // given
         when(inquiryRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -171,23 +171,23 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("내 문의 목록 조회 성공")
-    void 내_문의_목록_조회_성공() {
+    @DisplayName("??문의 목록 조회 ?�공")
+    void ??문의_목록_조회_?�공() {
         // given
         Long memberId = 1L;
 
         Inquiry mockInquiry1 = Inquiry.builder()
                 .memberId(memberId)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("상품 문의1")
-                .content("내용1")
+                .title("?�품 문의1")
+                .content("?�용1")
                 .build();
 
         Inquiry mockInquiry2 = Inquiry.builder()
                 .memberId(memberId)
                 .inquiryType(Inquiry.InquiryType.PAYMENT)
                 .title("결제 문의")
-                .content("결제 관련 내용")
+                .content("결제 관???�용")
                 .build();
 
         when(inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId))
@@ -198,19 +198,19 @@ class InquiryServiceImplTest {
 
         // then
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).getTitle()).isEqualTo("상품 문의1");
+        assertThat(result.get(0).getTitle()).isEqualTo("?�품 문의1");
         assertThat(result.get(1).getInquiryType()).isEqualTo(Inquiry.InquiryType.PAYMENT);
     }
 
     @Test
-    @DisplayName("전체 문의 목록 조회 성공")
-    void 전체_문의_목록_조회_성공() {
+    @DisplayName("?�체 문의 목록 조회 ?�공")
+    void ?�체_문의_목록_조회_?�공() {
         // given
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(1L)
                 .inquiryType(Inquiry.InquiryType.ETC)
-                .title("기타 문의")
-                .content("기타 내용")
+                .title("기�? 문의")
+                .content("기�? ?�용")
                 .build();
 
         when(inquiryRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockInquiry));
@@ -224,24 +224,24 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("관리자 답변 등록 성공")
-    void 관리자_답변_등록_성공() {
+    @DisplayName("관리자 ?��? ?�록 ?�공")
+    void 관리자_?��?_?�록_?�공() {
         // given
         Long inquiryId = 1L;
 
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(1L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("상품 문의")
-                .content("문의 내용")
+                .title("?�품 문의")
+                .content("문의 ?�용")
                 .build();
 
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("정 사이즈 입니다.");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("???�이�??�니??");
 
         InquiryAnswer mockAnswer = InquiryAnswer.builder()
                 .inquiryId(inquiryId)
                 .adminId(2L)
-                .content("정 사이즈 입니다.")
+                .content("???�이�??�니??")
                 .build();
 
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
@@ -252,16 +252,16 @@ class InquiryServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEqualTo("정 사이즈 입니다.");
+        assertThat(result.getContent()).isEqualTo("???�이�??�니??");
         assertThat(result.getAdminId()).isEqualTo(2L);
         assertThat(mockInquiry.getStatus()).isEqualTo(Inquiry.InquiryStatus.PROCESSING);
     }
 
     @Test
-    @DisplayName("관리자 답변 등록 실패 - 문의 없음")
-    void 관리자_답변_등록_실패_문의없음() {
+    @DisplayName("관리자 ?��? ?�록 ?�패 - 문의 ?�음")
+    void 관리자_?��?_?�록_?�패_문의?�음() {
         // given
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("답변 내용");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("?��? ?�용");
 
         when(inquiryRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -272,8 +272,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 답변 등록 성공")
-    void 판매자_답변_등록_성공() {
+    @DisplayName("?�매???��? ?�록 ?�공")
+    void ?�매???��?_?�록_?�공() {
         // given
         Long inquiryId = 1L;
         Long memberId = 1L;
@@ -285,19 +285,19 @@ class InquiryServiceImplTest {
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(2L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("상품 문의")
-                .content("문의 내용")
+                .title("?�품 문의")
+                .content("문의 ?�용")
                 .build();
 
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("판매자 답변입니다.");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("?�매???��??�니??");
 
         InquiryAnswer mockAnswer = InquiryAnswer.builder()
                 .inquiryId(inquiryId)
                 .sellerId(10L)
-                .content("판매자 답변입니다.")
+                .content("?�매???��??�니??")
                 .build();
 
-        when(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
+        when(sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
         when(inquiryAnswerRepository.save(any(InquiryAnswer.class))).thenReturn(mockAnswer);
 
@@ -306,14 +306,14 @@ class InquiryServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEqualTo("판매자 답변입니다.");
+        assertThat(result.getContent()).isEqualTo("?�매???��??�니??");
         assertThat(result.getSellerId()).isEqualTo(10L);
         assertThat(mockInquiry.getStatus()).isEqualTo(Inquiry.InquiryStatus.PROCESSING);
     }
 
     @Test
-    @DisplayName("판매자 답변 등록 성공 - 상품 소유권 검증 포함")
-    void 판매자_답변_등록_성공_소유권검증() {
+    @DisplayName("?�매???��? ?�록 ?�공 - ?�품 ?�유�?검�??�함")
+    void ?�매???��?_?�록_?�공_?�유권�?�?) {
         // given
         Long inquiryId = 1L;
         Long memberId = 1L;
@@ -325,19 +325,19 @@ class InquiryServiceImplTest {
                 .memberId(2L)
                 .productId(5L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("상품 문의")
-                .content("문의 내용")
+                .title("?�품 문의")
+                .content("문의 ?�용")
                 .build();
 
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("판매자 답변입니다.");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("?�매???��??�니??");
 
         InquiryAnswer mockAnswer = InquiryAnswer.builder()
                 .inquiryId(inquiryId)
                 .sellerId(10L)
-                .content("판매자 답변입니다.")
+                .content("?�매???��??�니??")
                 .build();
 
-        when(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
+        when(sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
         when(productRepository.findById(5L)).thenReturn(Optional.of(mockProduct));
         when(inquiryAnswerRepository.save(any(InquiryAnswer.class))).thenReturn(mockAnswer);
@@ -347,18 +347,18 @@ class InquiryServiceImplTest {
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEqualTo("판매자 답변입니다.");
+        assertThat(result.getContent()).isEqualTo("?�매???��??�니??");
         assertThat(result.getSellerId()).isEqualTo(10L);
         assertThat(mockInquiry.getStatus()).isEqualTo(Inquiry.InquiryStatus.PROCESSING);
     }
 
     @Test
-    @DisplayName("판매자 답변 등록 실패 - 판매자 아님")
-    void 판매자_답변_등록_실패_판매자아님() {
+    @DisplayName("?�매???��? ?�록 ?�패 - ?�매???�님")
+    void ?�매???��?_?�록_?�패_?�매?�아??) {
         // given
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("답변 내용");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("?��? ?�용");
 
-        when(sellerRepository.findByMemberIdAndDeletedAtIsNull(999L)).thenReturn(Optional.empty());
+        when(sellerRepository.findByMember_IdAndDeletedAtIsNull(999L)).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> inquiryService.addSellerAnswer(1L, request, 999L))
@@ -367,8 +367,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 답변 등록 실패 - 다른 판매자 상품 문의")
-    void 판매자_답변_등록_실패_소유권없음() {
+    @DisplayName("?�매???��? ?�록 ?�패 - ?�른 ?�매???�품 문의")
+    void ?�매???��?_?�록_?�패_?�유권없??) {
         // given
         Long inquiryId = 1L;
         Long memberId = 1L;
@@ -381,13 +381,13 @@ class InquiryServiceImplTest {
                 .memberId(2L)
                 .productId(5L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("상품 문의")
-                .content("문의 내용")
+                .title("?�품 문의")
+                .content("문의 ?�용")
                 .build();
 
-        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("답변 내용");
+        InquiryAnswerRequestDto request = new InquiryAnswerRequestDto("?��? ?�용");
 
-        when(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
+        when(sellerRepository.findByMember_IdAndDeletedAtIsNull(memberId)).thenReturn(Optional.of(mockSeller));
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
         when(productRepository.findById(5L)).thenReturn(Optional.of(mockProduct));
 
@@ -398,8 +398,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 취소 성공")
-    void 문의_취소_성공() {
+    @DisplayName("문의 취소 ?�공")
+    void 문의_취소_?�공() {
         // given
         Long inquiryId = 1L;
         Long memberId = 1L;
@@ -407,8 +407,8 @@ class InquiryServiceImplTest {
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(memberId)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("취소할 문의")
-                .content("내용")
+                .title("취소??문의")
+                .content("?�용")
                 .build();
 
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
@@ -421,8 +421,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 취소 실패 - 문의 없음")
-    void 문의_취소_실패_문의없음() {
+    @DisplayName("문의 취소 ?�패 - 문의 ?�음")
+    void 문의_취소_?�패_문의?�음() {
         // given
         when(inquiryRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -433,16 +433,16 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 취소 실패 - 권한 없음")
-    void 문의_취소_실패_권한없음() {
+    @DisplayName("문의 취소 ?�패 - 권한 ?�음")
+    void 문의_취소_?�패_권한?�음() {
         // given
         Long inquiryId = 1L;
 
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(1L)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("문의 제목")
-                .content("내용")
+                .title("문의 ?�목")
+                .content("?�용")
                 .build();
 
         when(inquiryRepository.findById(inquiryId)).thenReturn(Optional.of(mockInquiry));
@@ -454,8 +454,8 @@ class InquiryServiceImplTest {
     }
 
     @Test
-    @DisplayName("문의 취소 실패 - 접수 대기 상태가 아님")
-    void 문의_취소_실패_취소불가상태() {
+    @DisplayName("문의 취소 ?�패 - ?�수 ?��??�태가 ?�님")
+    void 문의_취소_?�패_취소불�??�태() {
         // given
         Long inquiryId = 1L;
         Long memberId = 1L;
@@ -463,8 +463,8 @@ class InquiryServiceImplTest {
         Inquiry mockInquiry = Inquiry.builder()
                 .memberId(memberId)
                 .inquiryType(Inquiry.InquiryType.PRODUCT)
-                .title("문의 제목")
-                .content("내용")
+                .title("문의 ?�목")
+                .content("?�용")
                 .build();
         mockInquiry.updateStatus(Inquiry.InquiryStatus.PROCESSING);
 

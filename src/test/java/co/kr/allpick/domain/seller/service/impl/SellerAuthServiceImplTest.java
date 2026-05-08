@@ -42,16 +42,16 @@ class SellerAuthServiceImplTest {
     @InjectMocks
     SellerAuthServiceImpl sellerAuthService;
 
-    // ==================== 판매자 등록 ====================
+    // ==================== ?�매???�록 ====================
 
     @Test
-    @DisplayName("판매자 등록 성공")
+    @DisplayName("?�매???�록 ?�공")
     void signup_validRequest_success() {
         // given
         Long memberId = 1L;
 
         SellerSignupRequestDto dto = new SellerSignupRequestDto(
-                "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
+                "?�이??코리??, "1234567890", "?�길??, "�???�??, "12345678901234");
 
         Member mockMember = Member.builder()
                 .email("test@test.com")
@@ -68,12 +68,12 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 등록 실패 - 사업자등록번호 중복")
+    @DisplayName("?�매???�록 ?�패 - ?�업?�등록번??중복")
     void signup_duplicateBusinessNumber_throwException() {
         // given
         Long memberId = 1L;
         SellerSignupRequestDto dto = new SellerSignupRequestDto(
-                "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
+                "?�이??코리??, "1234567890", "?�길??, "�???�??, "12345678901234");
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(true);
 
@@ -84,12 +84,12 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 등록 실패 - 존재하지 않는 회원")
+    @DisplayName("?�매???�록 ?�패 - 존재?��? ?�는 ?�원")
     void signup_memberNotFound_throwException() {
         // given
         Long memberId = 1L;
         SellerSignupRequestDto dto = new SellerSignupRequestDto(
-                "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
+                "?�이??코리??, "1234567890", "?�길??, "�???�??, "12345678901234");
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
         given(memberRepository.findById(memberId)).willReturn(Optional.empty());
@@ -100,23 +100,23 @@ class SellerAuthServiceImplTest {
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
 
-    // ==================== 판매자 정보 수정 ====================
+    // ==================== ?�매???�보 ?�정 ====================
 
     @Test
-    @DisplayName("판매자 정보 수정 성공")
+    @DisplayName("?�매???�보 ?�정 ?�공")
     void update_validRequest_success() {
         // given
         Long sellerId = 1L;
         Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                "?�디?�스 코리??, "김철수", "?�한?�??, "98765432101234");
 
         Member mockMember = mock(Member.class);
         given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
-                .businessName("나이키 코리아")
-                .representativeName("홍길동")
+                .businessName("?�이??코리??)
+                .representativeName("?�길??)
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
                 .member(mockMember)
@@ -132,13 +132,13 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 정보 수정 실패 - 존재하지 않는 판매자")
+    @DisplayName("?�매???�보 ?�정 ?�패 - 존재?��? ?�는 ?�매??)
     void update_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;
         Long memberId = 1L;
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
-                "아디다스 코리아", "김철수", "신한은행", "98765432101234");
+                "?�디?�스 코리??, "김철수", "?�한?�??, "98765432101234");
 
         given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
 
@@ -148,10 +148,10 @@ class SellerAuthServiceImplTest {
                 .hasMessage(ErrorCode.SELLER_NOT_FOUND.getMessage());
     }
 
-    // ==================== 로그인 ====================
+    // ==================== 로그??====================
 
     @Test
-    @DisplayName("판매자 로그인 성공")
+    @DisplayName("?�매??로그???�공")
     void login_validRequest_success() {
         // given
         SellerLoginRequestDto dto = new SellerLoginRequestDto("test@test.com", "password123");
@@ -162,15 +162,15 @@ class SellerAuthServiceImplTest {
                 .build();
 
         Seller mockSeller = Seller.builder()
-                .businessName("나이키 코리아")
-                .representativeName("홍길동")
+                .businessName("?�이??코리??)
+                .representativeName("?�길??)
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
                 .build();
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.of(mockSeller));
+        given(sellerRepository.findByMember_IdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.of(mockSeller));
         given(jwtProvider.createToken(any(JwtUserInfoDto.class))).willReturn("mockToken");
 
         // when
@@ -182,7 +182,7 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 로그인 실패 - 이메일 없음")
+    @DisplayName("?�매??로그???�패 - ?�메???�음")
     void login_emailNotFound_throwException() {
         // given
         SellerLoginRequestDto dto = new SellerLoginRequestDto("none@test.com", "password123");
@@ -196,7 +196,7 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 로그인 실패 - 비밀번호 틀림")
+    @DisplayName("?�매??로그???�패 - 비�?번호 ?��?)
     void login_invalidPassword_throwException() {
         // given
         SellerLoginRequestDto dto = new SellerLoginRequestDto("test@test.com", "wrongPassword");
@@ -216,7 +216,7 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 로그인 실패 - 판매자 권한 없음")
+    @DisplayName("?�매??로그???�패 - ?�매??권한 ?�음")
     void login_notSeller_throwException() {
         // given
         SellerLoginRequestDto dto = new SellerLoginRequestDto("test@test.com", "password123");
@@ -228,7 +228,7 @@ class SellerAuthServiceImplTest {
 
         given(memberRepository.findByEmail(dto.getEmail())).willReturn(Optional.of(mockMember));
         given(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).willReturn(true);
-        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.empty());
+        given(sellerRepository.findByMember_IdAndDeletedAtIsNull(mockMember.getId())).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerAuthService.login(dto))
@@ -237,7 +237,7 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 로그인 실패 - 정지 회원")
+    @DisplayName("?�매??로그???�패 - ?��? ?�원")
     void login_blockedMember_throwException() {
         // given
         SellerLoginRequestDto dto = new SellerLoginRequestDto("blocked@test.com", "password123");
@@ -257,10 +257,10 @@ class SellerAuthServiceImplTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_BLOCKED);
     }
 
-    // ==================== 판매자 삭제 ====================
+    // ==================== ?�매????�� ====================
 
     @Test
-    @DisplayName("판매자 삭제 성공")
+    @DisplayName("?�매????�� ?�공")
     void deleteSeller_validRequest_success() {
         // given
         Long sellerId = 1L;
@@ -270,8 +270,8 @@ class SellerAuthServiceImplTest {
         given(mockMember.getId()).willReturn(memberId);
 
         Seller mockSeller = Seller.builder()
-                .businessName("나이키 코리아")
-                .representativeName("홍길동")
+                .businessName("?�이??코리??)
+                .representativeName("?�길??)
                 .businessNumber("1234567890")
                 .status(SellerStatus.APPROVED)
                 .member(mockMember)
@@ -288,7 +288,7 @@ class SellerAuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("판매자 삭제 실패 - 존재하지 않는 판매자")
+    @DisplayName("?�매????�� ?�패 - 존재?��? ?�는 ?�매??)
     void deleteSeller_sellerNotFound_throwException() {
         // given
         Long sellerId = 999L;

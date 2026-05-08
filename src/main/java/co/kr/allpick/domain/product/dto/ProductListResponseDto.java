@@ -30,6 +30,9 @@ public class ProductListResponseDto {
     @Schema(description = "판매가격", example = "25000")
     private BigDecimal price;
 
+    @Schema(description = "승인 상태", example = "PENDING")
+    private Product.ApprovalStatus approvalStatus;
+
     public static ProductListResponseDto from(Product product) {
         return ProductListResponseDto.builder()
                 .productId(product.getProductId())
@@ -39,6 +42,7 @@ public class ProductListResponseDto {
                 .productName(product.getProductName())
                 .thumbnailUrl(product.getThumbnailUrl())
                 .price(product.getPrice())
+                .approvalStatus(product.getApprovalStatus())
                 .build();
     }
 }

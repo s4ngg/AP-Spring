@@ -41,40 +41,40 @@ public class ProductServiceImpl implements ProductService{
 	private final SellerRepository sellerRepository;
 	
 	@Override
-	// 상품 생성 메서드
-		//		-	검증 : 1.해당 상품의 판매자인지 2. 존재하는 카테고리인지 3. 이미 사용중인 상품명인지 -> 매개변수 : 요청Dto을 통해 검사
-		// 		- 	반환 : 생성된 객체의 id, 생성성공 메세지..
+	// ?�품 ?�성 메서??
+		//		-	검�?: 1.?�당 ?�품???�매?�인지 2. 존재?�는 카테고리?��? 3. ?��? ?�용중인 ?�품명인지 -> 매개변??: ?�청Dto???�해 검??
+		// 		- 	반환 : ?�성??객체??id, ?�성?�공 메세지..
 	public ProductSaveResponseDto createProduct(Long memberId ,ProductSaveRequestDto reqDto) {
 		
-		// 판매자 검증 	
+		// ?�매??검�?	
 		Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-		// 카테고리 검증
+		// 카테고리 검�?
 		ParentCategory parentCategory = parentCategoryRepository.findById(reqDto.getCategoryId())
 				.orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
-		// 상품 이름 검증
-		if (productRepository.existsByProductName(reqDto.getProductName())) {
+		// ?�품 ?�름 검�?(??��???�품 ?�외)
+		if (productRepository.existsByProductNameAndDeletedAtIsNull(reqDto.getProductName())) {
 			throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS);
 		}
 		
-		// 상품 생성 (위의 검증 모두 통과)
+		// ?�품 ?�성 (?�의 검�?모두 ?�과)
 		Product product = reqDto.toEntity(seller, parentCategory);
-		// 만들어진 상품 저장
+		// 만들?�진 ?�품 ?�??
 		productRepository.save(product);
-		// 응답객체로 변환하여 반환
+		// ?�답객체�?변?�하??반환
 		return ProductSaveResponseDto.from(product);
 	}
 	
 	@Transactional(readOnly = true)
 	@Override
 	
-	// Id로 상품상세 페이지 조회 (리뷰 포함)
+	// Id�??�품?�세 ?�이지 조회 (리뷰 ?�함)
  	public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
-		// findValidProduct 메서드가 판매상태와, 승인상태 검증해줌.
+		// findValidProduct 메서?��? ?�매?�태?�, ?�인?�태 검증해�?
 		Product product = productRepository.findValidProduct(productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-		// 해당 상품에 대한 리뷰 조회
+		// ?�당 ?�품???�??리뷰 조회
 		Page<ReviewResponseDto> reviewPage = reviewRepository.findByProductId(productId,pageable)
 				.map(ReviewResponseDto::from);
 		
@@ -83,9 +83,9 @@ public class ProductServiceImpl implements ProductService{
 	
 	@Override
 	
-	// 상품 가격 수정 ( PatchMapping )
+	// ?�품 가�??�정 ( PatchMapping )
 	public ProductUpdateResponseDto updateProduct(Long memberId, Long productId, ProductUpdateRequestDto reqDto) {
-		// 상품 존재 검증 + 판매자의 상품인지 검증 
+		// ?�품 존재 검�?+ ?�매?�의 ?�품?��? 검�?
 		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		product.updatePrice(reqDto.getPrice());
@@ -94,19 +94,19 @@ public class ProductServiceImpl implements ProductService{
 
 	@Override
 	@Transactional(readOnly = true)
-	// 판매 중이고 승인된 상품 목록 페이지 조회
+	// ?�매 중이�??�인???�품 목록 ?�이지 조회
 	public Page<ProductListResponseDto> getProductList(Pageable pageable) {
-		logger.info("상품 목록 조회 - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+		logger.info("?�품 목록 조회 - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
 		return productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
-				Product.Status.ON_SALE,   // 현재 판매중
-				Product.ApprovalStatus.APPROVED,   // 관리자 승인 상품
+				Product.Status.ON_SALE,   // ?�재 ?�매�?
+				Product.ApprovalStatus.APPROVED,   // 관리자 ?�인 ?�품
 				pageable
 		).map(ProductListResponseDto::from);
 	}
 	
 	@Override
 	public void deleteProduct(Long memberId,Long productId) {
-		// 해당 상품의 판매자인지 확인 
+		// ?�당 ?�품???�매?�인지 ?�인 
 		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		
@@ -119,7 +119,7 @@ public class ProductServiceImpl implements ProductService{
 	public List<ProductListResponseDto> getSellerProducts(Long memberId) {
 	    Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
 	            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-	    return productRepository.findBySeller_SellerId(seller.getSellerId())
+	    return productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
 	            .stream()
 	            .map(ProductListResponseDto::from)
 	            .toList();

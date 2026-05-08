@@ -47,7 +47,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
                 dto.getBankName(),
                 dto.getBankAccount()
         );
-        logger.info("[SellerAuthService] 판매자 정보 수정 완료 - sellerId: {}", sellerId);
+        logger.info("[SellerAuthService] ?�매???�보 ?�정 ?�료 - sellerId: {}", sellerId);
     }
 
     @Override
@@ -55,20 +55,20 @@ public class SellerAuthServiceImpl implements SellerAuthService {
         Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
-        validateSellerOwner(seller, memberId);  // ← 헬퍼 메서드로 교체
+        validateSellerOwner(seller, memberId);  // ???�퍼 메서?�로 교체
 
         seller.delete();
         sellerRepository.save(seller);
     }
     @Override
     public void signup(SellerSignupRequestDto dto, Long memberId) {
-    	if (sellerRepository.existsByMemberId(memberId)) {
-            logger.warn("[SellerAuthService] 이미 판매자 등록된 회원 - memberId: {}", memberId);
+    	if (sellerRepository.existsByMember_Id(memberId)) {
+            logger.warn("[SellerAuthService] ?��? ?�매???�록???�원 - memberId: {}", memberId);
             throw new BusinessException(ErrorCode.SELLER_ALREADY_EXISTS);
         }
     	
     	if (sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())) {
-            logger.warn("[SellerAuthService] 사업자등록번호 중복 - businessNumber: {}", dto.getBusinessNumber());
+            logger.warn("[SellerAuthService] ?�업?�등록번??중복 - businessNumber: {}", dto.getBusinessNumber());
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
 
@@ -79,7 +79,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
 
         Seller seller = dto.toEntity(member);
         sellerRepository.save(seller);
-        logger.info("[SellerAuthService] 판매자 등록 완료 - memberId: {}", memberId);
+        logger.info("[SellerAuthService] ?�매???�록 ?�료 - memberId: {}", memberId);
     }
     
     @Override
@@ -87,19 +87,19 @@ public class SellerAuthServiceImpl implements SellerAuthService {
     public SellerLoginResponseDto login(SellerLoginRequestDto dto) {
         Member member = memberRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> {
-                    logger.warn("[SellerAuthService] 존재하지 않는 이메일로 로그인 시도");
+                    logger.warn("[SellerAuthService] 존재?��? ?�는 ?�메?�로 로그???�도");
                     return new BusinessException(ErrorCode.INVALID_PASSWORD);
                 });
 
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            logger.warn("[SellerAuthService] 비밀번호 불일치 - memberId: {}", member.getId());
+            logger.warn("[SellerAuthService] 비�?번호 불일�?- memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         if (!Integer.valueOf(1).equals(member.getStatus())) {
-            logger.warn("[SellerAuthService] 정지 회원 판매자 로그인 시도 - memberId: {}", member.getId());
+            logger.warn("[SellerAuthService] ?��? ?�원 ?�매??로그???�도 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
         }
-        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(member.getId())
+        Seller seller = sellerRepository.findByMember_IdAndDeletedAtIsNull(member.getId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
 
         if (seller.getStatus() != SellerStatus.APPROVED) {
@@ -110,7 +110,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
                 .memberId(member.getId())
                 .email(member.getEmail())
                 .build());
-        logger.info("[SellerAuthService] 판매자 로그인 성공 - sellerId: {}", seller.getSellerId());
+        logger.info("[SellerAuthService] ?�매??로그???�공 - sellerId: {}", seller.getSellerId());
 
         return SellerLoginResponseDto.of(seller, token);
     }

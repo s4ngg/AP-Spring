@@ -19,6 +19,7 @@ import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
 import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
 import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
+import co.kr.allpick.domain.order.dto.SellerOrderResponseDto;
 import co.kr.allpick.domain.order.service.OrderService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
@@ -31,6 +32,12 @@ import lombok.RequiredArgsConstructor;
 public class OrderController implements OrderControllerDocs {
 
     private final OrderService orderService;
+
+    @GetMapping("/seller")
+    public ResponseEntity<ApiResponse<List<SellerOrderResponseDto>>> getSellerOrders(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        return ApiResponse.success("판매자 주문 목록 조회 성공.", orderService.getSellerOrders(userInfo.getMemberId()));
+    }
 
     @Override
     @PostMapping

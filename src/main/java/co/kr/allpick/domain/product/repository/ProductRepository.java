@@ -24,8 +24,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 		   "AND p.approvalStatus = 'APPROVED' ")
 	Optional<Product> findValidProduct(@Param("id") Long productId);
 
-	// 상품명 존재 여부 확인 메서드 (중복 확인)
-	boolean existsByProductName(String productName);
+	// 상품명 존재 여부 확인 메서드 (삭제되지 않은 상품만)
+	boolean existsByProductNameAndDeletedAtIsNull(String productName);
 
 	List<Product> findBySeller_SellerId(Long sellerId);
 	// 상품 조회 (seller fetch-join 포함 — 판매자 상태 검증용- 단건 조회)
