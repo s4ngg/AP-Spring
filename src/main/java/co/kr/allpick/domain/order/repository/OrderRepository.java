@@ -25,6 +25,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o JOIN FETCH o.orderItems WHERE o.orderId = :orderId")
     Optional<Order> findByIdWithItems(@Param("orderId") Long orderId);
 
+    @Query("""
+            SELECT DISTINCT o
+            FROM Order o
+            JOIN FETCH o.member
+            LEFT JOIN FETCH o.orderItems oi
+            LEFT JOIN FETCH oi.product
+            ORDER BY o.orderedAt DESC
+            """)
+    List<Order> findAllWithMemberAndItemsOrderByOrderedAtDesc();
+
     boolean existsByDeliveryAddress_AddressId(Long addressId);
  
     @Query("""
@@ -38,4 +48,4 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> sumDeliveredAmountByMemberBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
-} 
+}

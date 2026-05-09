@@ -88,7 +88,11 @@ public class Claim extends BaseEntity {
     public void updateStatus(ClaimStatus status) {
         this.status = status;
         if (status == ClaimStatus.COMPLETED) {
-            this.completedAt = LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now();
+            this.completedAt = now;
+            if (this.claimType == ClaimType.RETURN) {
+                this.refundedAt = now;
+            }
         }
     }
 

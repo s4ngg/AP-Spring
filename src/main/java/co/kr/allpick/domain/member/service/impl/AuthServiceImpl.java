@@ -32,18 +32,15 @@ public class AuthServiceImpl implements AuthService {
     private final SellerRepository sellerRepository;
     @Override
     public void signup(SignupRequestDto dto) {
-//    	TODO: CoolSMS 연동 완료 후 주석 해제
-//        if (!smsService.isVerified(dto.getPhone())) {
-//            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
-//        }
+        if (!smsService.isVerified(dto.getPhone())) {
+            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
+        }
         if (memberRepository.existsByEmail(dto.getEmail())) {
             logger.warn("[AuthService] 이메일 중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
-        
-//		TODO: CoolSMS 연동 완료 후 주석 해제
-//        smsService.removeVerified(dto.getPhone());
+        smsService.removeVerified(dto.getPhone());
         logger.info("[AuthService] 회원가입 완료");
     }
 
