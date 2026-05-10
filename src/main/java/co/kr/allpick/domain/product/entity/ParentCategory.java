@@ -37,6 +37,17 @@ public class ParentCategory extends BaseEntity{
 		
 	@Column(name = "slug", length = 100, nullable = false, unique = true)
 	private String slug;	// URL 식별자	
+
+	public void update(String categoryName, String slug, Integer sortOrder, Integer isActive) {
+		this.categoryName = categoryName;
+		this.slug = slug;
+		this.sortOrder = sortOrder;
+		this.isActive = isActive;
+	}
+
+	public void deactivate() {
+		this.isActive = 0;
+		delete();
+	}
 	
 }
- 

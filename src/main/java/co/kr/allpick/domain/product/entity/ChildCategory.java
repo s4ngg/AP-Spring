@@ -45,4 +45,17 @@ public class ChildCategory extends BaseEntity {
 
     @Column(name = "slug", length = 100, nullable = false, unique = true)
     private String slug;
+
+    public void update(ParentCategory parentCategory, String categoryName, String slug, Integer sortOrder, Integer isActive) {
+        this.parentCategory = parentCategory;
+        this.categoryName = categoryName;
+        this.slug = slug;
+        this.sortOrder = sortOrder;
+        this.isActive = isActive;
+    }
+
+    public void deactivate() {
+        this.isActive = 0;
+        delete();
+    }
 }

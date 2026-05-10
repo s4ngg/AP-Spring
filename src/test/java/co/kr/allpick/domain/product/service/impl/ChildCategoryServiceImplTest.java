@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class ChildCategoryServiceImplTest {
@@ -58,9 +58,9 @@ class ChildCategoryServiceImplTest {
                 .slug("makeup")
                 .build();
 
-        when(childCategoryRepository
-                .findByParentCategory_ParentCategoryIdAndIsActiveOrderBySortOrderAsc(parentCategoryId, 1))
-                .thenReturn(List.of(child1, child2));
+        given(childCategoryRepository
+                .findByParentCategory_ParentCategoryIdAndIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(parentCategoryId, 1))
+                .willReturn(List.of(child1, child2));
 
         // when
         List<ChildCategoryResponseDto> result = childCategoryService.getActiveChildCategories(parentCategoryId);
@@ -80,9 +80,9 @@ class ChildCategoryServiceImplTest {
         // given
         Long parentCategoryId = 99L;
 
-        when(childCategoryRepository
-                .findByParentCategory_ParentCategoryIdAndIsActiveOrderBySortOrderAsc(parentCategoryId, 1))
-                .thenReturn(List.of());
+        given(childCategoryRepository
+                .findByParentCategory_ParentCategoryIdAndIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(parentCategoryId, 1))
+                .willReturn(List.of());
 
         // when
         List<ChildCategoryResponseDto> result = childCategoryService.getActiveChildCategories(parentCategoryId);
@@ -111,8 +111,8 @@ class ChildCategoryServiceImplTest {
                 .slug("skincare")
                 .build();
 
-        when(childCategoryRepository.findBySlug("skincare"))
-                .thenReturn(Optional.of(childCategory));
+        given(childCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull("skincare", 1))
+                .willReturn(Optional.of(childCategory));
 
         // when
         ChildCategoryResponseDto result = childCategoryService.getChildCategoryBySlug("skincare");
@@ -127,12 +127,12 @@ class ChildCategoryServiceImplTest {
     @DisplayName("slug로 자식 카테고리 단건 조회 실패 - 존재하지 않는 slug")
     void slug로_자식_카테고리_단건_조회_실패() {
         // given
-        when(childCategoryRepository.findBySlug("없는slug"))
-                .thenReturn(Optional.empty());
+        given(childCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull("없는slug", 1))
+                .willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> childCategoryService.getChildCategoryBySlug("없는slug"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_NOT_FOUND);
     }
 }
