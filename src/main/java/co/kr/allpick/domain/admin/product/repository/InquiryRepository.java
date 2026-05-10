@@ -11,4 +11,9 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     // 전체 문의 목록 조회 (삭제 안된 것만)
     List<Inquiry> findAllByDeletedAtIsNull();
+
+    // 판매자 상품에 달린 문의 목록 조회
+    List<Inquiry> findByProductIdInAndDeletedAtIsNull(List<Long>productIds);
+
 }
+

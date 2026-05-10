@@ -26,6 +26,7 @@ public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -102,7 +103,17 @@ public class Member extends BaseEntity {
         this.status = 0;
 
     }
-    
+
+    // 관리자 - 회원 정지
+    public void suspend() {
+        this.status = 0;
+    }
+
+    // 관리자 - 회원 활성화
+    public void activate() {
+        this.status = 1;
+    }
+
     // 비밀번호 변경
     public void updatePassword(String encodedPassword) {
         this.password = encodedPassword;

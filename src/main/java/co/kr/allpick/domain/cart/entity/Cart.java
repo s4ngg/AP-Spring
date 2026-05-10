@@ -17,7 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Table(name = "cart")
+@Table(name = "carts")
 @Entity
 @Builder
 @NoArgsConstructor
@@ -30,7 +30,7 @@ public class Cart extends BaseEntity{
 	private Long cartId;
 	// 회원번호 외래키
 	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "id", nullable = false)
+	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 	   
 	//새로운 장바구니 생성 메서드  (장바구니 id는 자동생성됨)

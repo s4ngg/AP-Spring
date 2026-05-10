@@ -10,7 +10,7 @@ import static org.mockito.Mockito.atLeastOnce;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -39,6 +39,8 @@ import co.kr.allpick.domain.order.dto.OrderResponseDto;
 import co.kr.allpick.domain.order.dto.PaymentResponseDto;
 import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
+import co.kr.allpick.domain.order.entity.Order.OrderStatus;
+import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.entity.Payment;
 import co.kr.allpick.domain.order.repository.DeliveryAddressRepository;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
@@ -111,13 +113,13 @@ class OrderServiceImplTest {
         ReflectionTestUtils.setField(mockOrder, "orderNumber", "ORD-GENERATED-001");
         ReflectionTestUtils.setField(mockOrder, "orderItems", new ArrayList<>());
 
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
-        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(mockAddress));
-        when(orderRepository.existsByOrderNumber(anyString())).thenReturn(false);
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(mockMember));
+        given(deliveryAddressRepository.findById(anyLong())).willReturn(Optional.of(mockAddress));
+        given(orderRepository.existsByOrderNumber(anyString())).willReturn(false);
         // 생성 시점과 금액 업데이트 후 시점 모두 mockOrder 반환
-        when(orderRepository.save(any(Order.class))).thenReturn(mockOrder);
-        when(productRepository.findById(100L)).thenReturn(Optional.of(mockProduct));
-        when(orderItemRepository.sumTotalPriceByOrderId(any())).thenReturn(BigDecimal.valueOf(20000));
+        given(orderRepository.save(any(Order.class))).willReturn(mockOrder);
+        given(productRepository.findById(100L)).willReturn(Optional.of(mockProduct));
+        given(orderItemRepository.sumTotalPriceByOrderId(any())).willReturn(BigDecimal.valueOf(20000));
 
         // when
         OrderResponseDto result = orderService.createOrder(memberId, request);
@@ -137,15 +139,15 @@ class OrderServiceImplTest {
         OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 10L, 1);
         OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest));
 
-        when(memberRepository.findById(anyLong())).thenReturn(Optional.of(mockMember));
-        when(deliveryAddressRepository.findById(anyLong())).thenReturn(Optional.of(mockAddress));
-        when(orderRepository.save(any())).thenReturn(new Order()); // 예외 발생 방지용 Mock 반환
-        when(productRepository.findById(999L)).thenReturn(Optional.empty());
+        given(memberRepository.findById(anyLong())).willReturn(Optional.of(mockMember));
+        given(deliveryAddressRepository.findById(anyLong())).willReturn(Optional.of(mockAddress));
+        given(orderRepository.save(any())).willReturn(new Order()); // 예외 발생 방지용 Mock 반환
+        given(productRepository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> orderService.createOrder(memberId, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.PRODUCT_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
     }
 
     @Test
@@ -160,8 +162,8 @@ class OrderServiceImplTest {
 
         DeliveryAddress addressToUpdate = spy(mockAddress);
 
-        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(addressToUpdate));
-        when(orderRepository.existsByDeliveryAddress_AddressId(addressId)).thenReturn(false);
+        given(deliveryAddressRepository.findById(addressId)).willReturn(Optional.of(addressToUpdate));
+        given(orderRepository.existsByDeliveryAddress_AddressId(addressId)).willReturn(false);
 
         // when
         DeliveryAddressResponseDto result = orderService.updateDeliveryAddress(memberId, addressId, request);
@@ -179,13 +181,13 @@ class OrderServiceImplTest {
         Long memberId = 1L;
         Long addressId = 1L;
 
-        when(deliveryAddressRepository.findById(addressId)).thenReturn(Optional.of(mockAddress));
-        when(orderRepository.existsByDeliveryAddress_AddressId(addressId)).thenReturn(true);
+        given(deliveryAddressRepository.findById(addressId)).willReturn(Optional.of(mockAddress));
+        given(orderRepository.existsByDeliveryAddress_AddressId(addressId)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> orderService.deleteDeliveryAddress(memberId, addressId))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.ADDRESS_CANNOT_MODIFY.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_CANNOT_MODIFY);
     }
 
     @Test
@@ -200,7 +202,7 @@ class OrderServiceImplTest {
                 .status(Payment.PaymentStatus.DONE)
                 .build();
 
-        when(paymentRepository.findByOrder_OrderId(orderId)).thenReturn(Optional.of(mockPayment));
+        given(paymentRepository.findByOrder_OrderId(orderId)).willReturn(Optional.of(mockPayment));
 
         // when
         PaymentResponseDto result = orderService.getPayment(orderId);
@@ -212,12 +214,103 @@ class OrderServiceImplTest {
     }
 
     @Test
+    @DisplayName("주문 취소 성공")
+    void 주문_취소_성공() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 1L;
+        Order order = spy(order(memberId, OrderStatus.PENDING));
+        ProductOption productOption = ProductOption.builder()
+                .optionName("색상")
+                .optionValue("블랙")
+                .stockQuantity(5)
+                .build();
+        Product product = Product.builder()
+                .productId(100L)
+                .productName("테스트 상품")
+                .build();
+        OrderItem orderItem = OrderItem.builder()
+                .product(product)
+                .productOption(productOption)
+                .productName("테스트 상품")
+                .productPrice(BigDecimal.valueOf(10000))
+                .quantity(2)
+                .totalPrice(BigDecimal.valueOf(20000))
+                .build();
+        order.addOrderItem(orderItem);
+
+        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
+
+        // when
+        OrderResponseDto result = orderService.cancelOrder(memberId, orderId);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(productOption.getStockQuantity()).isEqualTo(7);
+        verify(order).updateStatus(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패 - 주문이 존재하지 않음")
+    void 주문_취소_실패_주문없음() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 1L;
+
+        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패 - 본인 주문이 아님")
+    void 주문_취소_실패_본인주문아님() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 1L;
+        Order order = order(2L, OrderStatus.PENDING);
+
+        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ORDER);
+    }
+
+    @Test
+    @DisplayName("주문 취소 실패 - 취소 불가능한 상태")
+    void 주문_취소_실패_취소불가능상태() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 1L;
+        for (OrderStatus status : List.of(
+                OrderStatus.PAID,
+                OrderStatus.SHIPPING,
+                OrderStatus.DELIVERED,
+                OrderStatus.CANCELLED
+        )) {
+            Order order = order(memberId, status);
+
+            given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
+
+            // when & then
+            assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
+                    .isInstanceOf(BusinessException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_CANNOT_CANCEL);
+        }
+    }
+
+    @Test
     @DisplayName("배송지 목록 조회 성공")
     void 배송지_목록_조회_성공() {
         // given
         Long memberId = 1L;
-        when(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId))
-            .thenReturn(List.of(mockAddress));
+        given(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId))
+            .willReturn(List.of(mockAddress));
 
         // when
         List<DeliveryAddressResponseDto> result = orderService.getDeliveryAddresses(memberId);
@@ -226,5 +319,25 @@ class OrderServiceImplTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getRecipientName()).isEqualTo("테스터");
         assertThat(result.get(0).getAddressId()).isEqualTo(1L);
+    }
+
+    private Order order(Long memberId, OrderStatus status) {
+        Member member = new Member();
+        ReflectionTestUtils.setField(member, "id", memberId);
+
+        Order order = Order.builder()
+                .member(member)
+                .deliveryAddress(mockAddress)
+                .orderNumber("ORD-TEST-001")
+                .totalAmount(BigDecimal.valueOf(10000))
+                .discountAmount(BigDecimal.ZERO)
+                .shippingFee(3000)
+                .status(status)
+                .orderedAt(java.time.LocalDateTime.now())
+                .build();
+
+        ReflectionTestUtils.setField(order, "orderId", 1L);
+        ReflectionTestUtils.setField(order, "orderItems", new ArrayList<>());
+        return order;
     }
 }

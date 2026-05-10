@@ -1,6 +1,8 @@
 package co.kr.allpick.domain.product.service;
 
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -29,5 +31,5 @@ public interface ProductService {
 	// 상품 삭제 ( DeleteMapping )
 	void deleteProduct(Long memberId ,Long productId);
 	
-
+	List<ProductListResponseDto> getSellerProducts(Long memberId);
 }

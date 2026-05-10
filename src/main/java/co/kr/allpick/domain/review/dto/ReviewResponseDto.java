@@ -36,6 +36,9 @@ public class ReviewResponseDto {
 	    
 	    @Schema(description = "리뷰 날짜", example = "2025.01.16")
 	    private String reviewDate;
+	    
+	    @Schema(description = "작성자 회원 ID", example = "1")
+	    private Long memberId;
     
     public static ReviewResponseDto from(Review review) { 
     	return ReviewResponseDto.builder()
@@ -47,6 +50,7 @@ public class ReviewResponseDto {
     			.content(review.getContent())
     			.reviewDate(review.getUpdatedAt() != null ? 
     					review.getUpdatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")):null)
+    			.memberId(review.getOrderItem().getOrder().getMember().getId()) 
     			.build();
     }
 }

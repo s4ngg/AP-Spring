@@ -30,13 +30,16 @@ public class AuthResponseDto {
     @Schema(description = "사용자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
     
+    @Schema(description = "셀러 여부")
+    private boolean isSeller;
     
     // 정적 팩토리 메서드
-    public static AuthResponseDto of(String token, Member member) {
+    public static AuthResponseDto of(String token, Member member, boolean isSeller) {
     	return AuthResponseDto.builder()
                 .token(token)
                 .email(member.getEmail())
                 .name(member.getName())
+                .isSeller(isSeller)
                 .build();
     }
 }

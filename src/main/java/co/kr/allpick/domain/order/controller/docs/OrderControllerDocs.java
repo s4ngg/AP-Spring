@@ -54,6 +54,18 @@ public interface OrderControllerDocs {
     @GetMapping("/{orderId}")
     ResponseEntity<ApiResponse<OrderResponseDto>> getOrder(@PathVariable("orderId") Long orderId);
 
+    @Operation(summary = "주문 취소", description = "현재 로그인한 회원의 주문을 취소합니다. 주문 완료 상태(PENDING)에서만 취소할 수 있습니다.")
+    @ApiResponses({
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 취소 성공"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "취소할 수 없는 주문 상태"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 주문이 아님"),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
+    })
+    @PatchMapping("/{orderId}/cancel")
+    ResponseEntity<ApiResponse<OrderResponseDto>> cancelOrder(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("orderId") Long orderId);
+
     @Operation(summary = "결제 정보 조회", description = "주문 ID에 연결된 결제 상세 정보를 조회합니다.")
     @ApiResponses({
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "결제 정보 조회 성공",

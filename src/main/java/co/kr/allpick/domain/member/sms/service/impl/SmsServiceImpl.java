@@ -3,6 +3,8 @@ package co.kr.allpick.domain.member.sms.service.impl;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import co.kr.allpick.domain.member.sms.config.CoolSmsProperties;
 @RequiredArgsConstructor
 public class SmsServiceImpl implements SmsService {
 
+    private static final Logger logger = LogManager.getLogger(SmsServiceImpl.class);
     private final DefaultMessageService messageService;
     private final MemberRepository memberRepository;
     private final RedisTemplate<String, String> redisTemplate;
@@ -48,6 +51,7 @@ public class SmsServiceImpl implements SmsService {
         try {
             messageService.sendOne(new SingleMessageSendingRequest(message));
         } catch (Exception e) {
+            logger.error("[SmsService] CoolSMS 발송 실패 - phone: {}, error: {}", phoneNumber, e.getMessage(), e);
             throw new BusinessException(ErrorCode.SMS_SEND_FAILED);
         }
     }

@@ -49,6 +49,14 @@ public class OrderController implements OrderControllerDocs {
     }
 
     @Override
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> cancelOrder(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("orderId") Long orderId) {
+        return ApiResponse.success("주문 취소 성공.", orderService.cancelOrder(userInfo.getMemberId(), orderId));
+    }
+
+    @Override
     @GetMapping("/{orderId}/payment")
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
             @PathVariable("orderId") Long orderId) {

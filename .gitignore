@@ -42,3 +42,6 @@ out/
 
 logs/
 *.log
+
+### Claude Code ###
+.claude/

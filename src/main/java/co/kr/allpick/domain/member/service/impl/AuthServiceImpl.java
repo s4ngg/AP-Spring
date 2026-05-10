@@ -2,7 +2,8 @@ package co.kr.allpick.domain.member.service.impl;
 
 import co.kr.allpick.domain.member.service.AuthService;
 import co.kr.allpick.domain.member.sms.service.SmsService;
-
+import co.kr.allpick.domain.seller.repository.SellerRepository;
+import co.kr.allpick.domain.seller.entity.Seller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,21 +29,18 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final SmsService smsService;
-
+    private final SellerRepository sellerRepository;
     @Override
     public void signup(SignupRequestDto dto) {
-//    	TODO: CoolSMS 연동 완료 후 주석 해제
-//        if (!smsService.isVerified(dto.getPhone())) {
-//            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
-//        }
+        if (!smsService.isVerified(dto.getPhone())) {
+            throw new BusinessException(ErrorCode.PHONE_NOT_VERIFIED);
+        }
         if (memberRepository.existsByEmail(dto.getEmail())) {
             logger.warn("[AuthService] 이메일 중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
         memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
-        
-//		TODO: CoolSMS 연동 완료 후 주석 해제
-//        smsService.removeVerified(dto.getPhone());
+        smsService.removeVerified(dto.getPhone());
         logger.info("[AuthService] 회원가입 완료");
     }
 
@@ -65,11 +63,19 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("[AuthService] 비밀번호 불일치 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
+        if (!Integer.valueOf(1).equals(member.getStatus())) {
+            logger.warn("[AuthService] 정지 회원 로그인 시도 - memberId: {}", member.getId());
+            throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
+        }
         logger.info("[AuthService] 로그인 성공 - memberId: {}", member.getId());
+
         String token = jwtProvider.createToken(JwtUserInfoDto.builder()
                 .memberId(member.getId())
                 .email(member.getEmail())
                 .build());
-        return AuthResponseDto.of(token, member);
+
+        boolean isSeller = sellerRepository.findByMemberId(member.getId()).isPresent();
+
+        return AuthResponseDto.of(token, member, isSeller);
     }
 }
