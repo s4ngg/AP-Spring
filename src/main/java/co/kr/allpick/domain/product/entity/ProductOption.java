@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
+@Getter 
 public class ProductOption extends BaseEntity{
 	
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)

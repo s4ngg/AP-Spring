@@ -58,8 +58,8 @@ public class CartServiceImpl implements CartService{
 		Product product = productRepository.findById(reqDto.getProductId())
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 		
-		// 상품 옵션 찾기
-		ProductOption productOption = productOptionRepository.findById(reqDto.getProductOptionId())
+		// 상품 옵션 찾기 (삭제된 옵션은 담기 불가)
+		ProductOption productOption = productOptionRepository.findActiveById(reqDto.getProductOptionId())
 				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_OPTION_NOT_FOUND));
 		
 		// 모두 특정한 후에, 장바구니 상품 테이블에 행으로 저장. (위에서  사용자,장바구니,상품,수량,옵션...까지 특정해둔 상태 )
