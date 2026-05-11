@@ -74,6 +74,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/orders/*/cancel").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.POST, "/api/orders/confirm").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasAuthority("ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/seller/orders/**").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.GET, "/api/faqs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/faqs/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_CS_ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/faqs/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_CS_ADMIN")
