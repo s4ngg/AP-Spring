@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import co.kr.allpick.domain.order.controller.docs.OrderControllerDocs;
@@ -35,10 +36,16 @@ public class OrderController implements OrderControllerDocs {
     @Override
     @PostMapping
     public ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
-    		@AuthenticationPrincipal JwtUserInfoDto userInfo,
-    		@RequestBody @Valid OrderCreateRequestDto request) {
-        return ApiResponse.success("주문이 생성되었습니다.", 
-        		orderService.createOrder(userInfo.getMemberId(),request));
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @RequestBody @Valid OrderCreateRequestDto request) {
+        return ApiResponse.success("주문이 생성되었습니다.", orderService.createOrder(userInfo.getMemberId(), request));
+    }
+
+    @Override
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<OrderResponseDto>>> getOrders(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo) {
+        return ApiResponse.success("주문 목록 조회 성공", orderService.getOrders(userInfo.getMemberId()));
     }
 
     @Override
@@ -61,6 +68,15 @@ public class OrderController implements OrderControllerDocs {
     public ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(
             @PathVariable("orderId") Long orderId) {
         return ApiResponse.success("결제 정보 조회 성공.", orderService.getPayment(orderId));
+    }
+
+    @Override
+    @PostMapping("/confirm")
+    public ResponseEntity<ApiResponse<OrderResponseDto>> confirmPayment(
+            @RequestParam String orderNumber,
+            @RequestParam String paymentKey,
+            @RequestParam int amount) {
+        return ApiResponse.success("결제 확인 완료", orderService.confirmPayment(orderNumber, paymentKey, amount));
     }
 
     @Override

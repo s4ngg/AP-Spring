@@ -223,6 +223,28 @@ public class OrderServiceImpl implements OrderService {
         address.delete();
     }
 
+    @Override
+    @Transactional
+    public OrderResponseDto confirmPayment(String orderNumber, String paymentKey, int amount) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(Order.OrderStatus.PAID);
+
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentKey(paymentKey)
+                .method(Payment.PaymentMethod.CARD)
+                .amount(BigDecimal.valueOf(amount))
+                .status(Payment.PaymentStatus.DONE)
+                .paidAt(LocalDateTime.now())
+                .build();
+        paymentRepository.save(payment);
+
+        logger.info("[OrderService] 결제 확인 완료 - orderNumber: {}", orderNumber);
+        return OrderResponseDto.from(order, order.getOrderItems());
+    }
+
     // 배송지 조회 + 소유권 검증
     private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
         DeliveryAddress address = deliveryAddressRepository.findById(addressId)

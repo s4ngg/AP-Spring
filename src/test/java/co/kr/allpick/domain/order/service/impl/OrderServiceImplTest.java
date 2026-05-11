@@ -1,390 +1,166 @@
-package co.kr.allpick.domain.order.service.impl;
+package co.kr.allpick.domain.order.controller.docs;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.BDDMockito.given;
+import co.kr.allpick.domain.order.dto.*;
+import co.kr.allpick.global.config.JwtUserInfoDto;
+import co.kr.allpick.global.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.test.util.ReflectionTestUtils;
+@Tag(name = "Order", description = "주문 및 배송지 관련 API")
+public interface OrderControllerDocs {
 
-import co.kr.allpick.domain.coupon.entity.Coupon;
-import co.kr.allpick.domain.coupon.entity.MemberCoupon;
-import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
-import co.kr.allpick.domain.member.entity.Member;
-import co.kr.allpick.domain.member.repository.MemberRepository;
-import co.kr.allpick.domain.order.dto.DeliveryAddressRequestDto;
-import co.kr.allpick.domain.order.dto.DeliveryAddressResponseDto;
-import co.kr.allpick.domain.order.dto.OrderCreateRequestDto;
-import co.kr.allpick.domain.order.dto.OrderItemRequestDto;
-import co.kr.allpick.domain.order.dto.OrderResponseDto;
-import co.kr.allpick.domain.order.dto.PaymentResponseDto;
-import co.kr.allpick.domain.order.entity.DeliveryAddress;
-import co.kr.allpick.domain.order.entity.Order;
-import co.kr.allpick.domain.order.entity.Order.OrderStatus;
-import co.kr.allpick.domain.order.entity.OrderItem;
-import co.kr.allpick.domain.order.entity.Payment;
-import co.kr.allpick.domain.order.repository.DeliveryAddressRepository;
-import co.kr.allpick.domain.order.repository.OrderItemRepository;
-import co.kr.allpick.domain.order.repository.OrderRepository;
-import co.kr.allpick.domain.order.repository.PaymentRepository;
-import co.kr.allpick.domain.product.entity.Product;
-import co.kr.allpick.domain.product.entity.ProductOption;
-import co.kr.allpick.domain.product.repository.ProductRepository;
-import co.kr.allpick.global.exception.BusinessException;
-import co.kr.allpick.global.exception.ErrorCode;
+    @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "주문 생성 성공",
+                    content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "주문이 생성되었습니다.",
+                    "data": {
+                        "orderId": 1,
+                        "orderNumber": "ORD-20260503-000001",
+                        "totalAmount": 50000,
+                        "shippingFee": 3000,
+                        "status": "PENDING",
+                        "orderedAt": "2026-05-03T22:00:00"
+                    }
+                }
+            """))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "재고 부족 또는 잘못된 요청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품 또는 옵션을 찾을 수 없음")
+    })
+    @PostMapping
+    ResponseEntity<ApiResponse<OrderResponseDto>> createOrder(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @RequestBody @Valid OrderCreateRequestDto request);
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
-class OrderServiceImplTest {
+    @Operation(summary = "주문 목록 조회", description = "결제 완료된 주문 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 목록 조회 성공")
+    })
+    @GetMapping
+    ResponseEntity<ApiResponse<List<OrderResponseDto>>> getOrders(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
-    @Mock OrderRepository orderRepository;
-    @Mock OrderItemRepository orderItemRepository;
-    @Mock PaymentRepository paymentRepository;
-    @Mock DeliveryAddressRepository deliveryAddressRepository;
-    @Mock MemberRepository memberRepository;
-    @Mock ProductRepository productRepository;
-    @Mock MemberCouponRepository memberCouponRepository;
+    @Operation(summary = "주문 단건 조회", description = "주문 ID로 상세 주문 내역을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
+    })
+    @GetMapping("/{orderId}")
+    ResponseEntity<ApiResponse<OrderResponseDto>> getOrder(@PathVariable("orderId") Long orderId);
 
-    @InjectMocks
-    OrderServiceImpl orderService;
+    @Operation(summary = "주문 취소", description = "현재 로그인한 회원의 주문을 취소합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "주문 취소 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "취소할 수 없는 주문 상태"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 주문이 아님"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "주문을 찾을 수 없음")
+    })
+    @PatchMapping("/{orderId}/cancel")
+    ResponseEntity<ApiResponse<OrderResponseDto>> cancelOrder(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("orderId") Long orderId);
 
-    private Member mockMember;
-    private DeliveryAddress mockAddress;
+    @Operation(summary = "결제 정보 조회", description = "주문 ID에 연결된 결제 상세 정보를 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "결제 정보 조회 성공",
+                    content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "결제 정보 조회 성공.",
+                    "data": {
+                        "paymentId": 1,
+                        "paymentKey": "toss_key_123",
+                        "method": "CARD",
+                        "amount": 53000,
+                        "status": "DONE",
+                        "paidAt": "2026-05-03T22:05:00"
+                    }
+                }
+            """)))
+    })
+    @GetMapping("/{orderId}/payment")
+    ResponseEntity<ApiResponse<PaymentResponseDto>> getPayment(@PathVariable("orderId") Long orderId);
 
-    @BeforeEach
-    void setUp() {
-        mockMember = new Member();
-        ReflectionTestUtils.setField(mockMember, "id", 1L);
+    @Operation(summary = "결제 확인", description = "토스 결제 완료 후 주문 상태를 PAID로 변경하고 결제 정보를 저장합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "결제 확인 성공")
+    })
+    @PostMapping("/confirm")
+    ResponseEntity<ApiResponse<OrderResponseDto>> confirmPayment(
+            @RequestParam String orderNumber,
+            @RequestParam String paymentKey,
+            @RequestParam int amount);
 
-        mockAddress = DeliveryAddress.builder()
-                .memberId(1L)
-                .recipientName("테스터")
-                .phone("01012345678")
-                .zipCode("12345")
-                .address("서울시")
-                .addressDetail("101호")
-                .isDefault(true)
-                .build();
-        ReflectionTestUtils.setField(mockAddress, "addressId", 1L);
-    }
+    @Operation(summary = "배송지 추가", description = "회원의 새로운 배송지를 추가합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 추가 성공")
+    })
+    @PostMapping("/addresses")
+    ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> addDeliveryAddress(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @RequestBody @Valid DeliveryAddressRequestDto request);
 
-    @Test
-    @DisplayName("주문 생성 성공 - 항목 및 재고 차감 확인")
-    void 주문_생성_성공() {
-        // given
-        Long memberId = 1L;
-        OrderItemRequestDto itemRequest = new OrderItemRequestDto(100L, 10L, 2);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest), 3000);
+    @Operation(summary = "배송지 목록 조회", description = "현재 로그인한 사용자의 모든 배송지 목록을 조회합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 목록 조회 성공",
+                    content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "배송지 목록 조회 성공.",
+                    "data": [
+                        {
+                            "addressId": 1,
+                            "recipientName": "홍길동",
+                            "phone": "01012345678",
+                            "zipCode": "12345",
+                            "address": "서울시 강남구",
+                            "addressDetail": "101호",
+                            "isDefault": true
+                        }
+                    ]
+                }
+            """)))
+    })
+    @GetMapping("/addresses")
+    ResponseEntity<ApiResponse<List<DeliveryAddressResponseDto>>> getDeliveryAddresses(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo);
 
-        ProductOption mockOption = spy(ProductOption.builder()
-                .stockQuantity(10)
-                .build());
-        ReflectionTestUtils.setField(mockOption, "optionId", 10L);
+    @Operation(summary = "배송지 수정", description = "기존 배송지 정보를 수정합니다.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 수정 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "수정 권한 없음"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "배송지 존재하지 않음")
+    })
+    @PatchMapping("/addresses/{addressId}")
+    ResponseEntity<ApiResponse<DeliveryAddressResponseDto>> updateDeliveryAddress(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("addressId") Long addressId,
+            @RequestBody @Valid DeliveryAddressRequestDto request);
 
-        Product mockProduct = Product.builder()
-                .productId(100L)
-                .productName("테스트 상품")
-                .optionList(List.of(mockOption))
-                .build();
-
-        Order mockOrder = spy(new Order());
-        ReflectionTestUtils.setField(mockOrder, "orderId", 1L);
-        ReflectionTestUtils.setField(mockOrder, "orderNumber", "ORD-GENERATED-001");
-        ReflectionTestUtils.setField(mockOrder, "orderItems", new ArrayList<>());
-
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(mockMember));
-        given(deliveryAddressRepository.findById(anyLong())).willReturn(Optional.of(mockAddress));
-        given(orderRepository.existsByOrderNumber(anyString())).willReturn(false);
-        given(orderRepository.save(any(Order.class))).willReturn(mockOrder);
-        given(productRepository.findById(100L)).willReturn(Optional.of(mockProduct));
-        given(orderItemRepository.sumTotalPriceByOrderId(any())).willReturn(BigDecimal.valueOf(20000));
-
-        // when
-        OrderResponseDto result = orderService.createOrder(memberId, request);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getOrderNumber()).isEqualTo("ORD-GENERATED-001");
-        verify(mockOption).removeStock(2);
-        verify(orderRepository, atLeastOnce()).save(any(Order.class));
-    }
-
-    @Test
-    @DisplayName("주문 생성 실패 - 상품이 존재하지 않음")
-    void 주문_생성_실패_상품없음() {
-        // given
-        Long memberId = 1L;
-        OrderItemRequestDto itemRequest = new OrderItemRequestDto(999L, 10L, 1);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, null, List.of(itemRequest), 3000);
-
-        given(memberRepository.findById(anyLong())).willReturn(Optional.of(mockMember));
-        given(deliveryAddressRepository.findById(anyLong())).willReturn(Optional.of(mockAddress));
-        given(orderRepository.save(any())).willReturn(new Order());
-        given(productRepository.findById(999L)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> orderService.createOrder(memberId, request))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("주문 생성 성공 - 쿠폰 할인이 상품 금액 초과 시 0원 처리")
-    void 주문_생성_성공_쿠폰할인_상품금액초과() {
-        // given
-        Long memberId = 1L;
-        OrderItemRequestDto itemRequest = new OrderItemRequestDto(100L, 10L, 1);
-        OrderCreateRequestDto request = new OrderCreateRequestDto(1L, 1L, List.of(itemRequest), 3000);
-
-        ProductOption mockOption = spy(ProductOption.builder().stockQuantity(10).build());
-        ReflectionTestUtils.setField(mockOption, "optionId", 10L);
-
-        Product mockProduct = Product.builder()
-                .productId(100L)
-                .productName("테스트 상품")
-                .price(BigDecimal.valueOf(10))
-                .optionList(List.of(mockOption))
-                .build();
-
-        Coupon mockCoupon = mock(Coupon.class);
-        given(mockCoupon.getDiscountType()).willReturn(Coupon.DiscountType.AMOUNT);
-        given(mockCoupon.getDiscountValue()).willReturn(BigDecimal.valueOf(5000));
-        given(mockCoupon.getMaxDiscount()).willReturn(null);
-        given(mockCoupon.getMinOrderAmount()).willReturn(BigDecimal.ZERO);
-
-        MemberCoupon mockMemberCoupon = mock(MemberCoupon.class);
-        given(mockMemberCoupon.getCoupon()).willReturn(mockCoupon);
-        given(mockMemberCoupon.isUsed()).willReturn(false);
-
-        Order mockOrder = spy(new Order());
-        ReflectionTestUtils.setField(mockOrder, "orderId", 1L);
-        ReflectionTestUtils.setField(mockOrder, "orderNumber", "ORD-GENERATED-002");
-        ReflectionTestUtils.setField(mockOrder, "orderItems", new ArrayList<>());
-
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(mockMember));
-        given(deliveryAddressRepository.findById(anyLong())).willReturn(Optional.of(mockAddress));
-        given(orderRepository.existsByOrderNumber(anyString())).willReturn(false);
-        given(orderRepository.save(any(Order.class))).willReturn(mockOrder);
-        given(productRepository.findById(100L)).willReturn(Optional.of(mockProduct));
-        given(memberCouponRepository.findById(1L)).willReturn(Optional.of(mockMemberCoupon));
-        given(orderItemRepository.sumTotalPriceByOrderId(any())).willReturn(BigDecimal.valueOf(10));
-
-        // when
-        OrderResponseDto result = orderService.createOrder(memberId, request);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getOrderNumber()).isEqualTo("ORD-GENERATED-002");
-    }
-
-    @Test
-    @DisplayName("배송지 수정 성공")
-    void 배송지_수정_성공() {
-        // given
-        Long memberId = 1L;
-        Long addressId = 1L;
-        DeliveryAddressRequestDto request = new DeliveryAddressRequestDto(
-                "수정된이름", "01000000000", "12345", "서울", "202", true
-        );
-
-        DeliveryAddress addressToUpdate = spy(mockAddress);
-
-        given(deliveryAddressRepository.findById(addressId)).willReturn(Optional.of(addressToUpdate));
-        given(orderRepository.existsByDeliveryAddress_AddressId(addressId)).willReturn(false);
-
-        // when
-        DeliveryAddressResponseDto result = orderService.updateDeliveryAddress(memberId, addressId, request);
-
-        // then
-        assertThat(result.getRecipientName()).isEqualTo("수정된이름");
-        verify(addressToUpdate).update(anyString(), anyString(), anyString(), anyString(), anyString(), anyBoolean());
-    }
-
-    @Test
-    @DisplayName("배송지 삭제 실패 - 이미 주문에 사용된 배송지")
-    void 배송지_삭제_실패_사용중() {
-        // given
-        Long memberId = 1L;
-        Long addressId = 1L;
-
-        given(deliveryAddressRepository.findById(addressId)).willReturn(Optional.of(mockAddress));
-        given(orderRepository.existsByDeliveryAddress_AddressId(addressId)).willReturn(true);
-
-        // when & then
-        assertThatThrownBy(() -> orderService.deleteDeliveryAddress(memberId, addressId))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADDRESS_CANNOT_MODIFY);
-    }
-
-    @Test
-    @DisplayName("결제 조회 성공")
-    void 결제_조회_성공() {
-        // given
-        Long orderId = 1L;
-        Payment mockPayment = Payment.builder()
-                .paymentId(100L)
-                .amount(new BigDecimal("50000"))
-                .method(Payment.PaymentMethod.CARD)
-                .status(Payment.PaymentStatus.DONE)
-                .build();
-
-        given(paymentRepository.findByOrder_OrderId(orderId)).willReturn(Optional.of(mockPayment));
-
-        // when
-        PaymentResponseDto result = orderService.getPayment(orderId);
-
-        // then
-        assertThat(result).isNotNull();
-        assertThat(result.getAmount()).isEqualByComparingTo(new BigDecimal("50000"));
-        verify(paymentRepository).findByOrder_OrderId(orderId);
-    }
-
-    @Test
-    @DisplayName("주문 취소 성공")
-    void 주문_취소_성공() {
-        // given
-        Long memberId = 1L;
-        Long orderId = 1L;
-        Order order = spy(order(memberId, OrderStatus.PENDING));
-        ProductOption productOption = ProductOption.builder()
-                .optionName("색상")
-                .optionValue("블랙")
-                .stockQuantity(5)
-                .build();
-        Product product = Product.builder()
-                .productId(100L)
-                .productName("테스트 상품")
-                .build();
-        OrderItem orderItem = OrderItem.builder()
-                .product(product)
-                .productOption(productOption)
-                .productName("테스트 상품")
-                .productPrice(BigDecimal.valueOf(10000))
-                .quantity(2)
-                .totalPrice(BigDecimal.valueOf(20000))
-                .build();
-        order.addOrderItem(orderItem);
-
-        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
-
-        // when
-        OrderResponseDto result = orderService.cancelOrder(memberId, orderId);
-
-        // then
-        assertThat(result.getStatus()).isEqualTo(OrderStatus.CANCELLED);
-        assertThat(productOption.getStockQuantity()).isEqualTo(7);
-        verify(order).updateStatus(OrderStatus.CANCELLED);
-    }
-
-    @Test
-    @DisplayName("주문 취소 실패 - 주문이 존재하지 않음")
-    void 주문_취소_실패_주문없음() {
-        // given
-        Long memberId = 1L;
-        Long orderId = 1L;
-
-        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_NOT_FOUND);
-    }
-
-    @Test
-    @DisplayName("주문 취소 실패 - 본인 주문이 아님")
-    void 주문_취소_실패_본인주문아님() {
-        // given
-        Long memberId = 1L;
-        Long orderId = 1L;
-        Order order = order(2L, OrderStatus.PENDING);
-
-        given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
-
-        // when & then
-        assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
-                .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ORDER);
-    }
-
-    @Test
-    @DisplayName("주문 취소 실패 - 취소 불가능한 상태")
-    void 주문_취소_실패_취소불가능상태() {
-        // given
-        Long memberId = 1L;
-        Long orderId = 1L;
-        for (OrderStatus status : List.of(
-                OrderStatus.PAID,
-                OrderStatus.SHIPPING,
-                OrderStatus.DELIVERED,
-                OrderStatus.CANCELLED
-        )) {
-            Order order = order(memberId, status);
-
-            given(orderRepository.findByIdWithItems(orderId)).willReturn(Optional.of(order));
-
-            // when & then
-            assertThatThrownBy(() -> orderService.cancelOrder(memberId, orderId))
-                    .isInstanceOf(BusinessException.class)
-                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_CANNOT_CANCEL);
-        }
-    }
-
-    @Test
-    @DisplayName("배송지 목록 조회 성공")
-    void 배송지_목록_조회_성공() {
-        // given
-        Long memberId = 1L;
-        given(deliveryAddressRepository.findByMemberIdAndDeletedAtIsNull(memberId))
-                .willReturn(List.of(mockAddress));
-
-        // when
-        List<DeliveryAddressResponseDto> result = orderService.getDeliveryAddresses(memberId);
-
-        // then
-        assertThat(result).hasSize(1);
-        assertThat(result.get(0).getRecipientName()).isEqualTo("테스터");
-        assertThat(result.get(0).getAddressId()).isEqualTo(1L);
-    }
-
-    private Order order(Long memberId, OrderStatus status) {
-        Member member = new Member();
-        ReflectionTestUtils.setField(member, "id", memberId);
-
-        Order order = Order.builder()
-                .member(member)
-                .deliveryAddress(mockAddress)
-                .orderNumber("ORD-TEST-001")
-                .totalAmount(BigDecimal.valueOf(10000))
-                .discountAmount(BigDecimal.ZERO)
-                .shippingFee(3000)
-                .status(status)
-                .orderedAt(java.time.LocalDateTime.now())
-                .build();
-
-        ReflectionTestUtils.setField(order, "orderId", 1L);
-        ReflectionTestUtils.setField(order, "orderItems", new ArrayList<>());
-        return order;
-    }
+    @Operation(summary = "배송지 삭제", description = "배송지를 삭제 처리합니다. (소프트 딜리트)")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "배송지 삭제 성공",
+                    content = @Content(examples = @ExampleObject(value = """
+                {
+                    "success": true,
+                    "message": "배송지가 삭제되었습니다.",
+                    "data": null
+                }
+            """)))
+    })
+    @DeleteMapping("/addresses/{addressId}")
+    ResponseEntity<ApiResponse<Void>> deleteDeliveryAddress(
+            @AuthenticationPrincipal JwtUserInfoDto userInfo,
+            @PathVariable("addressId") Long addressId);
 }

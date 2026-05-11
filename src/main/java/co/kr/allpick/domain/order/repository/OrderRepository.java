@@ -22,6 +22,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @EntityGraph(attributePaths = {"orderItems"})
     List<Order> findByMemberIdOrderByOrderedAtDesc(Long memberId);
 
+    @EntityGraph(attributePaths = {"orderItems"})
+    @Query("SELECT o FROM Order o WHERE o.member.id = :memberId AND o.status != co.kr.allpick.domain.order.entity.Order.OrderStatus.PENDING ORDER BY o.orderedAt DESC")
+    List<Order> findByMemberIdExcludingPending(@Param("memberId") Long memberId);
+
+    Optional<Order> findByOrderNumber(String orderNumber);
+
     @Query("SELECT o FROM Order o JOIN FETCH o.orderItems WHERE o.orderId = :orderId")
     Optional<Order> findByIdWithItems(@Param("orderId") Long orderId);
 
@@ -36,7 +42,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findAllWithMemberAndItemsOrderByOrderedAtDesc();
 
     boolean existsByDeliveryAddress_AddressId(Long addressId);
- 
+
     @Query("""
             SELECT o.member.id, SUM(o.totalAmount)
             FROM Order o
