@@ -152,6 +152,97 @@ class AdminCategoryServiceImplTest {
         // then
         assertThat(parentCategory.getIsActive()).isZero();
         assertThat(parentCategory.getDeletedAt()).isNotNull();
+        assertThat(parentCategory.getSlug()).matches("beauty_deleted_\\d+_\\d+");
+    }
+
+    @Test
+    @DisplayName("대분류 삭제 시 slug가 _deleted_ 마커 형태로 변경된다")
+    void 대분류_삭제_시_slug가_deleted_마커로_변경된다() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+
+        // when
+        adminCategoryService.deleteParentCategory(adminInfo, 1L);
+
+        // then: 원본 slug와 달라지고, _deleted_ 마커 형식 준수
+        assertThat(parentCategory.getSlug())
+                .isNotEqualTo("beauty")
+                .startsWith("beauty_deleted_")
+                .matches("beauty_deleted_\\d+_\\d+");
+    }
+
+    @Test
+    @DisplayName("대분류 삭제 후 동일 slug로 재등록 성공 - Issue #147")
+    void 대분류_삭제_후_동일_slug_재등록_성공() {
+        // given: 기존 카테고리 삭제
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory existing = parentCategory(1L, "뷰티", "beauty", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(existing));
+
+        adminCategoryService.deleteParentCategory(adminInfo, 1L);
+
+        // 삭제 후 slug는 변형되어 있어야 함
+        assertThat(existing.getSlug()).isNotEqualTo("beauty");
+
+        // when: 동일 slug "beauty"로 재등록 - 서비스 레벨 중복 체크가 통과해야 함
+        given(parentCategoryRepository.existsBySlugAndDeletedAtIsNull("beauty")).willReturn(false);
+        given(childCategoryRepository.existsBySlugAndDeletedAtIsNull("beauty")).willReturn(false);
+        given(parentCategoryRepository.save(any(ParentCategory.class)))
+                .willAnswer(invocation -> invocation.getArgument(0));
+
+        ParentCategoryResponseDto result = adminCategoryService.createParentCategory(adminInfo, request("뷰티", "beauty", 1, 1));
+
+        // then: 예외 없이 성공, slug 그대로
+        assertThat(result.getSlug()).isEqualTo("beauty");
+    }
+
+    @Test
+    @DisplayName("긴 slug 삭제 시 100자 제한을 초과하지 않는다")
+    void 긴_slug_삭제_시_100자_초과하지_않는다() {
+        // given: slug가 100자 (최대 길이)
+        String longSlug = "a".repeat(100);
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", longSlug, 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+
+        // when
+        adminCategoryService.deleteParentCategory(adminInfo, 1L);
+
+        // then: 변환된 slug가 100자 이하이고 _deleted_ 마커 포함
+        assertThat(parentCategory.getSlug().length()).isLessThanOrEqualTo(100);
+        assertThat(parentCategory.getSlug()).contains("_deleted_");
+    }
+
+    @Test
+    @DisplayName("소분류 삭제 성공 - soft delete 및 slug 변경")
+    void 소분류_삭제_성공() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        ChildCategory childCategory = childCategory(1L, parentCategory, "스킨케어", "skincare", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(childCategoryRepository.findByChildCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(childCategory));
+
+        // when
+        adminCategoryService.deleteChildCategory(adminInfo, 1L);
+
+        // then
+        assertThat(childCategory.getIsActive()).isZero();
+        assertThat(childCategory.getDeletedAt()).isNotNull();
+        assertThat(childCategory.getSlug()).matches("skincare_deleted_\\d+_\\d+");
     }
 
     @Test
