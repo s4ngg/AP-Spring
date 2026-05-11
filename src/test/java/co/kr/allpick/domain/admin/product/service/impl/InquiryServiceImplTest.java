@@ -17,6 +17,7 @@ import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
+import co.kr.allpick.global.util.S3Uploader;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +57,9 @@ class InquiryServiceImplTest {
     @Mock
     ProductRepository productRepository;
 
+    @Mock
+    S3Uploader s3Uploader;
+
     @InjectMocks
     InquiryServiceImpl inquiryService;
 
@@ -81,7 +85,7 @@ class InquiryServiceImplTest {
         when(inquiryRepository.save(any(Inquiry.class))).thenReturn(mockInquiry);
 
         // when
-        InquiryResponseDto result = inquiryService.createInquiry(1L, request);
+        InquiryResponseDto result = inquiryService.createInquiry(1L, request, null);
 
         // then
         assertThat(result).isNotNull();
@@ -102,7 +106,7 @@ class InquiryServiceImplTest {
         when(memberRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> inquiryService.createInquiry(999L, request))
+        assertThatThrownBy(() -> inquiryService.createInquiry(999L, request, null))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.MEMBER_NOT_FOUND.getMessage());
     }
@@ -119,7 +123,7 @@ class InquiryServiceImplTest {
         when(orderItemRepository.existsById(999L)).thenReturn(false);
 
         // when & then
-        assertThatThrownBy(() -> inquiryService.createInquiry(1L, request))
+        assertThatThrownBy(() -> inquiryService.createInquiry(1L, request, null))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage(ErrorCode.ORDER_ITEM_NOT_FOUND.getMessage());
     }
@@ -192,6 +196,7 @@ class InquiryServiceImplTest {
 
         when(inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId))
                 .thenReturn(List.of(mockInquiry1, mockInquiry2));
+        when(inquiryAnswerRepository.findByInquiryId(any())).thenReturn(List.of());
 
         // when
         List<InquiryResponseDto> result = inquiryService.getMyInquiries(memberId);
@@ -214,6 +219,7 @@ class InquiryServiceImplTest {
                 .build();
 
         when(inquiryRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockInquiry));
+        when(inquiryAnswerRepository.findByInquiryId(any())).thenReturn(List.of());
 
         // when
         List<InquiryResponseDto> result = inquiryService.getAllInquiries();

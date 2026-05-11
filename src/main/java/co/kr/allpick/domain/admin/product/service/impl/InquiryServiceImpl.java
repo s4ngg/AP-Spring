@@ -11,10 +11,13 @@ import co.kr.allpick.domain.admin.product.dto.InquiryResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerResponseDto;
 import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.entity.InquiryAnswer;
+import co.kr.allpick.domain.admin.product.entity.Attachment;
 import co.kr.allpick.domain.admin.product.repository.AttachmentRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryRepository;
 import co.kr.allpick.domain.admin.product.repository.InquiryAnswerRepository;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
+import co.kr.allpick.global.util.S3Uploader;
+import org.springframework.web.multipart.MultipartFile;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
 import co.kr.allpick.domain.product.entity.Product;
@@ -39,11 +42,12 @@ public class InquiryServiceImpl implements InquiryService {
     private final OrderItemRepository orderItemRepository;
     private final SellerRepository sellerRepository;
     private final ProductRepository productRepository;
+    private final S3Uploader s3Uploader;
 
     // 1. 문의 등록
     @Override
     @Transactional
-    public InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request) {
+    public InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request, List<MultipartFile> images) {
         logger.info("[InquiryService] 문의 등록 - memberId: {}", memberId);
 
         if (!memberRepository.existsById(memberId)) {
@@ -54,7 +58,23 @@ public class InquiryServiceImpl implements InquiryService {
         }
 
         Inquiry inquiry = inquiryRepository.save(request.toEntity(memberId));
-        return InquiryResponseDto.from(inquiry, List.of(), List.of());
+
+        List<AttachmentResponseDto> attachmentDtos = new java.util.ArrayList<>();
+        if (images != null && !images.isEmpty()) {
+            for (int i = 0; i < images.size(); i++) {
+                String imageUrl = s3Uploader.upload(images.get(i), "inquiries");
+                Attachment attachment = attachmentRepository.save(Attachment.builder()
+                        .inquiryId(inquiry.getInquiryId())
+                        .claimId(null)
+                        .targetType(Attachment.TargetType.INQUIRY)
+                        .imageUrl(imageUrl)
+                        .sortOrder(i)
+                        .build());
+                attachmentDtos.add(AttachmentResponseDto.from(attachment));
+            }
+        }
+
+        return InquiryResponseDto.from(inquiry, List.of(), attachmentDtos);
     }
 
     // 2. 문의 상세 조회
@@ -82,7 +102,12 @@ public class InquiryServiceImpl implements InquiryService {
     public List<InquiryResponseDto> getMyInquiries(Long memberId) {
         return inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .stream()
-                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
+                .map(inquiry -> InquiryResponseDto.from(
+                        inquiry,
+                        inquiryAnswerRepository.findByInquiryId(inquiry.getInquiryId())
+                                .stream().map(InquiryAnswerResponseDto::from).toList(),
+                        List.of()
+                ))
                 .toList();
     }
 
@@ -92,7 +117,12 @@ public class InquiryServiceImpl implements InquiryService {
     public List<InquiryResponseDto> getAllInquiries() {
         return inquiryRepository.findAllByDeletedAtIsNull()
                 .stream()
-                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
+                .map(inquiry -> InquiryResponseDto.from(
+                        inquiry,
+                        inquiryAnswerRepository.findByInquiryId(inquiry.getInquiryId())
+                                .stream().map(InquiryAnswerResponseDto::from).toList(),
+                        List.of()
+                ))
                 .toList();
     }
 
@@ -110,7 +140,12 @@ public class InquiryServiceImpl implements InquiryService {
 
         return inquiryRepository.findByProductIdInAndDeletedAtIsNull(productIds)
                 .stream()
-                .map(inquiry -> InquiryResponseDto.from(inquiry, List.of(), List.of()))
+                .map(inquiry -> InquiryResponseDto.from(
+                        inquiry,
+                        inquiryAnswerRepository.findByInquiryId(inquiry.getInquiryId())
+                                .stream().map(InquiryAnswerResponseDto::from).toList(),
+                        List.of()
+                ))
                 .toList();
     }
 
@@ -146,7 +181,16 @@ public class InquiryServiceImpl implements InquiryService {
         return InquiryAnswerResponseDto.from(answer);
     }
 
-    // 8. 문의 취소
+    // 8. 문의 상태 변경 (관리자)
+    @Override
+    @Transactional
+    public void updateInquiryStatus(Long inquiryId, Inquiry.InquiryStatus status) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.INQUIRY_NOT_FOUND));
+        inquiry.updateStatus(status);
+    }
+
+    // 9. 문의 취소
     @Override
     @Transactional
     public void cancelInquiry(Long inquiryId, Long memberId) {

@@ -5,15 +5,18 @@ import co.kr.allpick.domain.admin.product.dto.InquiryAnswerRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryResponseDto;
+import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.service.InquiryService;
 import co.kr.allpick.global.config.AdminJwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController
@@ -24,11 +27,12 @@ public class InquiryController implements InquiryControllerDocs {
     private final InquiryService inquiryService;
 
     @Override
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<InquiryResponseDto>> createInquiry(
             @AuthenticationPrincipal JwtUserInfoDto userInfo,
-            @RequestBody @Valid InquiryCreateRequestDto request) {
-        return ApiResponse.success("문의가 등록되었습니다.", inquiryService.createInquiry(userInfo.getMemberId(), request));
+            @RequestPart("data") @Valid InquiryCreateRequestDto request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        return ApiResponse.success("문의가 등록되었습니다.", inquiryService.createInquiry(userInfo.getMemberId(), request, images));
     }
 
     @Override
@@ -74,6 +78,15 @@ public class InquiryController implements InquiryControllerDocs {
             @RequestBody @Valid InquiryAnswerRequestDto request,
             @AuthenticationPrincipal JwtUserInfoDto userInfo) {
         return ApiResponse.success("답변이 등록되었습니다.", inquiryService.addSellerAnswer(inquiryId, request, userInfo.getMemberId()));
+    }
+
+    @PatchMapping("/{inquiryId}/status")
+    public ResponseEntity<ApiResponse<Void>> updateInquiryStatus(
+            @PathVariable("inquiryId") Long inquiryId,
+            @RequestParam Inquiry.InquiryStatus status,
+            @AuthenticationPrincipal AdminJwtUserInfoDto adminInfo) {
+        inquiryService.updateInquiryStatus(inquiryId, status);
+        return ApiResponse.success("상태가 변경되었습니다.", null);
     }
 
     @Override
