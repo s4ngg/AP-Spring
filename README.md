@@ -500,9 +500,9 @@ develop 브랜치 push
 → AWS 인증
 → 빌드된 JAR 파일을 S3에 업로드
 → SSM을 통해 EC2에서 배포 명령 실행
-   → S3에서 JAR 다운로드
-   → 기존 8080 포트 프로세스 종료
-   → 새 JAR 실행 (nohup)
+→ systemctl stop allpick
+→ S3에서 JAR 다운로드
+→ systemctl start allpick
 ```
 
 ### GitHub Actions Secrets 설정
