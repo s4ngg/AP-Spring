@@ -41,7 +41,7 @@ class AdminMemberServiceImplTest {
         Member m1 = member(1L, 1);
         Member m2 = member(2L, 0);
         given(adminRepository.findById(1L)).willReturn(Optional.of(superAdmin()));
-        given(memberRepository.findAllByOrderByCreatedAtDesc()).willReturn(List.of(m1, m2));
+        given(memberRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()).willReturn(List.of(m1, m2));
 
         // when
         List<MemberListResponseDto> result = adminMemberService.getMembers(superAdminInfo());
@@ -58,7 +58,7 @@ class AdminMemberServiceImplTest {
         // given
         Member member = member(1L, 1);
         given(adminRepository.findById(1L)).willReturn(Optional.of(superAdmin()));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
 
         // when
         adminMemberService.toggleMemberStatus(superAdminInfo(), 1L);
@@ -73,7 +73,7 @@ class AdminMemberServiceImplTest {
         // given
         Member member = member(1L, 0);
         given(adminRepository.findById(1L)).willReturn(Optional.of(superAdmin()));
-        given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+        given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
 
         // when
         adminMemberService.toggleMemberStatus(superAdminInfo(), 1L);
@@ -87,7 +87,7 @@ class AdminMemberServiceImplTest {
     void 상태변경_실패_회원없음() {
         // given
         given(adminRepository.findById(1L)).willReturn(Optional.of(superAdmin()));
-        given(memberRepository.findById(999L)).willReturn(Optional.empty());
+        given(memberRepository.findByIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminMemberService.toggleMemberStatus(superAdminInfo(), 999L))

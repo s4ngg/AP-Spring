@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -219,9 +220,9 @@ class ProductServiceImplTest {
         Pageable pageable = PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Product> mockPage = new PageImpl<>(List.of(mockProduct), pageable, 1);
 
-        when(productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
+        given(productRepository.findVisibleProducts(
                 Product.Status.ON_SALE, Product.ApprovalStatus.APPROVED, pageable))
-                .thenReturn(mockPage);
+                .willReturn(mockPage);
 
         Page<ProductListResponseDto> result = productService.getProductList(pageable);
 
@@ -237,9 +238,9 @@ class ProductServiceImplTest {
         Pageable pageable = PageRequest.of(0, 8, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Product> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        when(productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
+        given(productRepository.findVisibleProducts(
                 Product.Status.ON_SALE, Product.ApprovalStatus.APPROVED, pageable))
-                .thenReturn(emptyPage);
+                .willReturn(emptyPage);
 
         Page<ProductListResponseDto> result = productService.getProductList(pageable);
 

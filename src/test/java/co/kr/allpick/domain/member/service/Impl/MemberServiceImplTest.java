@@ -81,7 +81,7 @@ class MemberServiceImplTest {
         @DisplayName("success")
         void getMember_success() {
             Member member = createMember();
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
 
             MemberResponseDto result = memberService.getMember(1L);
 
@@ -94,7 +94,7 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("fail when member does not exist")
         void getMember_memberNotFound() {
-            given(memberRepository.findById(1L)).willReturn(Optional.empty());
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberService.getMember(1L))
                     .isInstanceOf(BusinessException.class)
@@ -115,7 +115,7 @@ class MemberServiceImplTest {
                     "01087654321",
                     "Busan"
             );
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
 
             MemberResponseDto result = memberService.updateMember(1L, request);
 
@@ -135,7 +135,7 @@ class MemberServiceImplTest {
                     "01087654321",
                     "Busan"
             );
-            given(memberRepository.findById(1L)).willReturn(Optional.empty());
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberService.updateMember(1L, request))
                     .isInstanceOf(BusinessException.class)
@@ -152,7 +152,7 @@ class MemberServiceImplTest {
         void changePassword_success_updatesEncodedPassword() {
             Member member = createMemberWithPassword("encodedOldPassword");
             PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "NewPass1!");
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
             given(passwordEncoder.matches(request.getCurrentPassword(), "encodedOldPassword")).willReturn(true);
             given(passwordEncoder.matches(request.getNewPassword(), "encodedOldPassword")).willReturn(false);
             given(passwordEncoder.encode(request.getNewPassword())).willReturn("encodedNewPassword");
@@ -167,7 +167,7 @@ class MemberServiceImplTest {
         @DisplayName("fail when member does not exist")
         void changePassword_memberNotFound() {
             PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "NewPass1!");
-            given(memberRepository.findById(1L)).willReturn(Optional.empty());
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberService.changePassword(1L, request))
                     .isInstanceOf(BusinessException.class)
@@ -179,7 +179,7 @@ class MemberServiceImplTest {
         void changePassword_currentPasswordMismatch() {
             Member member = createMemberWithPassword("encodedOldPassword");
             PasswordChangeRequestDto request = new PasswordChangeRequestDto("WrongPass1!", "NewPass1!");
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
             given(passwordEncoder.matches(request.getCurrentPassword(), "encodedOldPassword")).willReturn(false);
 
             assertThatThrownBy(() -> memberService.changePassword(1L, request))
@@ -192,7 +192,7 @@ class MemberServiceImplTest {
         void changePassword_samePassword() {
             Member member = createMemberWithPassword("encodedOldPassword");
             PasswordChangeRequestDto request = new PasswordChangeRequestDto("OldPass1!", "OldPass1!");
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
             given(passwordEncoder.matches(request.getCurrentPassword(), "encodedOldPassword")).willReturn(true);
             given(passwordEncoder.matches(request.getNewPassword(), "encodedOldPassword")).willReturn(true);
 
@@ -206,7 +206,7 @@ class MemberServiceImplTest {
         void changePassword_currentMismatchStopsBeforeEncode() {
             Member member = createMemberWithPassword("encodedOldPassword");
             PasswordChangeRequestDto request = new PasswordChangeRequestDto("WrongPass1!", "NewPass1!");
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
             given(passwordEncoder.matches(request.getCurrentPassword(), "encodedOldPassword")).willReturn(false);
 
             assertThatThrownBy(() -> memberService.changePassword(1L, request))
@@ -224,17 +224,19 @@ class MemberServiceImplTest {
         @DisplayName("success and changes status to zero")
         void deleteMember_success_setsStatusZero() {
             Member member = createMember();
-            given(memberRepository.findById(1L)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(member));
 
             memberService.deleteMember(1L);
 
             assertThat(member.getStatus()).isZero();
+            assertThat(member.getDeletedAt()).isNotNull();
+            assertThat(member.getEmail()).isEqualTo("member@allpick.com");
         }
 
         @Test
         @DisplayName("fail when member does not exist")
         void deleteMember_memberNotFound() {
-            given(memberRepository.findById(1L)).willReturn(Optional.empty());
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> memberService.deleteMember(1L))
                     .isInstanceOf(BusinessException.class)
@@ -249,7 +251,8 @@ class MemberServiceImplTest {
         @Test
         @DisplayName("returns empty list when there are no orders")
         void getMyOrders_emptyList() {
-            given(orderRepository.findByMemberIdOrderByOrderedAtDesc(1L)).willReturn(Collections.emptyList());
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(createMember()));
+            given(orderRepository.findByMemberIdExcludingPending(1L)).willReturn(Collections.emptyList());
 
             List<OrderResponseDto> result = memberService.getMyOrders(1L);
 
@@ -270,7 +273,8 @@ class MemberServiceImplTest {
                     .status(Order.OrderStatus.PAID)
                     .orderedAt(LocalDateTime.of(2026, 5, 2, 10, 0))
                     .build();
-            given(orderRepository.findByMemberIdOrderByOrderedAtDesc(1L)).willReturn(List.of(order));
+            given(memberRepository.findByIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(createMember()));
+            given(orderRepository.findByMemberIdExcludingPending(1L)).willReturn(List.of(order));
 
             List<OrderResponseDto> result = memberService.getMyOrders(1L);
 

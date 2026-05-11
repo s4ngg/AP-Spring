@@ -36,7 +36,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
 
     @Override
     public void update(Long sellerId, SellerUpdateRequestDto dto, Long memberId) {
-        Seller seller = sellerRepository.findById(sellerId)
+        Seller seller = sellerRepository.findActiveMemberSellerBySellerId(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
         validateSellerOwner(seller, memberId);
@@ -52,7 +52,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
 
     @Override
     public void deleteSeller(Long sellerId, Long memberId) {
-        Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
+        Seller seller = sellerRepository.findActiveMemberSellerBySellerId(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
 
         validateSellerOwner(seller, memberId);  // ← 헬퍼 메서드로 교체
@@ -72,10 +72,13 @@ public class SellerAuthServiceImpl implements SellerAuthService {
             throw new BusinessException(ErrorCode.DUPLICATE_BUSINESS_NUMBER);
         }
 
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        
+        if (!Integer.valueOf(1).equals(member.getStatus())) {
+            logger.warn("[SellerAuthService] 정지 회원 판매자 등록 시도 - memberId: {}", memberId);
+            throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
+        }
 
         Seller seller = dto.toEntity(member);
         sellerRepository.save(seller);
@@ -95,7 +98,7 @@ public class SellerAuthServiceImpl implements SellerAuthService {
             logger.warn("[SellerAuthService] 비밀번호 불일치 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
-        if (!Integer.valueOf(1).equals(member.getStatus())) {
+        if (!Integer.valueOf(1).equals(member.getStatus()) || member.getDeletedAt() != null) {
             logger.warn("[SellerAuthService] 정지 회원 판매자 로그인 시도 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
         }

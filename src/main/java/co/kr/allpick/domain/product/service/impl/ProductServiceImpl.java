@@ -76,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductListResponseDto> getProductList(Pageable pageable) {
         logger.info("상품 목록 조회 - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
-        return productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
+        return productRepository.findVisibleProducts(
                 Product.Status.ON_SALE,
                 Product.ApprovalStatus.APPROVED,
                 pageable

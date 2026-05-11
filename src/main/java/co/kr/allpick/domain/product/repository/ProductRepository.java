@@ -19,10 +19,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // 상품 상세 조회 - 판매중, 승인된, 삭제 안 된 상품만
     @Query("SELECT p FROM Product p " +
            "LEFT JOIN FETCH p.parentCategory " +
+           "JOIN FETCH p.seller s " +
+           "JOIN s.member m " +
            "WHERE p.productId = :id " +
            "AND p.status = 'ON_SALE' " +
            "AND p.approvalStatus = 'APPROVED' " +
-           "AND p.deletedAt IS NULL")
+           "AND p.deletedAt IS NULL " +
+           "AND s.deletedAt IS NULL " +
+           "AND m.deletedAt IS NULL")
     Optional<Product> findValidProduct(@Param("id") Long productId);
 
     // 상품명 중복 확인 (삭제된 상품명은 재사용 가능)
@@ -40,7 +44,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p " +
            "JOIN FETCH p.seller s " +
            "JOIN s.member m " +
-           "WHERE p.productId = :productId AND m.id = :memberId AND p.deletedAt IS NULL")
+           "WHERE p.productId = :productId " +
+           "AND m.id = :memberId " +
+           "AND p.deletedAt IS NULL " +
+           "AND s.deletedAt IS NULL " +
+           "AND m.deletedAt IS NULL")
     Optional<Product> findByProductIdAndMemberId(@Param("memberId") Long memberId, @Param("productId") Long productId);
 
     // 판매자 본인 상품 목록 조회 (삭제 안 된 상품만)
@@ -53,6 +61,20 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 판매 중이고 승인된 상품 목록 페이지 조회
     @EntityGraph(attributePaths = {"parentCategory"})
+    @Query("SELECT p FROM Product p " +
+           "JOIN p.seller s " +
+           "JOIN s.member m " +
+           "WHERE p.status = :status " +
+           "AND p.approvalStatus = :approvalStatus " +
+           "AND p.deletedAt IS NULL " +
+           "AND s.deletedAt IS NULL " +
+           "AND m.deletedAt IS NULL")
+    Page<Product> findVisibleProducts(
+            @Param("status") Product.Status status,
+            @Param("approvalStatus") Product.ApprovalStatus approvalStatus,
+            Pageable pageable
+    );
+
     Page<Product> findByStatusAndApprovalStatusAndDeletedAtIsNull(
             Product.Status status,
             Product.ApprovalStatus approvalStatus,

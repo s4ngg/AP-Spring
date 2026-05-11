@@ -17,6 +17,7 @@ import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
@@ -79,7 +80,7 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("[AuthService] 비밀번호 불일치 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
-        if (!Integer.valueOf(1).equals(member.getStatus())) {
+        if (!Integer.valueOf(1).equals(member.getStatus()) || member.getDeletedAt() != null) {
             logger.warn("[AuthService] 정지 회원 로그인 시도 - memberId: {}", member.getId());
             throw new BusinessException(ErrorCode.MEMBER_BLOCKED);
         }
@@ -90,7 +91,10 @@ public class AuthServiceImpl implements AuthService {
                 .email(member.getEmail())
                 .build());
 
-        boolean isSeller = sellerRepository.findByMemberId(member.getId()).isPresent();
+        boolean isSeller = sellerRepository.existsByMemberIdAndStatusAndDeletedAtIsNull(
+                member.getId(),
+                SellerStatus.APPROVED
+        );
 
         return AuthResponseDto.of(token, member, isSeller);
     }

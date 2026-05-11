@@ -27,7 +27,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     @Override
     public List<MemberListResponseDto> getMembers(AdminJwtUserInfoDto adminInfo) {
         getSuperAdmin(adminInfo);
-        return memberRepository.findAllByOrderByCreatedAtDesc()
+        return memberRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
                 .stream()
                 .map(MemberListResponseDto::from)
                 .collect(Collectors.toList());
@@ -37,7 +37,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     @Transactional
     public void toggleMemberStatus(AdminJwtUserInfoDto adminInfo, Long memberId) {
         getSuperAdmin(adminInfo);
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
         if (member.getStatus() == 1) member.suspend();
         else member.activate();
