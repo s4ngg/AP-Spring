@@ -90,6 +90,8 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 discountAmount = coupon.getDiscountValue();
             }
+            BigDecimal maxDiscount = totalProductPrice.add(BigDecimal.valueOf(request.getShippingFee()));
+            discountAmount = discountAmount.min(maxDiscount);
         }
 
 // 4. 주문번호 생성
