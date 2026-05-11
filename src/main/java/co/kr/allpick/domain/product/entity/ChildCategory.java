@@ -54,8 +54,22 @@ public class ChildCategory extends BaseEntity {
         this.isActive = isActive;
     }
 
+    private static final String DELETED_SLUG_MARKER = "_deleted_";
+    private static final int SLUG_MAX_LENGTH = 100;
+
     public void deactivate() {
+        if (this.getDeletedAt() != null) return;
         this.isActive = 0;
+        this.slug = generateDeletedSlug(this.slug);
         delete();
+    }
+
+    private String generateDeletedSlug(String originalSlug) {
+        String marker = DELETED_SLUG_MARKER + this.childCategoryId + "_" + System.currentTimeMillis();
+        int maxOriginalLength = SLUG_MAX_LENGTH - marker.length();
+        String truncated = originalSlug.length() > maxOriginalLength
+                ? originalSlug.substring(0, maxOriginalLength)
+                : originalSlug;
+        return truncated + marker;
     }
 }
