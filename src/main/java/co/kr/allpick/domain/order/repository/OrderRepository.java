@@ -23,7 +23,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByMemberIdOrderByOrderedAtDesc(Long memberId);
 
     @EntityGraph(attributePaths = {"orderItems"})
-    @Query("SELECT o FROM Order o WHERE o.member.id = :memberId AND o.status != co.kr.allpick.domain.order.entity.Order.OrderStatus.PENDING ORDER BY o.orderedAt DESC")
+    @Query("SELECT o FROM Order o WHERE o.member.id = :memberId AND o.status != co.kr.allpick.domain.order.entity.Order.OrderStatus.PENDING AND o.status != co.kr.allpick.domain.order.entity.Order.OrderStatus.CANCELLED ORDER BY o.orderedAt DESC")
     List<Order> findByMemberIdExcludingPending(@Param("memberId") Long memberId);
 
     Optional<Order> findByOrderNumber(String orderNumber);
