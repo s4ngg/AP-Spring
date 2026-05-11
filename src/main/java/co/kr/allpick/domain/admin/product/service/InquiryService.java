@@ -1,15 +1,17 @@
 package co.kr.allpick.domain.admin.product.service;
 
+import co.kr.allpick.domain.admin.product.entity.Inquiry;
 import co.kr.allpick.domain.admin.product.dto.InquiryResponseDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryCreateRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerRequestDto;
 import co.kr.allpick.domain.admin.product.dto.InquiryAnswerResponseDto;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface InquiryService {
 
     // 문의 등록
-    InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request);
+    InquiryResponseDto createInquiry(Long memberId, InquiryCreateRequestDto request, List<MultipartFile> images);
 
     // 문의 상세 조회
     InquiryResponseDto getInquiryById(Long inquiryId);
@@ -31,5 +33,8 @@ public interface InquiryService {
 
     // 문의 취소
     void cancelInquiry(Long inquiryId, Long memberId);
+
+    // 문의 상태 변경 (관리자)
+    void updateInquiryStatus(Long inquiryId, Inquiry.InquiryStatus status);
 
 }
