@@ -31,6 +31,9 @@ public class OrderCreateRequestDto {
     @Schema(description = "주문 상품 목록", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<OrderItemRequestDto> orderItems;
 
+    @Schema(description = "배송비", example = "3000")
+    private int shippingFee;
+
     public Order toEntity(Member member, MemberCoupon memberCoupon, DeliveryAddress deliveryAddress, String orderNumber, BigDecimal discountAmount) {
         return Order.builder()
                 .member(member)
@@ -39,7 +42,7 @@ public class OrderCreateRequestDto {
                 .orderNumber(orderNumber)
                 .totalAmount(BigDecimal.ZERO)
                 .discountAmount(discountAmount)
-                .shippingFee(3000)
+                .shippingFee(this.shippingFee)
                 .status(Order.OrderStatus.PENDING)
                 .orderedAt(LocalDateTime.now())
                 .build();
