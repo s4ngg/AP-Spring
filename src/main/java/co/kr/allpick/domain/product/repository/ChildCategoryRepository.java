@@ -14,6 +14,18 @@ public interface ChildCategoryRepository extends JpaRepository<ChildCategory, Lo
     List<ChildCategory> findByParentCategory_ParentCategoryIdAndIsActiveOrderBySortOrderAsc(
             Long parentCategoryId, Integer isActive);
 
+    List<ChildCategory> findByParentCategory_ParentCategoryIdAndIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(
+            Long parentCategoryId, Integer isActive);
+
+    List<ChildCategory> findByParentCategory_ParentCategoryIdAndDeletedAtIsNullOrderBySortOrderAsc(
+            Long parentCategoryId);
+
     // slug로 단건 조회
     Optional<ChildCategory> findBySlug(String slug);
+
+    Optional<ChildCategory> findBySlugAndIsActiveAndDeletedAtIsNull(String slug, Integer isActive);
+
+    Optional<ChildCategory> findByChildCategoryIdAndDeletedAtIsNull(Long childCategoryId);
+
+    boolean existsBySlugAndDeletedAtIsNull(String slug);
 }

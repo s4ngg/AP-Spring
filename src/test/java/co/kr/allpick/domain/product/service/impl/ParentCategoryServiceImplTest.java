@@ -17,7 +17,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class ParentCategoryServiceImplTest {
@@ -46,8 +46,8 @@ class ParentCategoryServiceImplTest {
                 .slug("fashion")
                 .build();
 
-        when(parentCategoryRepository.findByIsActiveOrderBySortOrderAsc(1))
-                .thenReturn(List.of(category1, category2));
+        given(parentCategoryRepository.findByIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(1))
+                .willReturn(List.of(category1, category2));
 
         // when
         List<ParentCategoryResponseDto> result = parentCategoryService.getActiveParentCategories();
@@ -65,8 +65,8 @@ class ParentCategoryServiceImplTest {
     @DisplayName("노출 중인 부모 카테고리 없음")
     void 노출_중인_부모_카테고리_없음() {
         // given
-        when(parentCategoryRepository.findByIsActiveOrderBySortOrderAsc(1))
-                .thenReturn(List.of());
+        given(parentCategoryRepository.findByIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(1))
+                .willReturn(List.of());
 
         // when
         List<ParentCategoryResponseDto> result = parentCategoryService.getActiveParentCategories();
@@ -87,8 +87,8 @@ class ParentCategoryServiceImplTest {
                 .slug("beauty")
                 .build();
 
-        when(parentCategoryRepository.findBySlug("beauty"))
-                .thenReturn(Optional.of(category));
+        given(parentCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull("beauty", 1))
+                .willReturn(Optional.of(category));
 
         // when
         ParentCategoryResponseDto result = parentCategoryService.getParentCategoryBySlug("beauty");
@@ -103,12 +103,12 @@ class ParentCategoryServiceImplTest {
     @DisplayName("slug로 부모 카테고리 단건 조회 실패 - 존재하지 않는 slug")
     void slug로_부모_카테고리_단건_조회_실패() {
         // given
-        when(parentCategoryRepository.findBySlug("없는slug"))
-                .thenReturn(Optional.empty());
+        given(parentCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull("없는slug", 1))
+                .willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> parentCategoryService.getParentCategoryBySlug("없는slug"))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CATEGORY_NOT_FOUND.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_NOT_FOUND);
     }
 }

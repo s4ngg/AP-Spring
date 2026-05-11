@@ -29,7 +29,7 @@ public class ChildCategoryServiceImpl implements ChildCategoryService {
     public List<ChildCategoryResponseDto> getActiveChildCategories(Long parentCategoryId) {
         logger.info("노출 중인 자식 카테고리 조회 - parentCategoryId: {}", parentCategoryId);
         return childCategoryRepository
-                .findByParentCategory_ParentCategoryIdAndIsActiveOrderBySortOrderAsc(parentCategoryId, ACTIVE)
+                .findByParentCategory_ParentCategoryIdAndIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(parentCategoryId, ACTIVE)
                 .stream()
                 .map(ChildCategoryResponseDto::from)
                 .collect(Collectors.toList());
@@ -39,7 +39,7 @@ public class ChildCategoryServiceImpl implements ChildCategoryService {
     @Transactional(readOnly = true)
     public ChildCategoryResponseDto getChildCategoryBySlug(String slug) {
         logger.info("slug로 자식 카테고리 조회 - slug: {}", slug);
-        ChildCategory childCategory = childCategoryRepository.findBySlug(slug)
+        ChildCategory childCategory = childCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull(slug, ACTIVE)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
         return ChildCategoryResponseDto.from(childCategory);
     }

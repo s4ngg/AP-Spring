@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admins").hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/admins/*/status").hasAuthority("ROLE_SUPER_ADMIN")
+                        .requestMatchers("/api/admin/categories/**").hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers("/api/admin/members/**").hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers("/api/admin/sellers/**").hasAuthority("ROLE_SUPER_ADMIN")
                         .requestMatchers("/api/admin/orders/**").hasAuthority("ROLE_SUPER_ADMIN")

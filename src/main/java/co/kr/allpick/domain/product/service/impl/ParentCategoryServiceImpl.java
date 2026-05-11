@@ -28,7 +28,7 @@ public class ParentCategoryServiceImpl implements ParentCategoryService {
     @Transactional(readOnly = true)
     public List<ParentCategoryResponseDto> getActiveParentCategories() {
         logger.info("노출 중인 부모 카테고리 전체 조회");
-        return parentCategoryRepository.findByIsActiveOrderBySortOrderAsc(ACTIVE)
+        return parentCategoryRepository.findByIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(ACTIVE)
                 .stream()
                 .map(ParentCategoryResponseDto::from)
                 .collect(Collectors.toList());
@@ -38,7 +38,7 @@ public class ParentCategoryServiceImpl implements ParentCategoryService {
     @Transactional(readOnly = true)
     public ParentCategoryResponseDto getParentCategoryBySlug(String slug) {
         logger.info("slug로 부모 카테고리 조회 - slug: {}", slug);
-        ParentCategory parentCategory = parentCategoryRepository.findBySlug(slug)
+        ParentCategory parentCategory = parentCategoryRepository.findBySlugAndIsActiveAndDeletedAtIsNull(slug, ACTIVE)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
         return ParentCategoryResponseDto.from(parentCategory);
     }

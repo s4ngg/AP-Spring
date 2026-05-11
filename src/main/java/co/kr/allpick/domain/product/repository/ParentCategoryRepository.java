@@ -14,7 +14,17 @@ public interface ParentCategoryRepository extends JpaRepository<ParentCategory, 
     // 노출 중인 카테고리만 정렬 순서대로 조회
     List<ParentCategory> findByIsActiveOrderBySortOrderAsc(Integer isActive);
 
+    List<ParentCategory> findByIsActiveAndDeletedAtIsNullOrderBySortOrderAsc(Integer isActive);
+
+    List<ParentCategory> findAllByDeletedAtIsNullOrderBySortOrderAsc();
+
     // slug로 단건 조회
     Optional<ParentCategory> findBySlug(String slug);
+
+    Optional<ParentCategory> findBySlugAndIsActiveAndDeletedAtIsNull(String slug, Integer isActive);
+
+    Optional<ParentCategory> findByParentCategoryIdAndDeletedAtIsNull(Long parentCategoryId);
+
+    boolean existsBySlugAndDeletedAtIsNull(String slug);
 
 }
