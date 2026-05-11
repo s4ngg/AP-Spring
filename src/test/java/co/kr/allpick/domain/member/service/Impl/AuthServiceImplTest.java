@@ -3,6 +3,7 @@ package co.kr.allpick.domain.member.service.Impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -18,12 +19,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import co.kr.allpick.domain.coupon.entity.Coupon;
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.coupon.repository.CouponRepository;
+import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
 import co.kr.allpick.domain.member.dto.AuthResponseDto;
 import co.kr.allpick.domain.member.dto.LoginRequestDto;
 import co.kr.allpick.domain.member.dto.SignupRequestDto;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.impl.AuthServiceImpl;
+import co.kr.allpick.domain.member.sms.service.SmsService;
 import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.config.JwtProvider;
@@ -31,47 +37,94 @@ import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
 
-
 @ExtendWith(MockitoExtension.class)
 class AuthServiceImplTest {
 
-    @Mock
-    MemberRepository memberRepository;
-
-    @Mock
-    PasswordEncoder passwordEncoder;
-
-    @Mock
-    JwtProvider jwtProvider;
-
-    @Mock
-    SellerRepository sellerRepository;  // ← 추가
+    @Mock MemberRepository memberRepository;
+    @Mock PasswordEncoder passwordEncoder;
+    @Mock JwtProvider jwtProvider;
+    @Mock SellerRepository sellerRepository;
+    @Mock SmsService smsService;
+    @Mock CouponRepository couponRepository;
+    @Mock MemberCouponRepository memberCouponRepository;
 
     @InjectMocks
     AuthServiceImpl authService;
 
-    // ==================== 일반 회원가입 ====================
+    // ==================== 회원가입 ====================
 
     @Test
-    @DisplayName("일반 회원가입 성공")
-    void 일반_회원가입_성공() {
+    @DisplayName("일반 회원가입 성공 - 웰컴 쿠폰 지급")
+    void 일반_회원가입_성공_쿠폰지급() {
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+                "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
 
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
+
+        when(smsService.isVerified(dto.getPhone())).thenReturn(true);
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
         when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
+        when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
+        when(couponRepository.findByCouponCode("WELCOME5000")).thenReturn(Optional.of(Coupon.builder().build()));
 
         authService.signup(dto);
 
         verify(memberRepository, times(1)).save(any(Member.class));
+        verify(memberCouponRepository, times(1)).save(any(MemberCoupon.class));
+    }
+
+    @Test
+    @DisplayName("일반 회원가입 성공 - 쿠폰 없어도 가입 성공")
+    void 일반_회원가입_성공_쿠폰없음() {
+        SignupRequestDto dto = new SignupRequestDto(
+                "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+
+        Member mockMember = Member.builder()
+                .email("test@test.com")
+                .password("encodedPassword")
+                .name("홍길동")
+                .phone("010-1234-5678")
+                .address("서울시 강남구")
+                .build();
+
+        when(smsService.isVerified(dto.getPhone())).thenReturn(true);
+        when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(false);
+        when(passwordEncoder.encode(dto.getPassword())).thenReturn("encodedPassword");
+        when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
+        when(couponRepository.findByCouponCode("WELCOME5000")).thenReturn(Optional.empty());
+
+        authService.signup(dto);
+
+        verify(memberRepository, times(1)).save(any(Member.class));
+        verify(memberCouponRepository, times(0)).save(any(MemberCoupon.class));
+    }
+
+    @Test
+    @DisplayName("일반 회원가입 실패 - SMS 미인증")
+    void 일반_회원가입_실패_SMS미인증() {
+        SignupRequestDto dto = new SignupRequestDto(
+                "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+
+        when(smsService.isVerified(dto.getPhone())).thenReturn(false);
+
+        assertThatThrownBy(() -> authService.signup(dto))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.PHONE_NOT_VERIFIED.getMessage());
     }
 
     @Test
     @DisplayName("일반 회원가입 실패 - 중복 이메일")
     void 일반_회원가입_실패_중복이메일() {
         SignupRequestDto dto = new SignupRequestDto(
-            "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
+                "test@test.com", "password123", "홍길동", "010-1234-5678", "서울시 강남구");
 
+        when(smsService.isVerified(dto.getPhone())).thenReturn(true);
         when(memberRepository.existsByEmail(dto.getEmail())).thenReturn(true);
 
         assertThatThrownBy(() -> authService.signup(dto))
@@ -97,7 +150,7 @@ class AuthServiceImplTest {
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.empty());  // ← 셀러 아님
+        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.empty());
 
         AuthResponseDto result = authService.login(dto);
 
@@ -105,7 +158,7 @@ class AuthServiceImplTest {
         assertThat(result.getToken()).isEqualTo("mockToken");
         assertThat(result.getEmail()).isEqualTo("test@test.com");
         assertThat(result.getName()).isEqualTo("홍길동");
-        assertThat(result.isSeller()).isFalse();  // ← 셀러 아님 검증
+        assertThat(result.isSeller()).isFalse();
     }
 
     @Test
@@ -128,13 +181,13 @@ class AuthServiceImplTest {
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.of(mockSeller));  // ← 셀러임
+        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.of(mockSeller));
 
         AuthResponseDto result = authService.login(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getToken()).isEqualTo("mockToken");
-        assertThat(result.isSeller()).isTrue();  // ← 셀러임 검증
+        assertThat(result.isSeller()).isTrue();
     }
 
     @Test

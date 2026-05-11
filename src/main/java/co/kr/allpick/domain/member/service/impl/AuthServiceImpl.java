@@ -1,9 +1,12 @@
 package co.kr.allpick.domain.member.service.impl;
 
+import co.kr.allpick.domain.coupon.entity.Coupon;
+import co.kr.allpick.domain.coupon.entity.MemberCoupon;
+import co.kr.allpick.domain.coupon.repository.CouponRepository;
+import co.kr.allpick.domain.coupon.repository.MemberCouponRepository;
 import co.kr.allpick.domain.member.service.AuthService;
 import co.kr.allpick.domain.member.sms.service.SmsService;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
-import co.kr.allpick.domain.seller.entity.Seller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +33,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final SmsService smsService;
     private final SellerRepository sellerRepository;
+    private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
+
     @Override
     public void signup(SignupRequestDto dto) {
         if (!smsService.isVerified(dto.getPhone())) {
@@ -39,8 +45,18 @@ public class AuthServiceImpl implements AuthService {
             logger.warn("[AuthService] 이메일 중복 - email: {}");
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
-        memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
+        Member member = memberRepository.save(dto.toEntity(passwordEncoder.encode(dto.getPassword())));
         smsService.removeVerified(dto.getPhone());
+
+        couponRepository.findByCouponCode("WELCOME5000").ifPresent(coupon -> {
+            MemberCoupon memberCoupon = MemberCoupon.builder()
+                    .memberId(member.getId())
+                    .coupon(coupon)
+                    .build();
+            memberCouponRepository.save(memberCoupon);
+            logger.info("[AuthService] 웰컴 쿠폰 지급 완료 - memberId: {}", member.getId());
+        });
+
         logger.info("[AuthService] 회원가입 완료");
     }
 

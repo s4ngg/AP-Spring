@@ -31,6 +31,9 @@ public class OrderItemResponseDto {
 
     @Schema(description = "소계", example = "100000")
     private BigDecimal totalPrice;
+
+    @Schema(description = "상품 썸네일", example = "https://...")
+    private String thumbnailUrl;
     
     public static OrderItemResponseDto from(OrderItem item) {
         return OrderItemResponseDto.builder()
@@ -40,6 +43,7 @@ public class OrderItemResponseDto {
                 .productPrice(item.getProductPrice())
                 .quantity(item.getQuantity())
                 .totalPrice(item.getTotalPrice())
+                .thumbnailUrl(item.getProduct().getThumbnailUrl())
                 .build();
     }
 }

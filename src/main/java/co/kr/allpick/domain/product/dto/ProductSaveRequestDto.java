@@ -11,10 +11,7 @@ import co.kr.allpick.domain.product.entity.ProductOption;
 import co.kr.allpick.domain.seller.entity.Seller;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,6 +48,7 @@ public class ProductSaveRequestDto {
 		@Schema(description = "상품 가격", example = "27000", requiredMode = RequiredMode.REQUIRED)
 		@NotNull
 		@PositiveOrZero
+		@Positive(message = "가격은 0원 이상이어야 합니다.")
 		private BigDecimal price ;
 
 		@NotBlank @Schema(description = "제조사", example = "나이키 코리아", requiredMode = RequiredMode.REQUIRED)
