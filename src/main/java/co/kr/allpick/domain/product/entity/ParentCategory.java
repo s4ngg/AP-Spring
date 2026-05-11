@@ -37,6 +37,31 @@ public class ParentCategory extends BaseEntity{
 		
 	@Column(name = "slug", length = 100, nullable = false, unique = true)
 	private String slug;	// URL 식별자	
-	
+
+	public void update(String categoryName, String slug, Integer sortOrder, Integer isActive) {
+		this.categoryName = categoryName;
+		this.slug = slug;
+		this.sortOrder = sortOrder;
+		this.isActive = isActive;
+	}
+
+	private static final String DELETED_SLUG_MARKER = "_deleted_";
+	private static final int SLUG_MAX_LENGTH = 100;
+
+	public void deactivate() {
+		if (this.getDeletedAt() != null) return;
+		this.isActive = 0;
+		this.slug = generateDeletedSlug(this.slug);
+		delete();
+	}
+
+	private String generateDeletedSlug(String originalSlug) {
+		String marker = DELETED_SLUG_MARKER + this.parentCategoryId + "_" + System.currentTimeMillis();
+		int maxOriginalLength = SLUG_MAX_LENGTH - marker.length();
+		String truncated = originalSlug.length() > maxOriginalLength
+				? originalSlug.substring(0, maxOriginalLength)
+				: originalSlug;
+		return truncated + marker;
+	}
+
 }
- 

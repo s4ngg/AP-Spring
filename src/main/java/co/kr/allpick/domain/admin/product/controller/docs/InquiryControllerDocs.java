@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Tag(name = "Inquiry", description = "문의 API")
@@ -29,7 +30,8 @@ public interface InquiryControllerDocs {
     })
     ResponseEntity<co.kr.allpick.global.response.ApiResponse<InquiryResponseDto>> createInquiry(
             @AuthenticationPrincipal JwtUserInfoDto userInfo,
-            @RequestBody @Valid InquiryCreateRequestDto request);
+            @Valid InquiryCreateRequestDto request,
+            List<MultipartFile> images);
 
     @Operation(summary = "문의 상세 조회", description = "문의 ID로 상세 조회합니다.")
     @ApiResponses({

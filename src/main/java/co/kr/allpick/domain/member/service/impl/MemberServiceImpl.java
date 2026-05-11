@@ -68,14 +68,16 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(readOnly = true)
     public List<OrderResponseDto> getMyOrders(Long memberId) {
         logger.info("[MemberService] 회원 주문 목록 조회 - memberId: {}", memberId);
-        List<Order> orders = orderRepository.findByMemberIdOrderByOrderedAtDesc(memberId);
+        List<Order> orders = orderRepository.findByMemberIdExcludingPending(memberId);
+
         return orders.stream()
                 .map(order -> OrderResponseDto.from(order, order.getOrderItems()))
                 .toList();
     }
     
     @Override
-    public boolean checkEmailDuplicate(String email) {
+    public boolean
+    checkEmailDuplicate(String email) {
         return memberRepository.existsByEmail(email);
     }
 

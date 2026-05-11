@@ -38,4 +38,18 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
             """)
     List<OrderItem> findAllWithOrderMemberAndProductByOrderItemIdIn(
             @Param("orderItemIds") List<Long> orderItemIds);
+
+    @Query("""
+            SELECT oi
+            FROM OrderItem oi
+            JOIN FETCH oi.order o
+            JOIN FETCH o.member
+            JOIN FETCH o.deliveryAddress
+            JOIN FETCH oi.product p
+            JOIN FETCH p.seller s
+            WHERE s.sellerId = :sellerId
+              AND o.status <> co.kr.allpick.domain.order.entity.Order.OrderStatus.PENDING
+            ORDER BY o.orderedAt DESC
+            """)
+    List<OrderItem> findSellerOrderItems(@Param("sellerId") Long sellerId);
 }

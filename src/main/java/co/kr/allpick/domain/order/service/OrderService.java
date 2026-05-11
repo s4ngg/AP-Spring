@@ -10,13 +10,17 @@ import java.util.List;
 
 public interface OrderService {
 
-    OrderResponseDto createOrder(Long memberId ,OrderCreateRequestDto request);
+    OrderResponseDto createOrder(Long memberId, OrderCreateRequestDto request);
 
     OrderResponseDto getOrder(Long orderId);
+
+    List<OrderResponseDto> getOrders(Long memberId);
 
     OrderResponseDto cancelOrder(Long memberId, Long orderId);
 
     PaymentResponseDto getPayment(Long orderId);
+
+    OrderResponseDto confirmPayment(String orderNumber, String paymentKey, int amount);
 
     DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request);
 
