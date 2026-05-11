@@ -1,6 +1,7 @@
 package co.kr.allpick.domain.order.service.impl;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -51,20 +52,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponseDto createOrder(Long memberId ,OrderCreateRequestDto request) {
+    public OrderResponseDto createOrder(Long memberId, OrderCreateRequestDto request) {
         logger.info("주문 생성 요청 - memberId: {}", memberId);
 
-
-        // 1. 사용자 및 배송지 확인
         Member member = memberRepository.findById(memberId)
-
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 2. 배송지 확인
         DeliveryAddress deliveryAddress = deliveryAddressRepository.findById(request.getAddressId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
 
-        // 3. 쿠폰 확인 및 할인금액 계산
         MemberCoupon memberCoupon = null;
         BigDecimal discountAmount = BigDecimal.ZERO;
 
@@ -90,47 +86,38 @@ public class OrderServiceImpl implements OrderService {
             } else {
                 discountAmount = coupon.getDiscountValue();
             }
+
             BigDecimal maxDiscount = totalProductPrice.add(BigDecimal.valueOf(request.getShippingFee()));
             discountAmount = discountAmount.min(maxDiscount);
         }
 
-// 4. 주문번호 생성
         String orderNumber = generateUniqueOrderNumber();
 
-// 5. 주문 엔티티 생성 및 저장
         Order order = orderRepository.save(request.toEntity(member, memberCoupon, deliveryAddress, orderNumber, discountAmount));
+
         for (OrderItemRequestDto itemDto : request.getOrderItems()) {
-            // 6-1. 상품 정보 조회
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
 
-            // 6-2. [중요] 사용자가 선택한 특정 옵션 찾기 (for문 활용)
             ProductOption targetOption = null;
             for (ProductOption option : product.getOptionList()) {
                 if (option.getOptionId().equals(itemDto.getOptionId())) {
                     targetOption = option;
                     break;
                 }
-                
             }
 
             if (targetOption == null) {
                 throw new BusinessException(ErrorCode.PRODUCT_OPTION_NOT_FOUND);
             }
 
-            // 6-3. [진짜 재고 차감] 엔티티 내부 메서드 호출
-            // (ProductOption 엔티티에 removeStock 메서드가 미리 구현되어 있어야 함)
             targetOption.removeStock(itemDto.getQuantity());
 
-            // 6-4. OrderItem 생성 및 저장 (방금 수정한 엔티티 구조 반영)
-            // toEntity 메서드를 수정하셨다면 그대로 호출, 아니면 빌더 직접 사용
             OrderItem orderItem = itemDto.toEntity(product, targetOption, order);
-            
             orderItemRepository.save(orderItem);
             order.addOrderItem(orderItem);
         }
 
-        // 7. 총 금액 DB에서 집계
         BigDecimal totalAmount = orderItemRepository.sumTotalPriceByOrderId(order.getOrderId());
         order.updateTotalAmount(totalAmount);
 
@@ -144,9 +131,41 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderResponseDto getOrder(Long orderId) {
         logger.info("주문 조회 - orderId: {}", orderId);
-        // fetch join으로 OrderItem 한 번에 조회
         Order order = orderRepository.findByIdWithItems(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+        return OrderResponseDto.from(order, order.getOrderItems());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponseDto> getOrders(Long memberId) {
+        logger.info("주문 목록 조회 - memberId: {}", memberId);
+        return orderRepository.findByMemberIdExcludingPending(memberId)
+                .stream()
+                .map(o -> OrderResponseDto.from(o, o.getOrderItems()))
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDto confirmPayment(String orderNumber, String paymentKey, int amount) {
+        logger.info("결제 확인 요청 - orderNumber: {}", orderNumber);
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        order.updateStatus(Order.OrderStatus.PAID);
+
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentKey(paymentKey)
+                .method(Payment.PaymentMethod.CARD)
+                .amount(BigDecimal.valueOf(amount))
+                .status(Payment.PaymentStatus.DONE)
+                .paidAt(LocalDateTime.now())
+                .build();
+        paymentRepository.save(payment);
+
+        logger.info("결제 확인 완료 - orderNumber: {}", orderNumber);
         return OrderResponseDto.from(order, order.getOrderItems());
     }
 
@@ -180,7 +199,6 @@ public class OrderServiceImpl implements OrderService {
     public DeliveryAddressResponseDto addDeliveryAddress(Long memberId, DeliveryAddressRequestDto request) {
         logger.info("배송지 추가 - memberId: {}", memberId);
 
-        // 중복 배송지 검증
         if (deliveryAddressRepository.existsByMemberIdAndAddressAndAddressDetail(
                 memberId, request.getAddress(), request.getAddressDetail())) {
             throw new BusinessException(ErrorCode.DELIVERY_ADDRESS_DUPLICATE);
@@ -223,29 +241,6 @@ public class OrderServiceImpl implements OrderService {
         address.delete();
     }
 
-    @Override
-    @Transactional
-    public OrderResponseDto confirmPayment(String orderNumber, String paymentKey, int amount) {
-        Order order = orderRepository.findByOrderNumber(orderNumber)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
-
-        order.updateStatus(Order.OrderStatus.PAID);
-
-        Payment payment = Payment.builder()
-                .order(order)
-                .paymentKey(paymentKey)
-                .method(Payment.PaymentMethod.CARD)
-                .amount(BigDecimal.valueOf(amount))
-                .status(Payment.PaymentStatus.DONE)
-                .paidAt(LocalDateTime.now())
-                .build();
-        paymentRepository.save(payment);
-
-        logger.info("[OrderService] 결제 확인 완료 - orderNumber: {}", orderNumber);
-        return OrderResponseDto.from(order, order.getOrderItems());
-    }
-
-    // 배송지 조회 + 소유권 검증
     private DeliveryAddress findAddressAndValidateOwner(Long memberId, Long addressId) {
         DeliveryAddress address = deliveryAddressRepository.findById(addressId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ADDRESS_NOT_FOUND));
@@ -255,7 +250,6 @@ public class OrderServiceImpl implements OrderService {
         return address;
     }
 
-    // 주문에 사용된 배송지 수정/삭제 방지
     private void validateAddressNotUsedInOrder(Long addressId) {
         if (orderRepository.existsByDeliveryAddress_AddressId(addressId)) {
             throw new BusinessException(ErrorCode.ADDRESS_CANNOT_MODIFY);
@@ -280,7 +274,6 @@ public class OrderServiceImpl implements OrderService {
         );
     }
 
-    // 중복 없는 주문번호 생성
     private String generateUniqueOrderNumber() {
         String orderNumber;
         do {
