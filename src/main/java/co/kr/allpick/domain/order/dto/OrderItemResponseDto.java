@@ -35,6 +35,9 @@ public class OrderItemResponseDto {
     @Schema(description = "상품 썸네일", example = "https://...")
     private String thumbnailUrl;
     
+    @Schema(description = "썬택한 옵션 ", example = "270")
+    private String selectedOption;
+    
     public static OrderItemResponseDto from(OrderItem item) {
         return OrderItemResponseDto.builder()
                 .orderItemId(item.getOrderItemId())
@@ -44,6 +47,9 @@ public class OrderItemResponseDto {
                 .quantity(item.getQuantity())
                 .totalPrice(item.getTotalPrice())
                 .thumbnailUrl(item.getProduct().getThumbnailUrl())
+                .selectedOption(item.getProductOption() != null 
+                ? item.getProductOption().getOptionValue() 
+                : null)
                 .build();
     }
 }
