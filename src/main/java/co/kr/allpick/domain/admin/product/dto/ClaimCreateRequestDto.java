@@ -53,7 +53,7 @@ public class ClaimCreateRequestDto {
     @Schema(description = "배송비", example = "3000")
     private BigDecimal shippingFee;
 
-    public Claim toEntity(Long memberId) {
+    public Claim toEntity(Long memberId, BigDecimal shippingFee, BigDecimal refundAmount) {
         return Claim.builder()
                 .memberId(memberId)
                 .orderItemId(this.orderItemId)
@@ -64,8 +64,8 @@ public class ClaimCreateRequestDto {
                 .pickupMethod(this.pickupMethod)
                 .rejectReason(null)
                 .exchangeOption(this.exchangeOption)
-                .refundAmount(this.refundAmount)
-                .shippingFee(this.shippingFee)
+                .refundAmount(refundAmount)
+                .shippingFee(shippingFee)
                 .build();
     }
 }

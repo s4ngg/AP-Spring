@@ -50,6 +50,15 @@ public class ClaimServiceImpl implements ClaimService {
             Claim.ReasonCode.COLOR_CHANGE
     );
 
+    // 왕복 배송비 부과 대상 사유 (단순 변심/사이즈·색상 변경)
+    private static final Set<Claim.ReasonCode> SIMPLE_REASON_CODES = Set.of(
+            Claim.ReasonCode.CHANGE_MIND,
+            Claim.ReasonCode.SIZE_COLOR,
+            Claim.ReasonCode.SIZE_CHANGE,
+            Claim.ReasonCode.COLOR_CHANGE
+    );
+    private static final java.math.BigDecimal ROUND_TRIP_SHIPPING_FEE = new java.math.BigDecimal("6000");
+
     // 허용된 상태 전이 규칙: SUBMITTED → IN_PROGRESS → COMPLETED
     private static final Map<Claim.ClaimStatus, Set<Claim.ClaimStatus>> ALLOWED_TRANSITIONS = Map.of(
             Claim.ClaimStatus.SUBMITTED, Set.of(Claim.ClaimStatus.IN_PROGRESS),
@@ -93,7 +102,13 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_EXISTS);
         }
 
-        Claim claim = claimRepository.save(request.toEntity(memberId));
+        java.math.BigDecimal productTotal = orderItem.getProductPrice()
+                .multiply(java.math.BigDecimal.valueOf(orderItem.getQuantity()));
+        boolean isSimpleReason = SIMPLE_REASON_CODES.contains(request.getReasonCode());
+        java.math.BigDecimal shippingFee = isSimpleReason ? ROUND_TRIP_SHIPPING_FEE : java.math.BigDecimal.ZERO;
+        java.math.BigDecimal refundAmount = productTotal.subtract(shippingFee);
+
+        Claim claim = claimRepository.save(request.toEntity(memberId, shippingFee, refundAmount));
         return ClaimResponseDto.from(claim);
     }
 
