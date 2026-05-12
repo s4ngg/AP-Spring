@@ -2,6 +2,7 @@
 package co.kr.allpick.domain.order.dto;
 
 import co.kr.allpick.domain.order.entity.DeliveryAddress;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,6 +30,7 @@ public class DeliveryAddressResponseDto {
     @Schema(description = "상세주소", example = "101호")
     private String addressDetail;
 
+    @JsonProperty("isDefault")
     @Schema(description = "기본 배송지 여부", example = "false")
     private boolean isDefault;
     
