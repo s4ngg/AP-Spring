@@ -34,9 +34,10 @@ import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
 import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
+import co.kr.allpick.domain.product.entity.ChildCategory;
 import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
-import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
+import co.kr.allpick.domain.product.repository.ChildCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.review.entity.Review;
 import co.kr.allpick.domain.review.repository.ReviewRepository;
@@ -52,7 +53,7 @@ class ProductServiceImplTest {
     private ProductRepository productRepository;
 
     @Mock
-    private ParentCategoryRepository parentCategoryRepository;
+    private ChildCategoryRepository childCategoryRepository;
 
     @Mock
     private ReviewRepository reviewRepository;
@@ -71,11 +72,12 @@ class ProductServiceImplTest {
         Long productId = 1L;
         Pageable pageable = PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        ParentCategory mockCategory = ParentCategory.builder().categoryName("전통주").build();
+        ParentCategory mockParent = ParentCategory.builder().categoryName("전통주").build();
+        ChildCategory mockCategory = ChildCategory.builder().categoryName("막걸리").parentCategory(mockParent).build();
 
         Product mockProduct = Product.builder()
                 .productId(productId)
-                .parentCategory(mockCategory)
+                .childCategory(mockCategory)
                 .productName("느린마을 막걸리")
                 .brand("배상면주가")
                 .price(new BigDecimal("10000"))
@@ -121,8 +123,8 @@ class ProductServiceImplTest {
 
         Seller mockSeller = Seller.builder().build(); 
 
-        ParentCategory mockCategory = ParentCategory.builder()
-                .parentCategoryId(categoryId)
+        ChildCategory mockCategory = ChildCategory.builder()
+                .childCategoryId(categoryId)
                 .categoryName("전통주")
                 .build();
 
@@ -135,11 +137,11 @@ class ProductServiceImplTest {
 
         Product mockProduct = Product.builder()
                 .productName(reqDto.getProductName())
-                .parentCategory(mockCategory)
+                .childCategory(mockCategory)
                 .build();
 
         when(sellerRepository.findWithMemberByMemberId(memberId)).thenReturn(Optional.of(mockSeller));
-        when(parentCategoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
+        when(childCategoryRepository.findById(categoryId)).thenReturn(Optional.of(mockCategory));
         when(productRepository.existsByProductName(reqDto.getProductName())).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(mockProduct);
 
@@ -176,7 +178,7 @@ class ProductServiceImplTest {
                 .build();
 
         when(sellerRepository.findWithMemberByMemberId(memberId)).thenReturn(Optional.of(Seller.builder().build()));
-        when(parentCategoryRepository.findById(anyLong())).thenReturn(Optional.of(mock(ParentCategory.class)));
+        when(childCategoryRepository.findById(anyLong())).thenReturn(Optional.of(mock(ChildCategory.class)));
         when(productRepository.existsByProductName("이미있는상품")).thenReturn(true);
 
         assertThatThrownBy(() -> productService.createProduct(memberId, reqDto)) // ✅ memberId 추가
@@ -193,7 +195,7 @@ class ProductServiceImplTest {
                 .build();
 
         when(sellerRepository.findWithMemberByMemberId(memberId)).thenReturn(Optional.of(Seller.builder().build()));
-        when(parentCategoryRepository.findById(999L)).thenReturn(Optional.empty());
+        when(childCategoryRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.createProduct(memberId, reqDto))
                 .isInstanceOf(BusinessException.class)
@@ -205,16 +207,15 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("상품 목록 조회 성공")
     void 상품_목록_조회_성공() {
-        ParentCategory mockCategory = ParentCategory.builder()
-                .categoryName("뷰티")
-                .build();
+        ParentCategory mockParent = ParentCategory.builder().categoryName("뷰티").build();
+        ChildCategory mockCategory = ChildCategory.builder().categoryName("스킨케어").parentCategory(mockParent).build();
 
         Product mockProduct = Product.builder()
                 .productId(1L)
                 .productName("갈색병 세럼 50ml")
                 .brand("에스티로더")
                 .price(new BigDecimal("89000"))
-                .parentCategory(mockCategory)
+                .childCategory(mockCategory)
                 .thumbnailUrl("https://allpick.com")
                 .optionList(new ArrayList<>())
                 .productImageList(new ArrayList<>())
@@ -259,15 +260,14 @@ class ProductServiceImplTest {
         Seller seller = Seller.builder()
                 .sellerId(sellerId)
                 .build();
-        ParentCategory category = ParentCategory.builder()
-                .categoryName("뷰티")
-                .build();
+        ParentCategory mockParent = ParentCategory.builder().categoryName("뷰티").build();
+        ChildCategory category = ChildCategory.builder().categoryName("스킨케어").parentCategory(mockParent).build();
         Product pendingProduct = Product.builder()
                 .productId(1L)
                 .productName("승인 대기 상품")
                 .brand("올픽")
                 .price(new BigDecimal("10000"))
-                .parentCategory(category)
+                .childCategory(category)
                 .thumbnailUrl("https://allpick.com/pending.jpg")
                 .approvalStatus(Product.ApprovalStatus.PENDING)
                 .build();
@@ -276,7 +276,7 @@ class ProductServiceImplTest {
                 .productName("거절 상품")
                 .brand("올픽")
                 .price(new BigDecimal("20000"))
-                .parentCategory(category)
+                .childCategory(category)
                 .thumbnailUrl("https://allpick.com/rejected.jpg")
                 .approvalStatus(Product.ApprovalStatus.REJECTED)
                 .build();

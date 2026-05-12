@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.kr.allpick.domain.product.entity.ParentCategory;
+import co.kr.allpick.domain.product.entity.ChildCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.entity.ProductImage;
 import co.kr.allpick.domain.product.entity.ProductOption;
@@ -71,10 +71,10 @@ public class ProductSaveRequestDto {
 		
 		
 		@Schema(description = "상품객체 생성 메서드")
-		public Product toEntity(Seller seller, ParentCategory parentCategory) {
+		public Product toEntity(Seller seller, ChildCategory childCategory) {
 			Product product = Product.builder()
 						.seller(seller)
-						.parentCategory(parentCategory)	
+						.childCategory(childCategory)
 						.productName(this.productName)
 						.brand(this.brand)
 						.thumbnailUrl(this.thumbnailUrl)

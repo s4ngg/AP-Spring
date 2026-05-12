@@ -69,8 +69,8 @@ public class ProductDetailResponseDto {
 	public static ProductDetailResponseDto from(Product product, Page<ReviewResponseDto> reviewList) {
 		return ProductDetailResponseDto.builder()
 				.productId(product.getProductId())
-				.parentCategoryName(product.getParentCategory() != null ?
-						product.getParentCategory().getCategoryName() : "미분류")
+				.parentCategoryName(product.getChildCategory() != null && product.getChildCategory().getParentCategory() != null ?
+						product.getChildCategory().getParentCategory().getCategoryName() : "미분류")
 				.brand(product.getBrand())
 				.productName(product.getProductName())
 				.thumbnailUrl(product.getThumbnailUrl())

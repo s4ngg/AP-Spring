@@ -18,7 +18,8 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // 상품 상세 조회 - 판매중, 승인된, 삭제 안 된 상품만
     @Query("SELECT p FROM Product p " +
-           "LEFT JOIN FETCH p.parentCategory " +
+           "LEFT JOIN FETCH p.childCategory c " +
+           "LEFT JOIN FETCH c.parentCategory " +
            "JOIN FETCH p.seller s " +
            "JOIN s.member m " +
            "WHERE p.productId = :id " +
@@ -56,11 +57,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findBySellerIdAndDeletedAtIsNull(@Param("sellerId") Long sellerId);
 
     // 관리자 상품 목록 조회
-    @EntityGraph(attributePaths = {"parentCategory", "optionList", "seller"})
+    @EntityGraph(attributePaths = {"childCategory", "childCategory.parentCategory", "optionList", "seller"})
     List<Product> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 
     // 판매 중이고 승인된 상품 목록 페이지 조회
-    @EntityGraph(attributePaths = {"parentCategory"})
+    @EntityGraph(attributePaths = {"childCategory", "childCategory.parentCategory"})
     @Query("SELECT p FROM Product p " +
            "JOIN p.seller s " +
            "JOIN s.member m " +
