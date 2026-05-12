@@ -104,7 +104,7 @@ public class CartServiceImplTest {
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(mockMember));
         when(cartRepository.findByMemberId(memberId)).thenReturn(Optional.of(mockCart));
         when(productRepository.findById(reqDto.getProductId())).thenReturn(Optional.of(mockProduct));
-        when(productOptionRepository.findById(reqDto.getProductOptionId())).thenReturn(Optional.of(mockOption));
+        when(productOptionRepository.findActiveById(reqDto.getProductOptionId())).thenReturn(Optional.of(mockOption));
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(mockCartItem);
 
         CartItemResponseDto result = cartService.addCart(memberId, reqDto);

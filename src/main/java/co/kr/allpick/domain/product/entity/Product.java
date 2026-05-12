@@ -116,6 +116,8 @@ public class Product extends BaseEntity {
     }
 
     public void update(ProductUpdateRequestDto reqDto) {
+        validateUpdatable();
+
         if (reqDto.getPrice() != null)        this.price = reqDto.getPrice();
         if (reqDto.getProductName() != null)  this.productName = reqDto.getProductName();
         if (reqDto.getBrand() != null)        this.brand = reqDto.getBrand();
@@ -139,6 +141,12 @@ public class Product extends BaseEntity {
                     .map(i -> i.toEntity(this))
                     .toList();
             this.productImageList.addAll(newImages);
+        }
+    }
+
+    private void validateUpdatable() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.PRODUCT_CANNOT_UPDATE_NOT_PENDING);
         }
     }
 

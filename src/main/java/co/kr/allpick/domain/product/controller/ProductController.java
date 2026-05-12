@@ -23,9 +23,11 @@ import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
 import co.kr.allpick.domain.product.service.ProductService;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -64,7 +66,7 @@ public class ProductController implements ProductControllerDocs{
 	public ResponseEntity<ApiResponse<ProductUpdateResponseDto>> updateProduct (
 			@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@PathVariable("productId") Long productId,
-			@RequestBody ProductUpdateRequestDto productUpdateRequestDto) {
+			@RequestBody @Valid ProductUpdateRequestDto productUpdateRequestDto) {
 		return ApiResponse.success("상품을 수정했습니다.", productService.updateProduct(userInfo.getMemberId(),productId, productUpdateRequestDto));
 	}
 	@Override 
@@ -76,8 +78,9 @@ public class ProductController implements ProductControllerDocs{
 		productService.deleteProduct(userInfo.getMemberId(), productId);
 		return ApiResponse.success("상품을 삭제했습니다");
 	}
+	@Override
 	@GetMapping("/seller")
-	public ResponseEntity<ApiResponse<List<ProductListResponseDto>>> getSellerProducts(
+	public ResponseEntity<ApiResponse<List<SellerProductListResponseDto>>> getSellerProducts(
 	        @AuthenticationPrincipal JwtUserInfoDto userInfo) {
 	    return ApiResponse.success("판매자 상품 목록 조회 성공",
 	            productService.getSellerProducts(userInfo.getMemberId()));
