@@ -6,14 +6,14 @@ import java.util.List;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
-    // 회원별 문의 목록 조회 (삭제 안된 것만)
-    List<Inquiry> findByMemberIdAndDeletedAtIsNull(Long memberId);
+    // 회원별 문의 목록 조회 (삭제 안된 것만, 최신순)
+    List<Inquiry> findByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long memberId);
 
-    // 전체 문의 목록 조회 (삭제 안된 것만)
-    List<Inquiry> findAllByDeletedAtIsNull();
+    // 전체 문의 목록 조회 (삭제 안된 것만, 최신순)
+    List<Inquiry> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 
-    // 판매자 상품에 달린 문의 목록 조회
-    List<Inquiry> findByProductIdInAndDeletedAtIsNull(List<Long>productIds);
+    // 판매자 상품에 달린 문의 목록 조회 (최신순)
+    List<Inquiry> findByProductIdInAndDeletedAtIsNullOrderByCreatedAtDesc(List<Long> productIds);
 
 }
 
