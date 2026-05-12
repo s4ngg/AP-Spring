@@ -25,11 +25,12 @@ import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,14 +51,14 @@ public class ClaimServiceImpl implements ClaimService {
             Claim.ReasonCode.COLOR_CHANGE
     );
 
-    // 왕복 배송비 부과 대상 사유 (단순 변심/사이즈·색상 변경)
+    // 왕복 배송비 부과 대상 사유 (단순 변심/사이즈·색상 변경) = RETURN_ONLY_REASONS(DESCRIPTION_DIFF 제외) + EXCHANGE_ONLY_REASONS
     private static final Set<Claim.ReasonCode> SIMPLE_REASON_CODES = Set.of(
             Claim.ReasonCode.CHANGE_MIND,
             Claim.ReasonCode.SIZE_COLOR,
             Claim.ReasonCode.SIZE_CHANGE,
             Claim.ReasonCode.COLOR_CHANGE
     );
-    private static final java.math.BigDecimal ROUND_TRIP_SHIPPING_FEE = new java.math.BigDecimal("6000");
+    private static final BigDecimal ROUND_TRIP_SHIPPING_FEE = new BigDecimal("6000");
 
     // 허용된 상태 전이 규칙: SUBMITTED → IN_PROGRESS → COMPLETED
     private static final Map<Claim.ClaimStatus, Set<Claim.ClaimStatus>> ALLOWED_TRANSITIONS = Map.of(
@@ -102,11 +103,12 @@ public class ClaimServiceImpl implements ClaimService {
             throw new BusinessException(ErrorCode.CLAIM_ALREADY_EXISTS);
         }
 
-        java.math.BigDecimal productTotal = orderItem.getProductPrice()
-                .multiply(java.math.BigDecimal.valueOf(orderItem.getQuantity()));
+        BigDecimal productTotal = orderItem.getProductPrice()
+                .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
         boolean isSimpleReason = SIMPLE_REASON_CODES.contains(request.getReasonCode());
-        java.math.BigDecimal shippingFee = isSimpleReason ? ROUND_TRIP_SHIPPING_FEE : java.math.BigDecimal.ZERO;
-        java.math.BigDecimal refundAmount = productTotal.subtract(shippingFee);
+        BigDecimal shippingFee = isSimpleReason ? ROUND_TRIP_SHIPPING_FEE : BigDecimal.ZERO;
+        // 음수인 경우 고객이 추가 결제해야 하는 금액을 의미
+        BigDecimal refundAmount = productTotal.subtract(shippingFee);
 
         Claim claim = claimRepository.save(request.toEntity(memberId, shippingFee, refundAmount));
         return ClaimResponseDto.from(claim);

@@ -34,10 +34,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,8 +66,13 @@ class ClaimServiceImplTest {
     @InjectMocks
     ClaimServiceImpl claimService;
 
-    // 테스트용 OrderItem 객체 생성 헬퍼
+    // 테스트용 OrderItem 객체 생성 헬퍼 (기본 상품가격 29000원)
     private OrderItem buildMockOrderItem(Long memberId) {
+        return buildMockOrderItem(memberId, BigDecimal.valueOf(29000));
+    }
+
+    // 테스트용 OrderItem 객체 생성 헬퍼 (상품가격 직접 지정)
+    private OrderItem buildMockOrderItem(Long memberId, BigDecimal productPrice) {
         // [교정] UnfinishedStubbing 방지를 위해 doReturn 스타일 사용
         Member mockMember = Mockito.mock(Member.class);
         doReturn(memberId).when(mockMember).getId();
@@ -84,9 +94,9 @@ class ClaimServiceImplTest {
         return OrderItem.builder()
                 .order(mockOrder)
                 .product(mockProduct)
-                .productPrice(BigDecimal.valueOf(29000))
+                .productPrice(productPrice)
                 .quantity(1)
-                .totalPrice(BigDecimal.valueOf(29000))
+                .totalPrice(productPrice)
                 .build();
     }
 
@@ -125,17 +135,16 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 등록 성공")
+    @DisplayName("클레임 등록 성공 - 단순 변심 (왕복 배송비 6000원 차감)")
     void 클레임_등록_성공() {
-        // given
+        // given – refundAmount/shippingFee는 서비스에서 자동 계산되므로 DTO에 전달해도 무시됨
         ClaimCreateRequestDto request = new ClaimCreateRequestDto(
                 10L, null, Claim.ClaimType.RETURN,
                 Claim.ReasonCode.CHANGE_MIND, "단순 변심입니다.",
                 Claim.ClaimPickupMethod.COURIER, null,
-                BigDecimal.valueOf(29000), BigDecimal.valueOf(3000));
+                null, null);
 
-        // [핵심 교정] buildMockOrderItem을 when 밖으로 뺍니다.
-        OrderItem mockItem = buildMockOrderItem(1L);
+        OrderItem mockItem = buildMockOrderItem(1L); // productPrice=29000, memberId=1L
         Claim mockClaim = buildMockClaim();
 
         when(memberRepository.existsById(1L)).thenReturn(true);
@@ -145,11 +154,116 @@ class ClaimServiceImplTest {
         // when
         ClaimResponseDto result = claimService.createClaim(1L, request);
 
-        // then
+        // then – 반환 DTO 기본 검증
         assertThat(result).isNotNull();
         assertThat(result.getMemberId()).isEqualTo(1L);
         assertThat(result.getClaimType()).isEqualTo(Claim.ClaimType.RETURN);
         assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.SUBMITTED);
+
+        // 배송비 자동 계산 검증: CHANGE_MIND(단순변심) → 왕복 배송비 6000원, 환불 = 29000 - 6000 = 23000
+        ArgumentCaptor<Claim> captor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(captor.capture());
+        Claim saved = captor.getValue();
+        assertThat(saved.getShippingFee()).isEqualByComparingTo(BigDecimal.valueOf(6000));
+        assertThat(saved.getRefundAmount()).isEqualByComparingTo(BigDecimal.valueOf(23000));
+    }
+
+    @Test
+    @DisplayName("클레임 등록 성공 - 판매자 귀책 사유 (배송비 없음, 전액 환불)")
+    void 클레임_등록_성공_판매자귀책_배송비없음() {
+        // given – DEFECT(상품불량)는 판매자 귀책 → 배송비 0원, 전액 환불
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                10L, null, Claim.ClaimType.RETURN,
+                Claim.ReasonCode.DEFECT, "상품이 파손된 채로 도착했습니다.",
+                Claim.ClaimPickupMethod.COURIER, null,
+                null, null);
+
+        OrderItem mockItem = buildMockOrderItem(1L); // productPrice=29000
+        Claim mockClaim = buildMockClaim();
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(mockItem));
+        when(claimRepository.save(any(Claim.class))).thenReturn(mockClaim);
+
+        // when
+        claimService.createClaim(1L, request);
+
+        // then – shippingFee=0, refundAmount=29000(전액)
+        ArgumentCaptor<Claim> captor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(captor.capture());
+        Claim saved = captor.getValue();
+        assertThat(saved.getShippingFee()).isEqualByComparingTo(BigDecimal.ZERO);
+        assertThat(saved.getRefundAmount()).isEqualByComparingTo(BigDecimal.valueOf(29000));
+    }
+
+    @Test
+    @DisplayName("클레임 등록 성공 - 상품금액 < 왕복배송비 → 환불금액 음수 (추가 결제 필요)")
+    void 클레임_등록_성공_추가결제필요() {
+        // given – 상품가격 5000원, 단순 변심 → 배송비 6000원 → refundAmount = -1000
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                10L, null, Claim.ClaimType.RETURN,
+                Claim.ReasonCode.CHANGE_MIND, "단순 변심입니다.",
+                Claim.ClaimPickupMethod.COURIER, null,
+                null, null);
+
+        OrderItem mockItem = buildMockOrderItem(1L, BigDecimal.valueOf(5000));
+        Claim mockClaim = buildMockClaim();
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(mockItem));
+        when(claimRepository.save(any(Claim.class))).thenReturn(mockClaim);
+
+        // when
+        claimService.createClaim(1L, request);
+
+        // then – refundAmount가 음수(고객이 1000원 추가 결제해야 함)
+        ArgumentCaptor<Claim> captor = ArgumentCaptor.forClass(Claim.class);
+        verify(claimRepository).save(captor.capture());
+        Claim saved = captor.getValue();
+        assertThat(saved.getShippingFee()).isEqualByComparingTo(BigDecimal.valueOf(6000));
+        assertThat(saved.getRefundAmount()).isEqualByComparingTo(BigDecimal.valueOf(-1000));
+        assertThat(saved.getRefundAmount().signum()).isNegative();
+    }
+
+    @Test
+    @DisplayName("클레임 등록 실패 - 다른 회원의 주문 상품")
+    void 클레임_등록_실패_다른회원_주문() {
+        // given – OrderItem 소유자가 memberId=2L, 요청자는 memberId=1L
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                10L, null, Claim.ClaimType.RETURN,
+                Claim.ReasonCode.CHANGE_MIND, null,
+                Claim.ClaimPickupMethod.COURIER, null, null, null);
+
+        OrderItem mockItem = buildMockOrderItem(2L); // 소유자 memberId=2L
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(mockItem));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.createClaim(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_UNAUTHORIZED.getMessage());
+    }
+
+    @Test
+    @DisplayName("클레임 등록 실패 - 이미 처리 중인 클레임 존재")
+    void 클레임_등록_실패_중복클레임() {
+        // given – 동일 주문 상품에 대해 이미 활성 클레임이 존재
+        ClaimCreateRequestDto request = new ClaimCreateRequestDto(
+                10L, null, Claim.ClaimType.RETURN,
+                Claim.ReasonCode.CHANGE_MIND, null,
+                Claim.ClaimPickupMethod.COURIER, null, null, null);
+
+        OrderItem mockItem = buildMockOrderItem(1L);
+
+        when(memberRepository.existsById(1L)).thenReturn(true);
+        when(orderItemRepository.findById(10L)).thenReturn(Optional.of(mockItem));
+        when(claimRepository.existsByOrderItemIdAndStatusNotIn(anyLong(), anyList())).thenReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> claimService.createClaim(1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage(ErrorCode.CLAIM_ALREADY_EXISTS.getMessage());
     }
 
     @Test
