@@ -69,7 +69,7 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     public List<SellerListResponseDto> getSellers(AdminJwtUserInfoDto adminInfo) {
         getSuperAdmin(adminInfo);
         return sellerRepository
-                .findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED))
+                .findAllActiveMemberSellersByStatusIn(List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED))
                 .stream()
                 .map(SellerListResponseDto::from)
                 .toList();
@@ -80,7 +80,7 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     public List<SellerListResponseDto> getPendingSellers(AdminJwtUserInfoDto adminInfo) {
         getSuperAdmin(adminInfo);
         return sellerRepository
-                .findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus.PENDING)
+                .findAllActiveMemberSellersByStatus(SellerStatus.PENDING)
                 .stream()
                 .map(SellerListResponseDto::from)
                 .toList();
@@ -90,7 +90,7 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     @Transactional
     public void toggleSellerStatus(AdminJwtUserInfoDto adminInfo, Long sellerId) {
         getSuperAdmin(adminInfo);
-        Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
+        Seller seller = sellerRepository.findActiveMemberSellerBySellerId(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         if (seller.getStatus() == SellerStatus.APPROVED) {
             seller.suspend();
@@ -116,7 +116,7 @@ public class AdminSellerApprovalServiceImpl implements AdminSellerApprovalServic
     }
 
     private Seller getPendingSeller(Long sellerId) {
-        Seller seller = sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId)
+        Seller seller = sellerRepository.findActiveMemberSellerBySellerId(sellerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.SELLER_NOT_FOUND));
         if (seller.getStatus() != SellerStatus.PENDING) {
             throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);

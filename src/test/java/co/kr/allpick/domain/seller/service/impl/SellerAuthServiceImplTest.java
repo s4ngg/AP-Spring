@@ -58,7 +58,7 @@ class SellerAuthServiceImplTest {
                 .build();
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
-        given(memberRepository.findById(memberId)).willReturn(Optional.of(mockMember));
+        given(memberRepository.findByIdAndDeletedAtIsNull(memberId)).willReturn(Optional.of(mockMember));
 
         // when
         sellerAuthService.signup(dto, memberId);
@@ -92,7 +92,7 @@ class SellerAuthServiceImplTest {
                 "나이키 코리아", "1234567890", "홍길동", "국민은행", "12345678901234");
 
         given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
-        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
+        given(memberRepository.findByIdAndDeletedAtIsNull(memberId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerAuthService.signup(dto, memberId))
@@ -122,13 +122,13 @@ class SellerAuthServiceImplTest {
                 .member(mockMember)
                 .build();
 
-        given(sellerRepository.findById(sellerId)).willReturn(Optional.of(mockSeller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(sellerId)).willReturn(Optional.of(mockSeller));
 
         // when
         sellerAuthService.update(sellerId, dto, memberId);
 
         // then
-        verify(sellerRepository, times(1)).findById(sellerId);
+        verify(sellerRepository, times(1)).findActiveMemberSellerBySellerId(sellerId);
     }
 
     @Test
@@ -140,7 +140,7 @@ class SellerAuthServiceImplTest {
         SellerUpdateRequestDto dto = new SellerUpdateRequestDto(
                 "아디다스 코리아", "김철수", "신한은행", "98765432101234");
 
-        given(sellerRepository.findById(sellerId)).willReturn(Optional.empty());
+        given(sellerRepository.findActiveMemberSellerBySellerId(sellerId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> sellerAuthService.update(sellerId, dto, memberId))
@@ -277,7 +277,7 @@ class SellerAuthServiceImplTest {
                 .member(mockMember)
                 .build();
 
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
+        given(sellerRepository.findActiveMemberSellerBySellerId(sellerId))
                 .willReturn(Optional.of(mockSeller));
 
         // when
@@ -294,7 +294,7 @@ class SellerAuthServiceImplTest {
         Long sellerId = 999L;
         Long memberId = 1L;
 
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
+        given(sellerRepository.findActiveMemberSellerBySellerId(sellerId))
                 .willReturn(Optional.empty());
 
         // when & then

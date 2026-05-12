@@ -56,7 +56,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.PENDING);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
         given(sellerApprovalRepository.save(any(SellerApproval.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -86,7 +86,7 @@ class AdminSellerApprovalServiceImplTest {
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(admin));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
         given(sellerApprovalRepository.save(any(SellerApproval.class)))
                 .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -117,7 +117,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -127,7 +127,7 @@ class AdminSellerApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+        given(sellerRepository.findActiveMemberSellerBySellerId(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 999L))
@@ -149,7 +149,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -159,7 +159,7 @@ class AdminSellerApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
@@ -174,7 +174,7 @@ class AdminSellerApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
@@ -189,7 +189,7 @@ class AdminSellerApprovalServiceImplTest {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
@@ -212,7 +212,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -230,7 +230,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -242,7 +242,7 @@ class AdminSellerApprovalServiceImplTest {
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+        given(sellerRepository.findActiveMemberSellerBySellerId(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 999L, request))
@@ -259,7 +259,7 @@ class AdminSellerApprovalServiceImplTest {
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.APPROVED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
@@ -276,7 +276,7 @@ class AdminSellerApprovalServiceImplTest {
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.REJECTED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
@@ -293,7 +293,7 @@ class AdminSellerApprovalServiceImplTest {
         SellerRejectRequestDto request = new SellerRejectRequestDto("사업자등록번호 확인 필요");
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller(SellerStatus.SUSPENDED)));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.rejectSeller(adminInfo, 1L, request))
@@ -313,7 +313,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_NOT_FOUND);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -336,7 +336,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.approveSeller(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
         verify(sellerApprovalRepository, never()).save(any());
     }
 
@@ -351,7 +351,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller suspendedSeller = sellerWithMember(SellerStatus.SUSPENDED);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(
+        given(sellerRepository.findAllActiveMemberSellersByStatusIn(
                 List.of(SellerStatus.APPROVED, SellerStatus.SUSPENDED)))
                 .willReturn(List.of(approvedSeller, suspendedSeller));
 
@@ -374,7 +374,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.getSellers(adminInfo))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findAllByStatusInAndDeletedAtIsNullOrderByCreatedAtDesc(any());
+        verify(sellerRepository, never()).findAllActiveMemberSellersByStatusIn(any());
     }
 
     @Test
@@ -386,7 +386,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller pendingSeller2 = sellerWithMember(SellerStatus.PENDING);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(SellerStatus.PENDING))
+        given(sellerRepository.findAllActiveMemberSellersByStatus(SellerStatus.PENDING))
                 .willReturn(List.of(pendingSeller1, pendingSeller2));
 
         // when
@@ -404,7 +404,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.getPendingSellers(null))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findAllByStatusAndDeletedAtIsNullOrderByCreatedAtDesc(any());
+        verify(sellerRepository, never()).findAllActiveMemberSellersByStatus(any());
     }
 
     @Test
@@ -415,7 +415,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.APPROVED);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
 
         // when
         adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L);
@@ -432,7 +432,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.SUSPENDED);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
 
         // when
         adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L);
@@ -451,7 +451,7 @@ class AdminSellerApprovalServiceImplTest {
         assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
                 .isInstanceOf(BusinessException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_FORBIDDEN);
-        verify(sellerRepository, never()).findBySellerIdAndDeletedAtIsNull(any());
+        verify(sellerRepository, never()).findActiveMemberSellerBySellerId(any());
     }
 
     @Test
@@ -462,7 +462,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.PENDING);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
@@ -479,7 +479,7 @@ class AdminSellerApprovalServiceImplTest {
         Seller seller = seller(SellerStatus.REJECTED);
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(1L)).willReturn(Optional.of(seller));
+        given(sellerRepository.findActiveMemberSellerBySellerId(1L)).willReturn(Optional.of(seller));
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 1L))
@@ -495,7 +495,7 @@ class AdminSellerApprovalServiceImplTest {
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
-        given(sellerRepository.findBySellerIdAndDeletedAtIsNull(999L)).willReturn(Optional.empty());
+        given(sellerRepository.findActiveMemberSellerBySellerId(999L)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> adminSellerApprovalService.toggleSellerStatus(adminInfo, 999L))

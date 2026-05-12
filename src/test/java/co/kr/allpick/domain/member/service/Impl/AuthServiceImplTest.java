@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,7 +31,7 @@ import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.repository.MemberRepository;
 import co.kr.allpick.domain.member.service.impl.AuthServiceImpl;
 import co.kr.allpick.domain.member.sms.service.SmsService;
-import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.config.JwtProvider;
 import co.kr.allpick.global.config.JwtUserInfoDto;
@@ -150,7 +151,8 @@ class AuthServiceImplTest {
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.empty());
+        given(sellerRepository.existsByMemberIdAndStatusAndDeletedAtIsNull(any(), any()))
+                .willReturn(false);
 
         AuthResponseDto result = authService.login(dto);
 
@@ -174,14 +176,13 @@ class AuthServiceImplTest {
                 .address("서울시 강남구")
                 .build();
 
-        Seller mockSeller = Seller.builder()
-                .member(mockMember)
-                .build();
-
         when(memberRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(mockMember));
         when(passwordEncoder.matches(dto.getPassword(), mockMember.getPassword())).thenReturn(true);
         when(jwtProvider.createToken(any(JwtUserInfoDto.class))).thenReturn("mockToken");
-        when(sellerRepository.findByMemberId(any())).thenReturn(Optional.of(mockSeller));
+        given(sellerRepository.existsByMemberIdAndStatusAndDeletedAtIsNull(
+                any(),
+                eq(SellerStatus.APPROVED)
+        )).willReturn(true);
 
         AuthResponseDto result = authService.login(dto);
 

@@ -101,7 +101,7 @@ public class Member extends BaseEntity {
     // 탈퇴 (Soft Delete)
     public void delete() {
         this.status = 0;
-
+        super.delete();
     }
 
     // 관리자 - 회원 정지

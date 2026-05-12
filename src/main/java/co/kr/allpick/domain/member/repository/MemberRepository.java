@@ -13,7 +13,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	Page<Member> findAll(Pageable pageable);
 	Optional<Member> findByEmail(String email);
 	boolean existsByEmail(String email);
-	List<Member> findAllByOrderByCreatedAtDesc();
+	Optional<Member> findByIdAndDeletedAtIsNull(Long memberId);
+	List<Member> findAllByDeletedAtIsNullOrderByCreatedAtDesc();
 	
 	@Query("SELECT m.email FROM Member m WHERE m.phone = :phone")
     Optional<String> findEmailByUserPhone(@Param("phone") String phone);

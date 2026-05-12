@@ -35,9 +35,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(readOnly = true)
     public MemberResponseDto getMember(Long memberId) {
         logger.info("[MemberService] 회원 정보 조회 - memberId: {}", memberId);
-        return memberRepository.findById(memberId)
-                .map(MemberResponseDto::from)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        return MemberResponseDto.from(findMemberById(memberId));
     }
 
     @Override
@@ -68,6 +66,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(readOnly = true)
     public List<OrderResponseDto> getMyOrders(Long memberId) {
         logger.info("[MemberService] 회원 주문 목록 조회 - memberId: {}", memberId);
+        findMemberById(memberId);
         List<Order> orders = orderRepository.findByMemberIdExcludingPending(memberId);
 
         return orders.stream()
@@ -76,13 +75,12 @@ public class MemberServiceImpl implements MemberService {
     }
     
     @Override
-    public boolean
-    checkEmailDuplicate(String email) {
+    public boolean checkEmailDuplicate(String email) {
         return memberRepository.existsByEmail(email);
     }
 
     private Member findMemberById(Long memberId) {
-        return memberRepository.findById(memberId)
+        return memberRepository.findByIdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
