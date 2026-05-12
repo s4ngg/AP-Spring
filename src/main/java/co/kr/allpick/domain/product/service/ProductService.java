@@ -12,6 +12,7 @@ import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
 
 
 public interface ProductService {
@@ -31,5 +32,5 @@ public interface ProductService {
 	// 상품 삭제 ( DeleteMapping )
 	void deleteProduct(Long memberId ,Long productId);
 	
-	List<ProductListResponseDto> getSellerProducts(Long memberId);
+	List<SellerProductListResponseDto> getSellerProducts(Long memberId);
 }

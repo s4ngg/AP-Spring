@@ -31,6 +31,9 @@ import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
 import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
+import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
+import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
@@ -246,5 +249,115 @@ class ProductServiceImplTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("판매자 상품 목록 조회 성공 - 승인 상태 포함")
+    void 판매자_상품_목록_조회_성공_승인상태포함() {
+        Long memberId = 1L;
+        Long sellerId = 10L;
+        Seller seller = Seller.builder()
+                .sellerId(sellerId)
+                .build();
+        ParentCategory category = ParentCategory.builder()
+                .categoryName("뷰티")
+                .build();
+        Product pendingProduct = Product.builder()
+                .productId(1L)
+                .productName("승인 대기 상품")
+                .brand("올픽")
+                .price(new BigDecimal("10000"))
+                .parentCategory(category)
+                .thumbnailUrl("https://allpick.com/pending.jpg")
+                .approvalStatus(Product.ApprovalStatus.PENDING)
+                .build();
+        Product rejectedProduct = Product.builder()
+                .productId(2L)
+                .productName("거절 상품")
+                .brand("올픽")
+                .price(new BigDecimal("20000"))
+                .parentCategory(category)
+                .thumbnailUrl("https://allpick.com/rejected.jpg")
+                .approvalStatus(Product.ApprovalStatus.REJECTED)
+                .build();
+
+        given(sellerRepository.findWithMemberByMemberId(memberId)).willReturn(Optional.of(seller));
+        given(productRepository.findBySellerIdAndDeletedAtIsNull(sellerId))
+                .willReturn(List.of(pendingProduct, rejectedProduct));
+
+        List<SellerProductListResponseDto> result = productService.getSellerProducts(memberId);
+
+        assertThat(result).hasSize(2);
+        assertThat(result)
+                .extracting(SellerProductListResponseDto::getApprovalStatus)
+                .containsExactly(Product.ApprovalStatus.PENDING, Product.ApprovalStatus.REJECTED);
+    }
+
+    @Test
+    @DisplayName("상품 수정 성공 - 승인 대기 상태")
+    void 상품_수정_성공_승인대기상태() {
+        Long memberId = 1L;
+        Long productId = 1L;
+        Product product = Product.builder()
+                .productId(productId)
+                .productName("기존 상품")
+                .brand("올픽")
+                .price(new BigDecimal("10000"))
+                .approvalStatus(Product.ApprovalStatus.PENDING)
+                .build();
+        ProductUpdateRequestDto request = ProductUpdateRequestDto.builder()
+                .price(new BigDecimal("15000"))
+                .build();
+
+        given(productRepository.findByProductIdAndMemberId(memberId, productId))
+                .willReturn(Optional.of(product));
+
+        ProductUpdateResponseDto result = productService.updateProduct(memberId, productId, request);
+
+        assertThat(result.getPrice()).isEqualByComparingTo(new BigDecimal("15000"));
+    }
+
+    @Test
+    @DisplayName("상품 수정 실패 - 승인 완료 상태")
+    void 상품_수정_실패_승인완료상태() {
+        Long memberId = 1L;
+        Long productId = 1L;
+        Product product = Product.builder()
+                .productId(productId)
+                .price(new BigDecimal("10000"))
+                .approvalStatus(Product.ApprovalStatus.APPROVED)
+                .build();
+        ProductUpdateRequestDto request = ProductUpdateRequestDto.builder()
+                .price(new BigDecimal("15000"))
+                .build();
+
+        given(productRepository.findByProductIdAndMemberId(memberId, productId))
+                .willReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> productService.updateProduct(memberId, productId, request))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PRODUCT_CANNOT_UPDATE_NOT_PENDING));
+    }
+
+    @Test
+    @DisplayName("상품 수정 실패 - 거절 상태")
+    void 상품_수정_실패_거절상태() {
+        Long memberId = 1L;
+        Long productId = 1L;
+        Product product = Product.builder()
+                .productId(productId)
+                .price(new BigDecimal("10000"))
+                .approvalStatus(Product.ApprovalStatus.REJECTED)
+                .build();
+        ProductUpdateRequestDto request = ProductUpdateRequestDto.builder()
+                .price(new BigDecimal("15000"))
+                .build();
+
+        given(productRepository.findByProductIdAndMemberId(memberId, productId))
+                .willReturn(Optional.of(product));
+
+        assertThatThrownBy(() -> productService.updateProduct(memberId, productId, request))
+                .isInstanceOfSatisfying(BusinessException.class,
+                        e -> assertThat(e.getErrorCode()).isEqualTo(ErrorCode.PRODUCT_CANNOT_UPDATE_NOT_PENDING));
     }
 }

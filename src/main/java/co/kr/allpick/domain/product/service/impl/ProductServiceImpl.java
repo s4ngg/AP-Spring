@@ -15,6 +15,7 @@ import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
 import co.kr.allpick.domain.product.entity.ParentCategory;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
@@ -92,12 +93,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<ProductListResponseDto> getSellerProducts(Long memberId) {
+    public List<SellerProductListResponseDto> getSellerProducts(Long memberId) {
         Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
         return productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
                 .stream()
-                .map(ProductListResponseDto::from)
+                .map(SellerProductListResponseDto::from)
                 .toList();
     }
 }
