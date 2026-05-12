@@ -196,14 +196,14 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
 
     private void validateSlugForCreate(String slug) {
         if (isSlugDuplicated(slug)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.CATEGORY_SLUG_DUPLICATED);
         }
     }
 
     private void validateSlugForUpdate(String requestSlug, String currentSlug) {
         String trimmedSlug = requestSlug.trim();
         if (!trimmedSlug.equals(currentSlug) && isSlugDuplicated(trimmedSlug)) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new BusinessException(ErrorCode.CATEGORY_SLUG_DUPLICATED);
         }
     }
 

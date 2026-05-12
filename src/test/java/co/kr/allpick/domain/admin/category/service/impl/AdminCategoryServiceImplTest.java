@@ -107,7 +107,7 @@ class AdminCategoryServiceImplTest {
         // when & then
         assertThatThrownBy(() -> adminCategoryService.createParentCategory(adminInfo, request))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SLUG_DUPLICATED);
         verify(parentCategoryRepository, never()).save(any());
     }
 
@@ -272,6 +272,27 @@ class AdminCategoryServiceImplTest {
         assertThat(captor.getValue().getParentCategory()).isEqualTo(parentCategory);
         assertThat(captor.getValue().getCategoryName()).isEqualTo("스킨케어");
         assertThat(captor.getValue().getSlug()).isEqualTo("skincare");
+    }
+
+    @Test
+    @DisplayName("소분류 등록 실패 - slug 중복")
+    void 소분류_등록_실패_slug중복() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        AdminCategoryRequestDto request = request("스킨케어", "skincare", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+        given(parentCategoryRepository.existsBySlugAndDeletedAtIsNull("skincare")).willReturn(false);
+        given(childCategoryRepository.existsBySlugAndDeletedAtIsNull("skincare")).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminCategoryService.createChildCategory(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SLUG_DUPLICATED);
+        verify(childCategoryRepository, never()).save(any());
     }
 
     @Test
