@@ -76,6 +76,10 @@ public class OrderServiceImpl implements OrderService {
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
             var coupon = memberCoupon.getCoupon();
+            if (coupon.getMinOrderAmount() != null &&
+                    totalProductPrice.compareTo(coupon.getMinOrderAmount()) < 0) {
+                throw new BusinessException(ErrorCode.COUPON_MIN_ORDER_NOT_MET);
+            }
             if (coupon.getDiscountType().name().equals("PERCENT")) {
                 discountAmount = totalProductPrice
                         .multiply(coupon.getDiscountValue())
