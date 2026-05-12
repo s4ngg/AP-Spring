@@ -408,8 +408,29 @@ class ClaimServiceImplTest {
     }
 
     @Test
-    @DisplayName("클레임 상태 변경 성공")
+    @DisplayName("클레임 상태 변경 성공 - 판매자 확인 후 관리자 완료")
     void 클레임_상태_변경_성공() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
+        Long claimId = 1L;
+        Claim mockClaim = buildMockClaim();
+        mockClaim.updateStatus(Claim.ClaimStatus.IN_PROGRESS);
+        ClaimStatusUpdateRequestDto request = new ClaimStatusUpdateRequestDto(Claim.ClaimStatus.COMPLETED);
+
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+
+        // when
+        ClaimResponseDto result = claimService.updateStatus(adminInfo, claimId, request);
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("클레임 상태 변경 실패 - 판매자 확인 전 관리자 직접 처리")
+    void 클레임_상태_변경_실패_판매자확인전() {
         // given
         AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
@@ -420,11 +441,10 @@ class ClaimServiceImplTest {
                 .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
         given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
 
-        // when
-        ClaimResponseDto result = claimService.updateStatus(adminInfo, claimId, request);
-
-        // then
-        assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.IN_PROGRESS);
+        // when & then
+        assertThatThrownBy(() -> claimService.updateStatus(adminInfo, claimId, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CLAIM_INVALID_STATUS);
     }
 
     @Test
@@ -444,7 +464,7 @@ class ClaimServiceImplTest {
         // when & then
         assertThatThrownBy(() -> claimService.updateStatus(adminInfo, claimId, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_INVALID_STATUS.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CLAIM_INVALID_STATUS);
     }
 
     @Test
@@ -454,6 +474,7 @@ class ClaimServiceImplTest {
         AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
         Long claimId = 1L;
         Claim mockClaim = buildMockClaim();
+        mockClaim.updateStatus(Claim.ClaimStatus.IN_PROGRESS);
         ClaimRejectRequestDto request = new ClaimRejectRequestDto("사유");
 
         given(adminRepository.findById(adminInfo.getAdminId()))
@@ -465,6 +486,25 @@ class ClaimServiceImplTest {
 
         // then
         assertThat(result.getStatus()).isEqualTo(Claim.ClaimStatus.REJECTED);
+    }
+
+    @Test
+    @DisplayName("클레임 거부 실패 - 판매자 확인 전 관리자 직접 거부")
+    void 클레임_거부_실패_판매자확인전() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo(1L);
+        Long claimId = 1L;
+        Claim mockClaim = buildMockClaim();
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
+
+        given(adminRepository.findById(adminInfo.getAdminId()))
+                .willReturn(Optional.of(buildAdmin(Admin.AdminRole.SUPER_ADMIN, Admin.AdminStatus.ACTIVE)));
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.rejectClaim(adminInfo, claimId, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CLAIM_INVALID_STATUS);
     }
 
     @Test
@@ -484,7 +524,7 @@ class ClaimServiceImplTest {
         // when & then
         assertThatThrownBy(() -> claimService.rejectClaim(adminInfo, claimId, request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.CLAIM_ALREADY_CANCELLED.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CLAIM_ALREADY_CANCELLED);
     }
     
     @Test

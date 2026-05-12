@@ -14,6 +14,6 @@ import lombok.NoArgsConstructor;
 public class ClaimStatusUpdateRequestDto {
 
     @NotNull
-    @Schema(description = "변경할 클레임 상태", example = "IN_PROGRESS", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "관리자 완료 처리 상태", example = "COMPLETED", requiredMode = Schema.RequiredMode.REQUIRED)
     private Claim.ClaimStatus status;
 }

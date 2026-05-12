@@ -56,10 +56,10 @@ public interface ClaimControllerDocs {
     })
     ResponseEntity<ApiResponse<List<ClaimResponseDto>>> getSellerClaims(
             @AuthenticationPrincipal JwtUserInfoDto userInfo);
-    @Operation(summary = "클레임 상태 변경", description = "관리자 또는 판매자가 클레임 상태를 변경합니다.")
+    @Operation(summary = "클레임 상태 변경", description = "관리자가 판매자 확인(IN_PROGRESS)이 끝난 클레임을 완료(COMPLETED) 처리합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 상태 변경 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 완료되거나 거부된 클레임"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "판매자 확인 전이거나 이미 완료/거부된 클레임"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 클레임")
     })
     ResponseEntity<ApiResponse<ClaimResponseDto>> updateStatus(
@@ -67,10 +67,10 @@ public interface ClaimControllerDocs {
             @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId,
             @RequestBody @Valid ClaimStatusUpdateRequestDto request);
 
-    @Operation(summary = "클레임 거부", description = "관리자 또는 판매자가 클레임을 거부합니다.")
+    @Operation(summary = "클레임 거부", description = "관리자가 판매자 확인(IN_PROGRESS)이 끝난 클레임을 거부합니다.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 거부 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 완료되거나 거부된 클레임"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "판매자 확인 전이거나 이미 완료/거부된 클레임"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 클레임")
     })
     ResponseEntity<ApiResponse<ClaimResponseDto>> rejectClaim(
