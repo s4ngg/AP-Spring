@@ -28,6 +28,7 @@ public enum ErrorCode {
     INVALID_DISCOUNT_VALUE(HttpStatus.BAD_REQUEST, "INVALID_DISCOUNT_VALUE", "PERCENT 할인값은 1~100 사이여야 합니다."),
     COUPON_EXPIRED(HttpStatus.BAD_REQUEST, "COUPON_EXPIRED", "만료된 쿠폰입니다."),
     MEMBER_COUPON_NOT_FOUND(HttpStatus.NOT_FOUND,"MEMBER_COUPON_NOT_FOUND", "쿠폰을 보유하지 않은 사용자입니다."),
+    COUPON_MIN_ORDER_NOT_MET(HttpStatus.BAD_REQUEST, "COUPON_MIN_ORDER_NOT_MET", "최소 주문금액을 충족하지 않습니다."),
     
     // Inquiry
     INQUIRY_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_NOT_FOUND", "문의를 찾을 수 없습니다."),
