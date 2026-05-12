@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+
+import java.util.List;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
@@ -20,6 +23,7 @@ import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
 import co.kr.allpick.global.config.JwtUserInfoDto;
 import co.kr.allpick.global.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +32,8 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
 @Tag(name = "Product", description = "상품 관련 API")
 public interface ProductControllerDocs {
 
@@ -49,6 +54,10 @@ public interface ProductControllerDocs {
 	ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@RequestBody @Valid ProductSaveRequestDto productSaveRequestDto);
 
+	
+	@PostMapping("/images")
+	ResponseEntity<ApiResponse<String>> uploadImage(
+	    @RequestPart("image") MultipartFile image) throws IOException;
 	@Operation(summary = "상품 목록 조회", description = "판매 중이고 승인된 상품 목록을 페이징으로 조회합니다. 삭제된 상품은 제외됩니다.")
 	@ApiResponses({
 			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공", content = @Content(examples = @ExampleObject(value = """
@@ -126,7 +135,7 @@ public interface ProductControllerDocs {
 	@PatchMapping("/{productId}")
 	ResponseEntity<ApiResponse<ProductUpdateResponseDto>> updateProduct(
 			@AuthenticationPrincipal JwtUserInfoDto userInfo, @PathVariable("productId") Long productId,
-			@RequestBody ProductUpdateRequestDto productUpdateRequestDto);
+			@RequestBody @Valid ProductUpdateRequestDto productUpdateRequestDto);
 
 	@Operation(summary = "상품 삭제", description = "상품을 삭제 상태로 변경합니다. (소프트 딜리트 적용)")
 	@ApiResponses({
@@ -141,4 +150,12 @@ public interface ProductControllerDocs {
 	@DeleteMapping("/{productId}")
 	ResponseEntity<ApiResponse<Void>> deleteProduct(@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@PathVariable("productId") Long productId);
+
+	@Operation(summary = "판매자 상품 목록 조회", description = "로그인한 판매자가 등록한 상품 목록과 승인 상태를 조회합니다.")
+	@ApiResponses({
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "판매자 상품 목록 조회 성공"),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "판매자 권한 없음") })
+	@GetMapping("/seller")
+	ResponseEntity<ApiResponse<List<SellerProductListResponseDto>>> getSellerProducts(
+			@AuthenticationPrincipal JwtUserInfoDto userInfo);
 }

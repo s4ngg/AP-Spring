@@ -1,4 +1,4 @@
-   package co.kr.allpick.domain.product.service.impl;
+package co.kr.allpick.domain.product.service.impl;
 
 import java.util.List;
 
@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
@@ -15,9 +16,10 @@ import co.kr.allpick.domain.product.dto.ProductSaveRequestDto;
 import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
-import co.kr.allpick.domain.product.entity.ParentCategory;
+import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
+import co.kr.allpick.domain.product.entity.ChildCategory;
 import co.kr.allpick.domain.product.entity.Product;
-import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
+import co.kr.allpick.domain.product.repository.ChildCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
 import co.kr.allpick.domain.review.dto.ReviewResponseDto;
@@ -26,103 +28,85 @@ import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
+import co.kr.allpick.global.util.S3Uploader;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ProductServiceImpl implements ProductService{
+public class ProductServiceImpl implements ProductService {
 
-	private static final Logger logger = LogManager.getLogger(ProductServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(ProductServiceImpl.class);
+    private final S3Uploader s3Uploader;
+    
+    private final ProductRepository productRepository;
+    private final ChildCategoryRepository childCategoryRepository;
+    private final ReviewRepository reviewRepository;
+    private final SellerRepository sellerRepository;
 
-	private final ProductRepository productRepository;
-	private final  ParentCategoryRepository parentCategoryRepository;
-	private final ReviewRepository reviewRepository;
-	private final SellerRepository sellerRepository;
-	
-	@Override
-	// ?ÅÌíà ?ùÏÑ± Î©îÏÑú??
-		//		-	Í≤ÄÏ¶?: 1.?¥Îãπ ?ÅÌíà???êÎß§?êÏù∏ÏßÄ 2. Ï°¥Ïû¨?òÎäî Ïπ¥ÌÖåÍ≥†Î¶¨?∏Ï? 3. ?¥Î? ?¨Ïö©Ï§ëÏù∏ ?ÅÌíàÎ™ÖÏù∏ÏßÄ -> Îß§Í∞úÎ≥Ä??: ?îÏ≤≠Dto???µÌï¥ Í≤Ä??
-		// 		- 	Î∞òÌôò : ?ùÏÑ±??Í∞ùÏ≤¥??id, ?ùÏÑ±?±Í≥µ Î©îÏÑ∏ÏßÄ..
-	public ProductSaveResponseDto createProduct(Long memberId ,ProductSaveRequestDto reqDto) {
-		
-		// ?êÎß§??Í≤ÄÏ¶?	
-		Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
-				.orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-		// Ïπ¥ÌÖåÍ≥†Î¶¨ Í≤ÄÏ¶?
-		ParentCategory parentCategory = parentCategoryRepository.findById(reqDto.getCategoryId())
-				.orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
-		// ?ÅÌíà ?¥Î¶Ñ Í≤ÄÏ¶?(??†ú???ÅÌíà ?úÏô∏)
-		if (productRepository.existsByProductNameAndDeletedAtIsNull(reqDto.getProductName())) {
-			throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS);
-		}
-		
-		// ?ÅÌíà ?ùÏÑ± (?ÑÏùò Í≤ÄÏ¶?Î™®Îëê ?µÍ≥º)
-		Product product = reqDto.toEntity(seller, parentCategory);
-		// ÎßåÎì§?¥ÏßÑ ?ÅÌíà ?Ä??
-		productRepository.save(product);
-		// ?ëÎãµÍ∞ùÏ≤¥Î°?Î≥Ä?òÌïò??Î∞òÌôò
-		return ProductSaveResponseDto.from(product);
-	}
-	
-	@Transactional(readOnly = true)
-	@Override
-	
-	// IdÎ°??ÅÌíà?ÅÏÑ∏ ?òÏù¥ÏßÄ Ï°∞Ìöå (Î¶¨Î∑∞ ?¨Ìï®)
- 	public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
-		// findValidProduct Î©îÏÑú?úÍ? ?êÎß§?ÅÌÉú?Ä, ?πÏù∏?ÅÌÉú Í≤ÄÏ¶ùÌï¥Ï§?
-		Product product = productRepository.findValidProduct(productId)
-				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+    @Override
+    public ProductSaveResponseDto createProduct(Long memberId, ProductSaveRequestDto reqDto) {
+        Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+        ChildCategory childCategory = childCategoryRepository.findById(reqDto.getCategoryId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
+        if (productRepository.existsByProductName(reqDto.getProductName())) {
+            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS);
+        }
+        Product product = reqDto.toEntity(seller, childCategory);
+        product.assignParentCategory(childCategory.getParentCategory().getParentCategoryId());
+        productRepository.save(product);
+        return ProductSaveResponseDto.from(product);
+    }
 
-		// ?¥Îãπ ?ÅÌíà???Ä??Î¶¨Î∑∞ Ï°∞Ìöå
-		Page<ReviewResponseDto> reviewPage = reviewRepository.findByProductId(productId,pageable)
-				.map(ReviewResponseDto::from);
-		
-		return ProductDetailResponseDto.from(product, reviewPage);
-	}
-	
-	@Override
-	
-	// ?ÅÌíà Í∞ÄÍ≤??òÏ†ï ( PatchMapping )
-	public ProductUpdateResponseDto updateProduct(Long memberId, Long productId, ProductUpdateRequestDto reqDto) {
-		// ?ÅÌíà Ï°¥Ïû¨ Í≤ÄÏ¶?+ ?êÎß§?êÏùò ?ÅÌíà?∏Ï? Í≤ÄÏ¶?
-		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
-				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-		product.updatePrice(reqDto.getPrice());
-		return ProductUpdateResponseDto.from(product);
-	}
+    @Transactional(readOnly = true)
+    @Override
+    public ProductDetailResponseDto getProductDetail(Long productId, Pageable pageable) {
+        Product product = productRepository.findValidProduct(productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        Page<ReviewResponseDto> reviewPage = reviewRepository.findByProductId(productId, pageable)
+                .map(ReviewResponseDto::from);
+        return ProductDetailResponseDto.from(product, reviewPage);
+    }
 
-	@Override
-	@Transactional(readOnly = true)
-	// ?êÎß§ Ï§ëÏù¥Í≥??πÏù∏???ÅÌíà Î™©Î°ù ?òÏù¥ÏßÄ Ï°∞Ìöå
-	public Page<ProductListResponseDto> getProductList(Pageable pageable) {
-		logger.info("?ÅÌíà Î™©Î°ù Ï°∞Ìöå - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
-		return productRepository.findByStatusAndApprovalStatusAndDeletedAtIsNull(
-				Product.Status.ON_SALE,   // ?ÑÏû¨ ?êÎß§Ï§?
-				Product.ApprovalStatus.APPROVED,   // Í¥ÄÎ¶¨Ïûê ?πÏù∏ ?ÅÌíà
-				pageable
-		).map(ProductListResponseDto::from);
-	}
-	
-	@Override
-	public void deleteProduct(Long memberId,Long productId) {
-		// ?¥Îãπ ?ÅÌíà???êÎß§?êÏù∏ÏßÄ ?ïÏù∏ 
-		Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
-				.orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
-		
-		product.delete();
-	}
-	
+    @Override
+    public ProductUpdateResponseDto updateProduct(Long memberId, Long productId, ProductUpdateRequestDto reqDto) {
+        Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.update(reqDto);
+        return ProductUpdateResponseDto.from(product);
+    }
 
-	@Transactional(readOnly = true)
-	@Override
-	public List<ProductListResponseDto> getSellerProducts(Long memberId) {
-	    Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
-	            .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-	    return productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
-	            .stream()
-	            .map(ProductListResponseDto::from)
-	            .toList();
-	}
+    @Override
+    public String uploadImage(MultipartFile image) {
+        return s3Uploader.upload(image, "products");
+    }
+    @Transactional(readOnly = true)
+    @Override
+    public Page<ProductListResponseDto> getProductList(Pageable pageable) {
+        logger.info("ÏÉÅÌíà Î™©Î°ù Ï°∞Ìöå - page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        return productRepository.findVisibleProducts(
+                Product.Status.ON_SALE,
+                Product.ApprovalStatus.APPROVED,
+                pageable
+        ).map(ProductListResponseDto::from);
+    }
 
+    @Override
+    public void deleteProduct(Long memberId, Long productId) {
+        Product product = productRepository.findByProductIdAndMemberId(memberId, productId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.delete();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<SellerProductListResponseDto> getSellerProducts(Long memberId) {
+        Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+        return productRepository.findBySellerIdAndDeletedAtIsNull(seller.getSellerId())
+                .stream()
+                .map(SellerProductListResponseDto::from)
+                .toList();
+    }
 }

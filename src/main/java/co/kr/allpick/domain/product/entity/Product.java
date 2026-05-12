@@ -3,10 +3,12 @@ package co.kr.allpick.domain.product.entity;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import co.kr.allpick.domain.product.dto.ProductImageRequestDto;
+import co.kr.allpick.domain.product.dto.ProductOptionRequestDto;
+import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.seller.entity.Seller;
-
 import org.hibernate.annotations.BatchSize;
-
 import co.kr.allpick.global.common.BaseEntity;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
@@ -49,17 +51,24 @@ public class Product extends BaseEntity {
     private Seller seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_category_id", nullable = false)
-    private ParentCategory parentCategory;
+    @JoinColumn(name = "child_category_id", nullable = false)
+    private ChildCategory childCategory;
 
+    @Column(name = "parent_category_id", nullable = false)
+    private Long parentCategoryId;
+    
+    public void assignParentCategory(Long parentCategoryId) {
+        this.parentCategoryId = parentCategoryId;
+    }
+    
     @BatchSize(size = 100)
     @Builder.Default
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     private List<ProductOption> optionList = new ArrayList<>();
 
     @Builder.Default
     @BatchSize(size = 100)
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     @OrderBy("sortOrder ASC")
     private List<ProductImage> productImageList = new ArrayList<>();
 
@@ -113,8 +122,39 @@ public class Product extends BaseEntity {
         this.approvalStatus = ApprovalStatus.REJECTED;
     }
 
-    public void updatePrice(BigDecimal price) {
-        this.price = price;
+    public void update(ProductUpdateRequestDto reqDto) {
+        validateUpdatable();
+
+        if (reqDto.getPrice() != null)        this.price = reqDto.getPrice();
+        if (reqDto.getProductName() != null)  this.productName = reqDto.getProductName();
+        if (reqDto.getBrand() != null)        this.brand = reqDto.getBrand();
+        if (reqDto.getThumbnailUrl() != null) this.thumbnailUrl = reqDto.getThumbnailUrl();
+        if (reqDto.getDescription() != null)  this.description = reqDto.getDescription();
+        if (reqDto.getManufacturer() != null) this.manufacturer = reqDto.getManufacturer();
+        if (reqDto.getOrigin() != null)       this.origin = reqDto.getOrigin();
+        if (reqDto.getPrecaution() != null)   this.precaution = reqDto.getPrecaution();
+
+        if (reqDto.getOptionList() != null) {
+            this.optionList.forEach(option -> option.delete());
+            List<ProductOption> newOptions = reqDto.getOptionList().stream()
+                    .map(o -> o.toEntity(this))
+                    .toList();
+            this.optionList.addAll(newOptions);
+        }
+
+        if (reqDto.getProductImageList() != null) {
+            this.productImageList.forEach(image -> image.delete());
+            List<ProductImage> newImages = reqDto.getProductImageList().stream()
+                    .map(i -> i.toEntity(this))
+                    .toList();
+            this.productImageList.addAll(newImages);
+        }
+    }
+
+    private void validateUpdatable() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new BusinessException(ErrorCode.PRODUCT_CANNOT_UPDATE_NOT_PENDING);
+        }
     }
 
     @Override
