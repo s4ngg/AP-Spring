@@ -54,6 +54,13 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "child_category_id", nullable = false)
     private ChildCategory childCategory;
 
+    @Column(name = "parent_category_id", nullable = false)
+    private Long parentCategoryId;
+    
+    public void assignParentCategory(Long parentCategoryId) {
+        this.parentCategoryId = parentCategoryId;
+    }
+    
     @BatchSize(size = 100)
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
