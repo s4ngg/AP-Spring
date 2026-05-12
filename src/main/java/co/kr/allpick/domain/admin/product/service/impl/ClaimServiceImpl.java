@@ -259,11 +259,8 @@ public class ClaimServiceImpl implements ClaimService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
         validateSellerClaimOwnership(claim, memberId);
-        validateRejectableStatus(claim);
 
-        claim.reject(request.getRejectReason());
-        logger.info("[ClaimService] 판매자 클레임 거부 - claimId: {}, memberId: {}", claimId, memberId);
-        return ClaimResponseDto.from(claim);
+        throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
     }
 
     private void validateAdminRejectableStatus(Claim claim) {
@@ -285,8 +282,9 @@ public class ClaimServiceImpl implements ClaimService {
     }
 
     private void validateSellerClaimOwnership(Claim claim, Long memberId) {
-        // 판매자 등록 여부 먼저 확인
-        if (!sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)) {
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+        if (seller.getStatus() != SellerStatus.APPROVED) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 
@@ -296,18 +294,6 @@ public class ClaimServiceImpl implements ClaimService {
         Long productOwnerMemberId = orderItem.getProduct().getSeller().getMember().getId();
         if (!productOwnerMemberId.equals(memberId)) {
             throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
-        }
-    }
-
-    private void validateRejectableStatus(Claim claim) {
-        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
     }
 

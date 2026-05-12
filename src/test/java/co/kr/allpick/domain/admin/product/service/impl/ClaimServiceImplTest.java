@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import co.kr.allpick.domain.seller.entity.Seller;
+import co.kr.allpick.domain.seller.entity.SellerStatus;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -537,12 +538,32 @@ class ClaimServiceImplTest {
         Claim mockClaim = buildMockClaim();
 
         given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
-        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(false);
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).willReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> claimService.approveClaim(claimId, memberId))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage(ErrorCode.NOT_SELLER.getMessage());
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_SELLER);
+    }
+
+    @Test
+    @DisplayName("클레임 승인 실패 - 승인되지 않은 판매자")
+    void approveClaim_notApprovedSeller_throwException() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+        Claim mockClaim = buildMockClaim();
+        Seller pendingSeller = Seller.builder()
+                .status(SellerStatus.PENDING)
+                .build();
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).willReturn(Optional.of(pendingSeller));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.approveClaim(claimId, memberId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_SELLER);
     }
 
     @Test
@@ -558,17 +579,52 @@ class ClaimServiceImplTest {
         Member mockMember = mock(Member.class);
         given(mockMember.getId()).willReturn(memberId);
 
-        Seller mockSeller = Seller.builder().member(mockMember).build();
+        Seller mockSeller = Seller.builder()
+                .member(mockMember)
+                .status(SellerStatus.APPROVED)
+                .build();
         OrderItem mockOrderItem = mock(OrderItem.class);
         Product mockProduct = mock(Product.class);
         given(mockProduct.getSeller()).willReturn(mockSeller);
         given(mockOrderItem.getProduct()).willReturn(mockProduct);
 
         given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
-        given(sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)).willReturn(true);
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).willReturn(Optional.of(mockSeller));
         given(orderItemRepository.findByIdWithSellerMember(orderItemId)).willReturn(Optional.of(mockOrderItem));
 
         // when & then
         claimService.approveClaim(claimId, memberId);
+    }
+
+    @Test
+    @DisplayName("클레임 거부 실패 - 판매자 최종 거부 미지원")
+    void rejectClaimBySeller_throwException() {
+        // given
+        Long claimId = 1L;
+        Long memberId = 1L;
+        Long orderItemId = 10L;
+        Claim mockClaim = buildMockClaim();
+        ClaimRejectRequestDto request = new ClaimRejectRequestDto("거부 사유");
+
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(memberId);
+
+        Seller mockSeller = Seller.builder()
+                .member(mockMember)
+                .status(SellerStatus.APPROVED)
+                .build();
+        OrderItem mockOrderItem = mock(OrderItem.class);
+        Product mockProduct = mock(Product.class);
+        given(mockProduct.getSeller()).willReturn(mockSeller);
+        given(mockOrderItem.getProduct()).willReturn(mockProduct);
+
+        given(claimRepository.findById(claimId)).willReturn(Optional.of(mockClaim));
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)).willReturn(Optional.of(mockSeller));
+        given(orderItemRepository.findByIdWithSellerMember(orderItemId)).willReturn(Optional.of(mockOrderItem));
+
+        // when & then
+        assertThatThrownBy(() -> claimService.rejectClaimBySeller(claimId, request, memberId))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CLAIM_INVALID_STATUS);
     }
 }

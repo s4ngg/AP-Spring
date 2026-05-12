@@ -100,10 +100,9 @@ public interface ClaimControllerDocs {
             @AuthenticationPrincipal JwtUserInfoDto userInfo,
             @Parameter(description = "클레임 ID") @PathVariable("claimId") Long claimId);
 
-    @Operation(summary = "클레임 거부 (판매자)", description = "판매자가 자신의 상품 클레임을 거부합니다.")
+    @Operation(summary = "클레임 거부 (판매자, 지원하지 않음)", description = "판매자는 클레임을 최종 거부하지 않습니다. 판매자 승인 후 관리자가 최종 승인 또는 거부합니다.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "클레임 거부 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "이미 완료/거부/취소된 클레임"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "판매자 거부는 지원하지 않음"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "해당 클레임에 대한 권한 없음"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 클레임 또는 판매자")
     })
