@@ -48,6 +48,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     public ParentCategoryResponseDto createParentCategory(AdminJwtUserInfoDto adminInfo, AdminCategoryRequestDto request) {
         Admin admin = getSuperAdmin(adminInfo);
         validateSlugForCreate(request.getSlug());
+        validateParentSortOrderForCreate(request.getSortOrder());
 
         ParentCategory parentCategory = parentCategoryRepository.save(ParentCategory.builder()
                 .categoryName(request.getCategoryName().trim())
@@ -71,6 +72,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         Admin admin = getSuperAdmin(adminInfo);
         ParentCategory parentCategory = getParentCategory(parentCategoryId);
         validateSlugForUpdate(request.getSlug(), parentCategory.getSlug());
+        validateParentSortOrderForUpdate(parentCategoryId, request.getSortOrder());
 
         parentCategory.update(
                 request.getCategoryName().trim(),
@@ -120,6 +122,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         Admin admin = getSuperAdmin(adminInfo);
         ParentCategory parentCategory = getParentCategory(parentCategoryId);
         validateSlugForCreate(request.getSlug());
+        validateChildSortOrderForCreate(parentCategoryId, request.getSortOrder());
 
         ChildCategory childCategory = childCategoryRepository.save(ChildCategory.builder()
                 .parentCategory(parentCategory)
@@ -145,6 +148,7 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
         ChildCategory childCategory = getChildCategory(childCategoryId);
         ParentCategory parentCategory = childCategory.getParentCategory();
         validateSlugForUpdate(request.getSlug(), childCategory.getSlug());
+        validateChildSortOrderForUpdate(parentCategory.getParentCategoryId(), childCategoryId, request.getSortOrder());
 
         childCategory.update(
                 parentCategory,
@@ -210,5 +214,32 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
     private boolean isSlugDuplicated(String slug) {
         return parentCategoryRepository.existsBySlugAndDeletedAtIsNull(slug.trim())
                 || childCategoryRepository.existsBySlugAndDeletedAtIsNull(slug.trim());
+    }
+
+    private void validateParentSortOrderForCreate(Integer sortOrder) {
+        if (parentCategoryRepository.existsBySortOrderAndDeletedAtIsNull(sortOrder)) {
+            throw new BusinessException(ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        }
+    }
+
+    private void validateParentSortOrderForUpdate(Long parentCategoryId, Integer sortOrder) {
+        if (parentCategoryRepository.existsBySortOrderAndParentCategoryIdNotAndDeletedAtIsNull(
+                sortOrder, parentCategoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        }
+    }
+
+    private void validateChildSortOrderForCreate(Long parentCategoryId, Integer sortOrder) {
+        if (childCategoryRepository.existsByParentCategory_ParentCategoryIdAndSortOrderAndDeletedAtIsNull(
+                parentCategoryId, sortOrder)) {
+            throw new BusinessException(ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        }
+    }
+
+    private void validateChildSortOrderForUpdate(Long parentCategoryId, Long childCategoryId, Integer sortOrder) {
+        if (childCategoryRepository.existsByParentCategory_ParentCategoryIdAndSortOrderAndChildCategoryIdNotAndDeletedAtIsNull(
+                parentCategoryId, sortOrder, childCategoryId)) {
+            throw new BusinessException(ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        }
     }
 }

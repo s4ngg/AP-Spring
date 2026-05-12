@@ -27,4 +27,8 @@ public interface ParentCategoryRepository extends JpaRepository<ParentCategory, 
 
     boolean existsBySlugAndDeletedAtIsNull(String slug);
 
+    boolean existsBySortOrderAndDeletedAtIsNull(Integer sortOrder);
+
+    boolean existsBySortOrderAndParentCategoryIdNotAndDeletedAtIsNull(Integer sortOrder, Long parentCategoryId);
+
 }
