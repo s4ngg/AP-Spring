@@ -44,4 +44,4 @@ logs/
 *.log
 
 ### Claude Code ###
-.claude/
+.claude/uploads/
