@@ -60,9 +60,8 @@ public class ClaimServiceImpl implements ClaimService {
     );
     private static final BigDecimal ROUND_TRIP_SHIPPING_FEE = new BigDecimal("6000");
 
-    // 허용된 상태 전이 규칙: SUBMITTED → IN_PROGRESS → COMPLETED
+    // 관리자 허용 상태 전이: 판매자 확인이 끝난 IN_PROGRESS 클레임만 최종 완료 처리
     private static final Map<Claim.ClaimStatus, Set<Claim.ClaimStatus>> ALLOWED_TRANSITIONS = Map.of(
-            Claim.ClaimStatus.SUBMITTED, Set.of(Claim.ClaimStatus.IN_PROGRESS),
             Claim.ClaimStatus.IN_PROGRESS, Set.of(Claim.ClaimStatus.COMPLETED)
     );
 
@@ -227,22 +226,14 @@ public class ClaimServiceImpl implements ClaimService {
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
-        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
-        }
+        validateAdminRejectableStatus(claim);
 
         claim.reject(request.getRejectReason());
         logger.info("[ClaimService] 관리자 클레임 거부 - actorAdminId: {}, claimId: {}",
                 admin.getAdminId(), claimId);
         return ClaimResponseDto.from(claim);
     }
- // ✅ 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
+    // 8. 클레임 승인 (판매자) SUBMITTED → IN_PROGRESS
     @Override
     @Transactional
     public ClaimResponseDto approveClaim(Long claimId, Long memberId) {
@@ -260,7 +251,7 @@ public class ClaimServiceImpl implements ClaimService {
         return ClaimResponseDto.from(claim);
     }
 
-    // ✅ 9. 클레임 거부 (판매자)
+    // 9. 클레임 거부 (판매자)
     @Override
     @Transactional
     public ClaimResponseDto rejectClaimBySeller(Long claimId, ClaimRejectRequestDto request, Long memberId) {
@@ -268,16 +259,32 @@ public class ClaimServiceImpl implements ClaimService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.CLAIM_NOT_FOUND));
 
         validateSellerClaimOwnership(claim, memberId);
-        validateRejectableStatus(claim);
 
-        claim.reject(request.getRejectReason());
-        logger.info("[ClaimService] 판매자 클레임 거부 - claimId: {}, memberId: {}", claimId, memberId);
-        return ClaimResponseDto.from(claim);
+        throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+    }
+
+    private void validateAdminRejectableStatus(Claim claim) {
+        if (claim.getStatus() == Claim.ClaimStatus.SUBMITTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
+            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
+        }
+        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
+        if (claim.getStatus() != Claim.ClaimStatus.IN_PROGRESS) {
+            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
+        }
     }
 
     private void validateSellerClaimOwnership(Claim claim, Long memberId) {
-        // 판매자 등록 여부 먼저 확인
-        if (!sellerRepository.existsByMemberIdAndDeletedAtIsNull(memberId)) {
+        Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
+        if (seller.getStatus() != SellerStatus.APPROVED) {
             throw new BusinessException(ErrorCode.NOT_SELLER);
         }
 
@@ -287,18 +294,6 @@ public class ClaimServiceImpl implements ClaimService {
         Long productOwnerMemberId = orderItem.getProduct().getSeller().getMember().getId();
         if (!productOwnerMemberId.equals(memberId)) {
             throw new BusinessException(ErrorCode.CLAIM_UNAUTHORIZED);
-        }
-    }
-
-    private void validateRejectableStatus(Claim claim) {
-        if (claim.getStatus() == Claim.ClaimStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_COMPLETED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.CANCELLED) {
-            throw new BusinessException(ErrorCode.CLAIM_ALREADY_CANCELLED);
-        }
-        if (claim.getStatus() == Claim.ClaimStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.CLAIM_INVALID_STATUS);
         }
     }
 
