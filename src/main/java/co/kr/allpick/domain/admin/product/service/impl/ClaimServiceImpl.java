@@ -106,7 +106,9 @@ public class ClaimServiceImpl implements ClaimService {
         BigDecimal productTotal = orderItem.getProductPrice()
                 .multiply(BigDecimal.valueOf(orderItem.getQuantity()));
         boolean isSimpleReason = SIMPLE_REASON_CODES.contains(request.getReasonCode());
-        BigDecimal shippingFee = isSimpleReason ? ROUND_TRIP_SHIPPING_FEE : BigDecimal.ZERO;
+        boolean isCourier = request.getPickupMethod() == Claim.ClaimPickupMethod.COURIER;
+        // 단순 변심 계열 사유 + 택배 수거일 때만 왕복 배송비 부과 (직접 방문 반납은 배송비 없음)
+        BigDecimal shippingFee = (isSimpleReason && isCourier) ? ROUND_TRIP_SHIPPING_FEE : BigDecimal.ZERO;
         // 음수인 경우 고객이 추가 결제해야 하는 금액을 의미
         BigDecimal refundAmount = productTotal.subtract(shippingFee);
 
@@ -127,9 +129,28 @@ public class ClaimServiceImpl implements ClaimService {
     @Override
     @Transactional(readOnly = true)
     public List<ClaimResponseDto> getMyClaims(Long memberId) {
-        return claimRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+        List<Claim> claims = claimRepository.findByMemberIdAndDeletedAtIsNull(memberId);
+        if (claims.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, OrderItem> orderItemMap = orderItemRepository
+                .findAllWithOrderMemberAndProductByOrderItemIdIn(
+                        claims.stream()
+                                .map(Claim::getOrderItemId)
+                                .distinct()
+                                .toList()
+                )
                 .stream()
-                .map(ClaimResponseDto::from)
+                .collect(Collectors.toMap(OrderItem::getOrderItemId, Function.identity()));
+
+        return claims.stream()
+                .map(claim -> {
+                    OrderItem orderItem = orderItemMap.get(claim.getOrderItemId());
+                    return orderItem == null
+                            ? ClaimResponseDto.from(claim)
+                            : ClaimResponseDto.from(claim, orderItem);
+                })
                 .toList();
     }
 
