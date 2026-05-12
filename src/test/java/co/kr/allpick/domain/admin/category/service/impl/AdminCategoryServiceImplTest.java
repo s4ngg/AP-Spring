@@ -112,6 +112,25 @@ class AdminCategoryServiceImplTest {
     }
 
     @Test
+    @DisplayName("대분류 등록 실패 - 정렬 번호 중복")
+    void 대분류_등록_실패_정렬번호중복() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        AdminCategoryRequestDto request = request("뷰티", "beauty", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.existsBySlugAndDeletedAtIsNull("beauty")).willReturn(false);
+        given(childCategoryRepository.existsBySlugAndDeletedAtIsNull("beauty")).willReturn(false);
+        given(parentCategoryRepository.existsBySortOrderAndDeletedAtIsNull(1)).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminCategoryService.createParentCategory(adminInfo, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        verify(parentCategoryRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("대분류 수정 성공")
     void 대분류_수정_성공() {
         // given
@@ -133,6 +152,49 @@ class AdminCategoryServiceImplTest {
         assertThat(parentCategory.getSlug()).isEqualTo("beauty-zone");
         assertThat(parentCategory.getSortOrder()).isEqualTo(2);
         assertThat(parentCategory.getIsActive()).isZero();
+    }
+
+    @Test
+    @DisplayName("대분류 수정 성공 - 기존 정렬 번호 유지")
+    void 대분류_수정_성공_기존정렬번호유지() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        AdminCategoryRequestDto request = request("뷰티관", "beauty", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+        given(parentCategoryRepository.existsBySortOrderAndParentCategoryIdNotAndDeletedAtIsNull(1, 1L))
+                .willReturn(false);
+
+        // when
+        ParentCategoryResponseDto result = adminCategoryService.updateParentCategory(adminInfo, 1L, request);
+
+        // then
+        assertThat(result.getCategoryName()).isEqualTo("뷰티관");
+        assertThat(parentCategory.getSortOrder()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("대분류 수정 실패 - 정렬 번호 중복")
+    void 대분류_수정_실패_정렬번호중복() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        AdminCategoryRequestDto request = request("뷰티관", "beauty", 2, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+        given(parentCategoryRepository.existsBySortOrderAndParentCategoryIdNotAndDeletedAtIsNull(2, 1L))
+                .willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminCategoryService.updateParentCategory(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        assertThat(parentCategory.getSortOrder()).isEqualTo(1);
     }
 
     @Test
@@ -296,6 +358,29 @@ class AdminCategoryServiceImplTest {
     }
 
     @Test
+    @DisplayName("소분류 등록 실패 - 같은 대분류 안 정렬 번호 중복")
+    void 소분류_등록_실패_같은대분류정렬번호중복() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        AdminCategoryRequestDto request = request("스킨케어", "skincare", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(parentCategoryRepository.findByParentCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(parentCategory));
+        given(parentCategoryRepository.existsBySlugAndDeletedAtIsNull("skincare")).willReturn(false);
+        given(childCategoryRepository.existsBySlugAndDeletedAtIsNull("skincare")).willReturn(false);
+        given(childCategoryRepository.existsByParentCategory_ParentCategoryIdAndSortOrderAndDeletedAtIsNull(1L, 1))
+                .willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminCategoryService.createChildCategory(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        verify(childCategoryRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("소분류 등록 실패 - 부모 카테고리 없음")
     void 소분류_등록_실패_부모카테고리없음() {
         // given
@@ -336,6 +421,51 @@ class AdminCategoryServiceImplTest {
         assertThat(childCategory.getParentCategory()).isEqualTo(parentCategory);
         assertThat(childCategory.getSlug()).isEqualTo("basic-cosmetic");
         assertThat(childCategory.getIsActive()).isZero();
+    }
+
+    @Test
+    @DisplayName("소분류 수정 성공 - 기존 정렬 번호 유지")
+    void 소분류_수정_성공_기존정렬번호유지() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        ChildCategory childCategory = childCategory(1L, parentCategory, "스킨케어", "skincare", 1, 1);
+        AdminCategoryRequestDto request = request("스킨케어", "skincare", 1, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(childCategoryRepository.findByChildCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(childCategory));
+        given(childCategoryRepository.existsByParentCategory_ParentCategoryIdAndSortOrderAndChildCategoryIdNotAndDeletedAtIsNull(
+                1L, 1, 1L)).willReturn(false);
+
+        // when
+        ChildCategoryResponseDto result = adminCategoryService.updateChildCategory(adminInfo, 1L, request);
+
+        // then
+        assertThat(result.getCategoryName()).isEqualTo("스킨케어");
+        assertThat(childCategory.getSortOrder()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("소분류 수정 실패 - 같은 대분류 안 정렬 번호 중복")
+    void 소분류_수정_실패_같은대분류정렬번호중복() {
+        // given
+        AdminJwtUserInfoDto adminInfo = superAdminInfo();
+        ParentCategory parentCategory = parentCategory(1L, "뷰티", "beauty", 1, 1);
+        ChildCategory childCategory = childCategory(1L, parentCategory, "스킨케어", "skincare", 1, 1);
+        AdminCategoryRequestDto request = request("스킨케어", "skincare", 2, 1);
+
+        given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
+        given(childCategoryRepository.findByChildCategoryIdAndDeletedAtIsNull(1L))
+                .willReturn(Optional.of(childCategory));
+        given(childCategoryRepository.existsByParentCategory_ParentCategoryIdAndSortOrderAndChildCategoryIdNotAndDeletedAtIsNull(
+                1L, 2, 1L)).willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> adminCategoryService.updateChildCategory(adminInfo, 1L, request))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CATEGORY_SORT_ORDER_DUPLICATED);
+        assertThat(childCategory.getSortOrder()).isEqualTo(1);
     }
 
     @Test

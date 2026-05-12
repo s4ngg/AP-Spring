@@ -28,4 +28,10 @@ public interface ChildCategoryRepository extends JpaRepository<ChildCategory, Lo
     Optional<ChildCategory> findByChildCategoryIdAndDeletedAtIsNull(Long childCategoryId);
 
     boolean existsBySlugAndDeletedAtIsNull(String slug);
+
+    boolean existsByParentCategory_ParentCategoryIdAndSortOrderAndDeletedAtIsNull(
+            Long parentCategoryId, Integer sortOrder);
+
+    boolean existsByParentCategory_ParentCategoryIdAndSortOrderAndChildCategoryIdNotAndDeletedAtIsNull(
+            Long parentCategoryId, Integer sortOrder, Long childCategoryId);
 }

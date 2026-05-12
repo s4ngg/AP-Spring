@@ -111,6 +111,7 @@ public enum ErrorCode {
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", "존재하지 않는 카테고리입니다."),
     CATEGORY_SLUG_DUPLICATED(HttpStatus.CONFLICT, "CATEGORY_SLUG_DUPLICATED", "이미 사용 중인 카테고리 URL입니다."),
+    CATEGORY_SORT_ORDER_DUPLICATED(HttpStatus.CONFLICT, "CATEGORY_SORT_ORDER_DUPLICATED", "이미 사용 중인 정렬 번호입니다."),
 
     // image
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_UPLOAD_FAILED", "이미지 업로드에 실패했습니다."),
