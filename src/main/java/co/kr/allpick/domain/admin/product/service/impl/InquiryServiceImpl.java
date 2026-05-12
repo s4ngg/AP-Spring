@@ -100,7 +100,7 @@ public class InquiryServiceImpl implements InquiryService {
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getMyInquiries(Long memberId) {
-        return inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId)
+        return inquiryRepository.findByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(memberId)
                 .stream()
                 .map(inquiry -> InquiryResponseDto.from(
                         inquiry,
@@ -115,7 +115,7 @@ public class InquiryServiceImpl implements InquiryService {
     @Override
     @Transactional(readOnly = true)
     public List<InquiryResponseDto> getAllInquiries() {
-        return inquiryRepository.findAllByDeletedAtIsNull()
+        return inquiryRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()
                 .stream()
                 .map(inquiry -> InquiryResponseDto.from(
                         inquiry,
@@ -138,7 +138,7 @@ public class InquiryServiceImpl implements InquiryService {
                 .map(Product::getProductId)
                 .toList();
 
-        return inquiryRepository.findByProductIdInAndDeletedAtIsNull(productIds)
+        return inquiryRepository.findByProductIdInAndDeletedAtIsNullOrderByCreatedAtDesc(productIds)
                 .stream()
                 .map(inquiry -> InquiryResponseDto.from(
                         inquiry,
