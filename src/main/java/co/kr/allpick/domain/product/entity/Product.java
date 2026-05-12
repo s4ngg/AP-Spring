@@ -51,8 +51,8 @@ public class Product extends BaseEntity {
     private Seller seller;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_category_id", nullable = false)
-    private ParentCategory parentCategory;
+    @JoinColumn(name = "child_category_id", nullable = false)
+    private ChildCategory childCategory;
 
     @BatchSize(size = 100)
     @Builder.Default

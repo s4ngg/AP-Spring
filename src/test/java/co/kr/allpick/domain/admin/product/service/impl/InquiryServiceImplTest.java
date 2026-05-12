@@ -194,7 +194,7 @@ class InquiryServiceImplTest {
                 .content("결제 관련 내용")
                 .build();
 
-        when(inquiryRepository.findByMemberIdAndDeletedAtIsNull(memberId))
+        when(inquiryRepository.findByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(memberId))
                 .thenReturn(List.of(mockInquiry1, mockInquiry2));
         when(inquiryAnswerRepository.findByInquiryId(any())).thenReturn(List.of());
 
@@ -218,7 +218,7 @@ class InquiryServiceImplTest {
                 .content("기타 내용")
                 .build();
 
-        when(inquiryRepository.findAllByDeletedAtIsNull()).thenReturn(List.of(mockInquiry));
+        when(inquiryRepository.findAllByDeletedAtIsNullOrderByCreatedAtDesc()).thenReturn(List.of(mockInquiry));
         when(inquiryAnswerRepository.findByInquiryId(any())).thenReturn(List.of());
 
         // when

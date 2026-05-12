@@ -16,9 +16,9 @@ import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
 import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
-import co.kr.allpick.domain.product.entity.ParentCategory;
+import co.kr.allpick.domain.product.entity.ChildCategory;
 import co.kr.allpick.domain.product.entity.Product;
-import co.kr.allpick.domain.product.repository.ParentCategoryRepository;
+import co.kr.allpick.domain.product.repository.ChildCategoryRepository;
 import co.kr.allpick.domain.product.repository.ProductRepository;
 import co.kr.allpick.domain.product.service.ProductService;
 import co.kr.allpick.domain.review.dto.ReviewResponseDto;
@@ -37,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     private static final Logger logger = LogManager.getLogger(ProductServiceImpl.class);
 
     private final ProductRepository productRepository;
-    private final ParentCategoryRepository parentCategoryRepository;
+    private final ChildCategoryRepository childCategoryRepository;
     private final ReviewRepository reviewRepository;
     private final SellerRepository sellerRepository;
 
@@ -45,12 +45,12 @@ public class ProductServiceImpl implements ProductService {
     public ProductSaveResponseDto createProduct(Long memberId, ProductSaveRequestDto reqDto) {
         Seller seller = sellerRepository.findWithMemberByMemberId(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
-        ParentCategory parentCategory = parentCategoryRepository.findById(reqDto.getCategoryId())
+        ChildCategory childCategory = childCategoryRepository.findById(reqDto.getCategoryId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
         if (productRepository.existsByProductName(reqDto.getProductName())) {
             throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS);
         }
-        Product product = reqDto.toEntity(seller, parentCategory);
+        Product product = reqDto.toEntity(seller, childCategory);
         productRepository.save(product);
         return ProductSaveResponseDto.from(product);
     }

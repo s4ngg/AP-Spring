@@ -36,8 +36,8 @@ public class SellerProductListResponseDto {
     public static SellerProductListResponseDto from(Product product) {
         return SellerProductListResponseDto.builder()
                 .productId(product.getProductId())
-                .parentCategoryName(product.getParentCategory() != null
-                        ? product.getParentCategory().getCategoryName() : null)
+                .parentCategoryName(product.getChildCategory() != null && product.getChildCategory().getParentCategory() != null
+                        ? product.getChildCategory().getParentCategory().getCategoryName() : null)
                 .brand(product.getBrand())
                 .productName(product.getProductName())
                 .thumbnailUrl(product.getThumbnailUrl())

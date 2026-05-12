@@ -46,8 +46,8 @@ public class AdminProductListResponseDto {
     public static AdminProductListResponseDto from(Product product) {
         return AdminProductListResponseDto.builder()
                 .productId(product.getProductId())
-                .parentCategoryName(product.getParentCategory() != null
-                        ? product.getParentCategory().getCategoryName()
+                .parentCategoryName(product.getChildCategory() != null && product.getChildCategory().getParentCategory() != null
+                        ? product.getChildCategory().getParentCategory().getCategoryName()
                         : null)
                 .brand(product.getBrand())
                 .productName(product.getProductName())

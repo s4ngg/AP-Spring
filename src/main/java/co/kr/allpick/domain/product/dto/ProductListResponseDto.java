@@ -15,8 +15,11 @@ public class ProductListResponseDto {
     @Schema(description = "상품 ID", example = "1")
     private Long productId;
 
-    @Schema(description = "카테고리명", example = "뷰티")
+    @Schema(description = "부모 카테고리명", example = "패션")
     private String parentCategoryName;
+
+    @Schema(description = "자식 카테고리명", example = "신발")
+    private String childCategoryName;
 
     @Schema(description = "브랜드명", example = "나이키")
     private String brand;
@@ -33,8 +36,10 @@ public class ProductListResponseDto {
     public static ProductListResponseDto from(Product product) {
         return ProductListResponseDto.builder()
                 .productId(product.getProductId())
-                .parentCategoryName(product.getParentCategory() !=null
-                        ? product.getParentCategory().getCategoryName() : null)
+                .parentCategoryName(product.getChildCategory() != null && product.getChildCategory().getParentCategory() != null
+                        ? product.getChildCategory().getParentCategory().getCategoryName() : null)
+                .childCategoryName(product.getChildCategory() != null
+                        ? product.getChildCategory().getCategoryName() : null)
                 .brand(product.getBrand())
                 .productName(product.getProductName())
                 .thumbnailUrl(product.getThumbnailUrl())
