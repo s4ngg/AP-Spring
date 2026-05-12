@@ -98,7 +98,6 @@ class SellerApplyServiceImplTest {
         Long memberId = 1L;
         SellerApplyRequestDto dto = createDtoWithBusinessNumber("123-45-67890");
 
-        given(sellerRepository.existsByBusinessNumber(dto.getBusinessNumber())).willReturn(false);
         given(sellerRepository.existsByMemberId(memberId)).willReturn(true);
 
         // when & then
