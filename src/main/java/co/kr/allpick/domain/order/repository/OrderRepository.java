@@ -54,4 +54,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Object[]> sumDeliveredAmountByMemberBetween(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT COALESCE(SUM(o.totalAmount), 0)
+            FROM Order o
+            WHERE o.member.id = :memberId
+              AND o.orderedAt >= :start
+              AND o.orderedAt < :end
+              AND o.status = co.kr.allpick.domain.order.entity.Order.OrderStatus.PAID
+            """)
+    BigDecimal sumPaidAmountByMemberBetween(
+            @Param("memberId") Long memberId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 }

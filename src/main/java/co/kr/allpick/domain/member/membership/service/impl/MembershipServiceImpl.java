@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import co.kr.allpick.domain.member.entity.Member;
 import co.kr.allpick.domain.member.entity.MemberGrade;
 import co.kr.allpick.domain.member.membership.dto.MembershipHistoryResponseDto;
+import co.kr.allpick.domain.member.membership.dto.MembershipStatusResponseDto;
 import co.kr.allpick.domain.member.membership.entity.MembershipHistory;
 import co.kr.allpick.domain.member.membership.repository.MembershipHistoryRepository;
 import co.kr.allpick.domain.member.membership.service.MembershipService;
@@ -86,7 +87,42 @@ public class MembershipServiceImpl implements MembershipService {
                 .collect(Collectors.toList());
     }
 
-    // ── private 헬퍼 ──────────────────────────────────────────
+    @Override
+    @Transactional(readOnly = true)
+    public MembershipStatusResponseDto getMembershipStatus(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        YearMonth thisMonth = YearMonth.now();
+        LocalDateTime start = thisMonth.atDay(1).atStartOfDay();
+        LocalDateTime end = thisMonth.atEndOfMonth().plusDays(1).atStartOfDay();
+
+        long thisMonthAmount = orderRepository.sumPaidAmountByMemberBetween(memberId, start, end)
+                .longValue();
+
+        MemberGrade currentGrade = member.getGrade();
+        MemberGrade predictedGrade = MemberGrade.from(thisMonthAmount);
+
+        MemberGrade nextGrade = null;
+        long amountToNextGrade = 0;
+        for (MemberGrade grade : MemberGrade.values()) {
+            if (grade.getMinAmount() > thisMonthAmount) {
+                nextGrade = grade;
+                amountToNextGrade = grade.getMinAmount() - thisMonthAmount;
+                break;
+            }
+        }
+
+        logger.info("멤버십 현황 조회 - memberId: {}, 이번달구매: {}", memberId, thisMonthAmount);
+
+        return MembershipStatusResponseDto.builder()
+                .currentGrade(currentGrade.name())
+                .thisMonthAmount(thisMonthAmount)
+                .predictedGrade(predictedGrade.name())
+                .nextGrade(nextGrade != null ? nextGrade.name() : null)
+                .amountToNextGrade(amountToNextGrade)
+                .build();
+    }
 
     private Map<Long, BigDecimal> getLastMonthAmountByMember(YearMonth lastMonth) {
         LocalDateTime start = lastMonth.atDay(1).atStartOfDay();
@@ -96,9 +132,9 @@ public class MembershipServiceImpl implements MembershipService {
 
         Map<Long, BigDecimal> amountMap = new HashMap<>();
         for (Object[] row : results) {
-            Long memberId = (Long) row[0];
+            Long id = (Long) row[0];
             BigDecimal amount = new BigDecimal(row[1].toString());
-            amountMap.put(memberId, amount);
+            amountMap.put(id, amount);
         }
         return amountMap;
     }
