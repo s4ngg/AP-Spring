@@ -7,7 +7,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.domain.seller.dto.SellerOrderResponseDto;
 import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.entity.SellerStatus;
@@ -26,6 +28,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
 
     private final SellerRepository sellerRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     public List<SellerOrderResponseDto> getSellerOrders(Long memberId) {
@@ -38,6 +41,27 @@ public class SellerOrderServiceImpl implements SellerOrderService {
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public void updateOrderStatus(Long memberId, Long orderId, Order.OrderStatus newStatus) {
+        Seller seller = getApprovedSeller(memberId);
+
+        // 권한 + 존재 여부를 DB 한 번에 검증 (enumeration 방지를 위해 동일 응답 사용)
+        if (!orderItemRepository.existsByOrderIdAndSellerId(orderId, seller.getSellerId())) {
+            throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+
+        Order.OrderStatus before = order.getStatus();
+        validateStatusTransition(before, newStatus);
+        order.updateStatus(newStatus);
+
+        logger.info("[SellerOrderServiceImpl] 주문 상태 변경 - sellerId: {}, orderId: {}, {} -> {}",
+                seller.getSellerId(), orderId, before, newStatus);
+    }
+
     private Seller getApprovedSeller(Long memberId) {
         Seller seller = sellerRepository.findByMemberIdAndDeletedAtIsNull(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_SELLER));
@@ -47,5 +71,22 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         }
 
         return seller;
+    }
+
+    private void validateStatusTransition(Order.OrderStatus current, Order.OrderStatus next) {
+        if (next == Order.OrderStatus.SHIPPING) {
+            if (current != Order.OrderStatus.PAID) {
+                throw new BusinessException(ErrorCode.ORDER_CANNOT_SHIP);
+            }
+            return;
+        }
+        if (next == Order.OrderStatus.DELIVERED) {
+            if (current != Order.OrderStatus.SHIPPING) {
+                throw new BusinessException(ErrorCode.ORDER_CANNOT_DELIVER);
+            }
+            return;
+        }
+        // SHIPPING, DELIVERED 외 상태로의 전이는 판매자가 트리거할 수 없음
+        throw new BusinessException(ErrorCode.INVALID_INPUT);
     }
 }
