@@ -2,6 +2,7 @@ package co.kr.allpick.domain.seller.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -24,6 +25,7 @@ import co.kr.allpick.domain.order.entity.DeliveryAddress;
 import co.kr.allpick.domain.order.entity.Order;
 import co.kr.allpick.domain.order.entity.OrderItem;
 import co.kr.allpick.domain.order.repository.OrderItemRepository;
+import co.kr.allpick.domain.order.repository.OrderRepository;
 import co.kr.allpick.domain.product.entity.Product;
 import co.kr.allpick.domain.seller.dto.SellerOrderResponseDto;
 import co.kr.allpick.domain.seller.entity.Seller;
@@ -40,6 +42,9 @@ class SellerOrderServiceImplTest {
 
     @Mock
     private OrderItemRepository orderItemRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @InjectMocks
     private SellerOrderServiceImpl sellerOrderService;
@@ -126,6 +131,215 @@ class SellerOrderServiceImplTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
 
         verify(orderItemRepository, never()).findSellerOrderItems(eq(seller.getSellerId()));
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 성공 - PAID → SHIPPING")
+    void updateOrderStatus_success_paidToShipping() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.PAID).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when
+        sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING);
+
+        // then
+        assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.SHIPPING);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 성공 - SHIPPING → DELIVERED")
+    void updateOrderStatus_success_shippingToDelivered() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.SHIPPING).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when
+        sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.DELIVERED);
+
+        // then
+        assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.DELIVERED);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - 판매자 아님")
+    void updateOrderStatus_fail_notSeller() {
+        // given
+        Long memberId = 1L;
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, 100L, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOT_SELLER);
+
+        verify(orderItemRepository, never()).existsByOrderIdAndSellerId(any(), any());
+        verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - 미승인 판매자")
+    void updateOrderStatus_fail_notApprovedSeller() {
+        // given
+        Long memberId = 1L;
+        Seller pendingSeller = seller(SellerStatus.PENDING);
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(pendingSeller));
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, 100L, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SELLER_NOT_APPROVED);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - 본인 주문 아니거나 존재하지 않음 (ORDER_NOT_FOUND로 통일)")
+    void updateOrderStatus_fail_orderNotFoundOrNotOwned() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(false);
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_NOT_FOUND);
+
+        verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - 여러 판매자 상품이 섞인 주문")
+    void updateOrderStatus_fail_mixedSellerOrder() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(2L);
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ORDER);
+
+        verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - PENDING → SHIPPING (잘못된 전이)")
+    void updateOrderStatus_fail_pendingToShipping() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.PENDING).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_CANNOT_SHIP);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - PAID → DELIVERED (배송 단계 건너뜀)")
+    void updateOrderStatus_fail_paidToDelivered() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.PAID).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.DELIVERED))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_CANNOT_DELIVER);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - CANCELLED 주문에서 SHIPPING 시도")
+    void updateOrderStatus_fail_cancelledToShipping() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.CANCELLED).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ORDER_CANNOT_SHIP);
+    }
+
+    @Test
+    @DisplayName("주문 상태 변경 실패 - 판매자가 트리거할 수 없는 상태(PAID/CANCELLED)로 전이 시도")
+    void updateOrderStatus_fail_disallowedTargetStatus() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+        Order order = orderItem(Order.OrderStatus.PAID).getOrder();
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
+        given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.CANCELLED))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.INVALID_INPUT);
     }
 
     private Seller seller(SellerStatus status) {
