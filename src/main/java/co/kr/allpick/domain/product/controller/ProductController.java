@@ -45,7 +45,7 @@ public class ProductController implements ProductControllerDocs{
 	@PostMapping
 	public ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(
 			@AuthenticationPrincipal JwtUserInfoDto userInfo,
-			@RequestBody ProductSaveRequestDto productSaveRequestDto) {
+			@RequestBody @Valid ProductSaveRequestDto productSaveRequestDto) {
 		return ApiResponse.success("상품을 생성했습니다", productService.createProduct(userInfo.getMemberId(), productSaveRequestDto));
 	} 
 	
