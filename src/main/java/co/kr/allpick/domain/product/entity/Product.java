@@ -52,13 +52,6 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "child_category_id", nullable = false)
     private ChildCategory childCategory;
 
-    @Column(name = "parent_category_id", nullable = false)
-    private Long parentCategoryId;
-    
-    public void assignParentCategory(Long parentCategoryId) {
-        this.parentCategoryId = parentCategoryId;
-    }
-    
     @BatchSize(size = 100)
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
@@ -117,7 +110,7 @@ public class Product extends BaseEntity {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
             throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
         }
-        this.approvalStatus = ApprovalStatus.REJECTED;
+        this.approvalStatus = ApprovalStatus.SUSPENDED;
     }
 
     public void update(ProductUpdateRequestDto reqDto) {
@@ -158,14 +151,13 @@ public class Product extends BaseEntity {
     @Override
     public void delete() {
         super.delete();
-        this.status = Status.DELETED;
     }
 
     public enum Status {
-        ON_SALE, SOLD_OUT, HIDDEN, DELETED
+        ON_SALE, SOLD_OUT, HIDDEN
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, REJECTED
+        PENDING, APPROVED, SUSPENDED
     }
 }

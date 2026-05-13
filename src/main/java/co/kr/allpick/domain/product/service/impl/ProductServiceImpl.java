@@ -54,7 +54,6 @@ public class ProductServiceImpl implements ProductService {
             throw new BusinessException(ErrorCode.PRODUCT_ALREADY_EXISTS);
         }
         Product product = reqDto.toEntity(seller, childCategory);
-        product.assignParentCategory(childCategory.getParentCategory().getParentCategoryId());
         productRepository.save(product);
         return ProductSaveResponseDto.from(product);
     }

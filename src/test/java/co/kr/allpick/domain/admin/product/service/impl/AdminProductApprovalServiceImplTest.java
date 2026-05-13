@@ -101,7 +101,7 @@ class AdminProductApprovalServiceImplTest {
         ProductApprovalResponseDto result = adminProductApprovalService.rejectProduct(adminInfo, 1L, request);
 
         // then
-        assertThat(product.getApprovalStatus()).isEqualTo(Product.ApprovalStatus.REJECTED);
+        assertThat(product.getApprovalStatus()).isEqualTo(Product.ApprovalStatus.SUSPENDED);
         assertThat(result.getStatus()).isEqualTo(ProductApproval.ApprovalStatus.REJECTED);
         assertThat(result.getRequestType()).isEqualTo(ProductApproval.RequestType.REGISTER);
         assertThat(result.getRejectReason()).isEqualTo("상품 설명 보완 필요");
@@ -235,7 +235,7 @@ class AdminProductApprovalServiceImplTest {
         AdminJwtUserInfoDto adminInfo = superAdminInfo();
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
-                .willReturn(Optional.of(product(Product.ApprovalStatus.REJECTED)));
+                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.approveProduct(adminInfo, 1L))
@@ -399,7 +399,7 @@ class AdminProductApprovalServiceImplTest {
 
         given(adminRepository.findById(adminInfo.getAdminId())).willReturn(Optional.of(superAdmin()));
         given(productRepository.findByProductIdAndDeletedAtIsNull(1L))
-                .willReturn(Optional.of(product(Product.ApprovalStatus.REJECTED)));
+                .willReturn(Optional.of(product(Product.ApprovalStatus.SUSPENDED)));
 
         // when & then
         assertThatThrownBy(() -> adminProductApprovalService.rejectProduct(adminInfo, 1L, request))

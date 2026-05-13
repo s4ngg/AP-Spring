@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.UUID;
+import software.amazon.awssdk.core.exception.SdkException;
 
 @Component
 @RequiredArgsConstructor
@@ -51,8 +52,8 @@ public class S3Uploader {
             logger.info("S3 이미지 업로드 완료 - url: {}", url);
             return url;
 
-        } catch (IOException e) {
-            logger.error("S3 이미지 업로드 실패 - fileName: {}", fileName);
+        } catch (IOException | SdkException e) {
+            logger.error("S3 이미지 업로드 실패 - fileName: {}, error: {}", fileName, e.getMessage());
             throw new BusinessException(ErrorCode.S3_UPLOAD_FAILED);
         }
     }
