@@ -6,6 +6,7 @@ import co.kr.allpick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -24,6 +25,9 @@ public class S3Uploader {
 
     private final S3Client s3Client;
     private final S3Properties s3Properties;
+
+    @Value("${spring.cloud.aws.s3.region}")
+    private String region;
 
     /**
      * 이미지 업로드
@@ -97,7 +101,7 @@ public class S3Uploader {
 
     private String buildUrl(String fileName) {
         return "https://" + s3Properties.getImageBucket()
-                + ".s3.amazonaws.com/" + fileName;
+                + ".s3." + region + ".amazonaws.com/" + fileName;
     }
 
     private String extractFileName(String imageUrl) {
