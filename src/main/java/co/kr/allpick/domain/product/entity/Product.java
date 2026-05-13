@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import co.kr.allpick.domain.product.dto.ProductImageRequestDto;
+import co.kr.allpick.domain.product.dto.ProductOptionRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.seller.entity.Seller;
 import org.hibernate.annotations.BatchSize;
@@ -110,7 +112,7 @@ public class Product extends BaseEntity {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
             throw new BusinessException(ErrorCode.APPROVAL_NOT_PENDING);
         }
-        this.approvalStatus = ApprovalStatus.SUSPENDED;
+        this.approvalStatus = ApprovalStatus.REJECTED;
     }
 
     public void update(ProductUpdateRequestDto reqDto) {
@@ -151,13 +153,14 @@ public class Product extends BaseEntity {
     @Override
     public void delete() {
         super.delete();
+        this.status = Status.DELETED;
     }
 
     public enum Status {
-        ON_SALE, SOLD_OUT, HIDDEN
+        ON_SALE, SOLD_OUT, HIDDEN, DELETED
     }
 
     public enum ApprovalStatus {
-        PENDING, APPROVED, SUSPENDED
+        PENDING, APPROVED, REJECTED
     }
 }

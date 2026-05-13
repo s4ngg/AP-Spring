@@ -278,7 +278,7 @@ class ProductServiceImplTest {
                 .price(new BigDecimal("20000"))
                 .childCategory(category)
                 .thumbnailUrl("https://allpick.com/rejected.jpg")
-                .approvalStatus(Product.ApprovalStatus.SUSPENDED)
+                .approvalStatus(Product.ApprovalStatus.REJECTED)
                 .build();
 
         given(sellerRepository.findWithMemberByMemberId(memberId)).willReturn(Optional.of(seller));
@@ -290,7 +290,7 @@ class ProductServiceImplTest {
         assertThat(result).hasSize(2);
         assertThat(result)
                 .extracting(SellerProductListResponseDto::getApprovalStatus)
-                .containsExactly(Product.ApprovalStatus.PENDING, Product.ApprovalStatus.SUSPENDED);
+                .containsExactly(Product.ApprovalStatus.PENDING, Product.ApprovalStatus.REJECTED);
     }
 
     @Test
@@ -340,14 +340,14 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("상품 수정 실패 - 정지 상태")
-    void 상품_수정_실패_정지상태() {
+    @DisplayName("상품 수정 실패 - 거절 상태")
+    void 상품_수정_실패_거절상태() {
         Long memberId = 1L;
         Long productId = 1L;
         Product product = Product.builder()
                 .productId(productId)
                 .price(new BigDecimal("10000"))
-                .approvalStatus(Product.ApprovalStatus.SUSPENDED)
+                .approvalStatus(Product.ApprovalStatus.REJECTED)
                 .build();
         ProductUpdateRequestDto request = ProductUpdateRequestDto.builder()
                 .price(new BigDecimal("15000"))
