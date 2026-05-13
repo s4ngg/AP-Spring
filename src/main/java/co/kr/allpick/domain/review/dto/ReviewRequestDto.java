@@ -29,7 +29,7 @@ public class ReviewRequestDto {
     
     private String content;
     
-    @NotBlank @Schema(description = "선택한 옵션값", example = "1", requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "선택한 옵션값", example = "270")
     private String selectedOption; 
 }
 
