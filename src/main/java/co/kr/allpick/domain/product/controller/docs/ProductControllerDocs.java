@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
 
 import java.util.List;
 
@@ -31,7 +32,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-
+import org.springframework.web.multipart.MultipartFile;
 @Tag(name = "Product", description = "상품 관련 API")
 public interface ProductControllerDocs {
 
@@ -52,6 +53,10 @@ public interface ProductControllerDocs {
 	ResponseEntity<ApiResponse<ProductSaveResponseDto>> createProduct(@AuthenticationPrincipal JwtUserInfoDto userInfo,
 			@RequestBody @Valid ProductSaveRequestDto productSaveRequestDto);
 
+	
+	@PostMapping("/images")
+	ResponseEntity<ApiResponse<String>> uploadImage(
+	    @RequestPart("image") MultipartFile image);
 	@Operation(summary = "상품 목록 조회", description = "판매 중이고 승인된 상품 목록을 페이징으로 조회합니다. 삭제된 상품은 제외됩니다.")
 	@ApiResponses({
 			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공", content = @Content(examples = @ExampleObject(value = """

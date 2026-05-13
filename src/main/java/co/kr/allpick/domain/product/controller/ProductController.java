@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
+
 import co.kr.allpick.domain.product.controller.docs.ProductControllerDocs;
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
@@ -52,7 +55,6 @@ public class ProductController implements ProductControllerDocs{
 			@ParameterObject @PageableDefault(size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 		return ApiResponse.success("상품 목록을 조회합니다.", productService.getProductList(pageable));
 	}
-
 	@Override
 	@GetMapping("/{productId}")
 	public ResponseEntity<ApiResponse<ProductDetailResponseDto>> getProductDetail (
@@ -68,6 +70,13 @@ public class ProductController implements ProductControllerDocs{
 			@PathVariable("productId") Long productId,
 			@RequestBody @Valid ProductUpdateRequestDto productUpdateRequestDto) {
 		return ApiResponse.success("상품을 수정했습니다.", productService.updateProduct(userInfo.getMemberId(),productId, productUpdateRequestDto));
+	}
+	@Override
+	@PostMapping("/images")
+	public ResponseEntity<ApiResponse<String>> uploadImage(
+	    @RequestPart("image") MultipartFile image) {
+	    String url = productService.uploadImage(image);
+	    return ApiResponse.success("이미지 업로드 성공", url);
 	}
 	@Override 
 	@DeleteMapping("/{productId}")
@@ -85,6 +94,9 @@ public class ProductController implements ProductControllerDocs{
 	    return ApiResponse.success("판매자 상품 목록 조회 성공",
 	            productService.getSellerProducts(userInfo.getMemberId()));
 	}
+	
+
+	
 }
   
  

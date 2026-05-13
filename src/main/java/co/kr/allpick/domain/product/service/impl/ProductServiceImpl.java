@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import co.kr.allpick.domain.product.dto.ProductDetailResponseDto;
 import co.kr.allpick.domain.product.dto.ProductListResponseDto;
@@ -27,6 +28,7 @@ import co.kr.allpick.domain.seller.entity.Seller;
 import co.kr.allpick.domain.seller.repository.SellerRepository;
 import co.kr.allpick.global.exception.BusinessException;
 import co.kr.allpick.global.exception.ErrorCode;
+import co.kr.allpick.global.util.S3Uploader;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -35,7 +37,8 @@ import lombok.RequiredArgsConstructor;
 public class ProductServiceImpl implements ProductService {
 
     private static final Logger logger = LogManager.getLogger(ProductServiceImpl.class);
-
+    private final S3Uploader s3Uploader;
+    
     private final ProductRepository productRepository;
     private final ChildCategoryRepository childCategoryRepository;
     private final ReviewRepository reviewRepository;
@@ -73,6 +76,10 @@ public class ProductServiceImpl implements ProductService {
         return ProductUpdateResponseDto.from(product);
     }
 
+    @Override
+    public String uploadImage(MultipartFile image) {
+        return s3Uploader.upload(image, "products");
+    }
     @Transactional(readOnly = true)
     @Override
     public Page<ProductListResponseDto> getProductList(Pageable pageable) {
