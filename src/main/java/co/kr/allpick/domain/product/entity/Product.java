@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.kr.allpick.domain.product.dto.ProductImageRequestDto;
-import co.kr.allpick.domain.product.dto.ProductOptionRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.seller.entity.Seller;
 import org.hibernate.annotations.BatchSize;
@@ -54,6 +52,13 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "child_category_id", nullable = false)
     private ChildCategory childCategory;
 
+    @Column(name = "parent_category_id", nullable = false)
+    private Long parentCategoryId;
+    
+    public void assignParentCategory(Long parentCategoryId) {
+        this.parentCategoryId = parentCategoryId;
+    }
+    
     @BatchSize(size = 100)
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)

@@ -13,7 +13,7 @@ import co.kr.allpick.domain.product.dto.ProductSaveResponseDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateRequestDto;
 import co.kr.allpick.domain.product.dto.ProductUpdateResponseDto;
 import co.kr.allpick.domain.product.dto.SellerProductListResponseDto;
-
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ProductService {
 	// 상품 생성 메서드
@@ -33,4 +33,6 @@ public interface ProductService {
 	void deleteProduct(Long memberId ,Long productId);
 	
 	List<SellerProductListResponseDto> getSellerProducts(Long memberId);
+	
+	String uploadImage(MultipartFile image);
 }
