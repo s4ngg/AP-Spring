@@ -97,7 +97,7 @@ public class S3Uploader {
 
     private String buildUrl(String fileName) {
         return "https://" + s3Properties.getImageBucket()
-                + ".s3.amazonaws.com/" + fileName;
+                + ".s3." + s3Properties.getRegion() + ".amazonaws.com/" + fileName;
     }
 
     private String extractFileName(String imageUrl) {

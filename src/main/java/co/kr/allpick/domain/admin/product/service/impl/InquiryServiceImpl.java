@@ -121,7 +121,8 @@ public class InquiryServiceImpl implements InquiryService {
                         inquiry,
                         inquiryAnswerRepository.findByInquiryId(inquiry.getInquiryId())
                                 .stream().map(InquiryAnswerResponseDto::from).toList(),
-                        List.of()
+                        attachmentRepository.findByInquiryIdAndDeletedAtIsNull(inquiry.getInquiryId())
+                                .stream().map(AttachmentResponseDto::from).toList()
                 ))
                 .toList();
     }
@@ -144,7 +145,8 @@ public class InquiryServiceImpl implements InquiryService {
                         inquiry,
                         inquiryAnswerRepository.findByInquiryId(inquiry.getInquiryId())
                                 .stream().map(InquiryAnswerResponseDto::from).toList(),
-                        List.of()
+                        attachmentRepository.findByInquiryIdAndDeletedAtIsNull(inquiry.getInquiryId())
+                                .stream().map(AttachmentResponseDto::from).toList()
                 ))
                 .toList();
     }
