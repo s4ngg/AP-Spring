@@ -51,7 +51,7 @@ public class CartItemController implements CartItemControllerDocs {
 	}
 	@DeleteMapping("/selected")
 	public ResponseEntity<ApiResponse<Void>> deleteSelectedCartItems(
-			@RequestBody CartItemDeleteRequestDto deleteDto ){
+			@RequestBody @Valid CartItemDeleteRequestDto deleteDto ){
 		cartService.deleteSeletedCartItems(deleteDto.getCartItemIds());
 		return ApiResponse.success("선택한 상품을 제거했습니다.");
 	} 
