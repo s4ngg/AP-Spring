@@ -59,4 +59,13 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
               AND oi.product.seller.sellerId = :sellerId
             """)
     boolean existsByOrderIdAndSellerId(@Param("orderId") Long orderId, @Param("sellerId") Long sellerId);
+
+    @Query("""
+            SELECT COUNT(DISTINCT s.sellerId)
+            FROM OrderItem oi
+            JOIN oi.product p
+            JOIN p.seller s
+            WHERE oi.order.orderId = :orderId
+            """)
+    long countDistinctSellersByOrderId(@Param("orderId") Long orderId);
 }

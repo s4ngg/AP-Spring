@@ -146,6 +146,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when
@@ -168,6 +169,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when
@@ -231,6 +233,28 @@ class SellerOrderServiceImplTest {
     }
 
     @Test
+    @DisplayName("주문 상태 변경 실패 - 여러 판매자 상품이 섞인 주문")
+    void updateOrderStatus_fail_mixedSellerOrder() {
+        // given
+        Long memberId = 1L;
+        Long orderId = 100L;
+        Seller seller = seller(SellerStatus.APPROVED);
+
+        given(sellerRepository.findByMemberIdAndDeletedAtIsNull(eq(memberId)))
+                .willReturn(Optional.of(seller));
+        given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
+                .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(2L);
+
+        // when & then
+        assertThatThrownBy(() -> sellerOrderService.updateOrderStatus(memberId, orderId, Order.OrderStatus.SHIPPING))
+                .isInstanceOf(BusinessException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.UNAUTHORIZED_ORDER);
+
+        verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
     @DisplayName("주문 상태 변경 실패 - PENDING → SHIPPING (잘못된 전이)")
     void updateOrderStatus_fail_pendingToShipping() {
         // given
@@ -243,6 +267,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when & then
@@ -264,6 +289,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when & then
@@ -285,6 +311,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when & then
@@ -306,6 +333,7 @@ class SellerOrderServiceImplTest {
                 .willReturn(Optional.of(seller));
         given(orderItemRepository.existsByOrderIdAndSellerId(eq(orderId), eq(seller.getSellerId())))
                 .willReturn(true);
+        given(orderItemRepository.countDistinctSellersByOrderId(eq(orderId))).willReturn(1L);
         given(orderRepository.findById(eq(orderId))).willReturn(Optional.of(order));
 
         // when & then

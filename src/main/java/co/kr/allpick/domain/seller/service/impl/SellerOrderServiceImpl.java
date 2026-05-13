@@ -50,6 +50,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         if (!orderItemRepository.existsByOrderIdAndSellerId(orderId, seller.getSellerId())) {
             throw new BusinessException(ErrorCode.ORDER_NOT_FOUND);
         }
+        validateSingleSellerOrder(orderId);
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
@@ -71,6 +72,12 @@ public class SellerOrderServiceImpl implements SellerOrderService {
         }
 
         return seller;
+    }
+
+    private void validateSingleSellerOrder(Long orderId) {
+        if (orderItemRepository.countDistinctSellersByOrderId(orderId) > 1) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED_ORDER);
+        }
     }
 
     private void validateStatusTransition(Order.OrderStatus current, Order.OrderStatus next) {
